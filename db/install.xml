@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/videoassessment/db" VERSION="20130627" COMMENT="XMLDB file for Moodle mod/videoassessment"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="videoassessment" COMMENT="Defines videoassessments" NEXT="videoassessment_aggregation">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id"
+               NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="course"
+               NEXT="intro"/>
+        <FIELD NAME="intro" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="introformat"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="intro" NEXT="maxbytes"/>
+        <FIELD NAME="maxbytes" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="100000" SEQUENCE="false"
+               PREVIOUS="introformat" NEXT="timedue"/>
+        <FIELD NAME="timedue" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="maxbytes" NEXT="timeavailable"/>
+        <FIELD NAME="timeavailable" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timedue" NEXT="training"/>
+        <FIELD NAME="training" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timeavailable" NEXT="trainingvideo"/>
+        <FIELD NAME="trainingvideo" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"
+               PREVIOUS="training" NEXT="accepteddifference"/>
+        <FIELD NAME="trainingvideoid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"
+               PREVIOUS="trainingvideo" NEXT="trainingdesc"/>
+        <FIELD NAME="trainingdesc" TYPE="text" NOTNULL="false" SEQUENCE="false"
+               PREVIOUS="trainingvideoid" NEXT="accepteddifference"/>
+        <FIELD NAME="accepteddifference" TYPE="int" LENGTH="3" NOTNULL="false" SEQUENCE="false"
+               PREVIOUS="trainingvideoid" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="accepteddifference" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="grade" NEXT="ratingteacher"/>
+        <FIELD NAME="ratingteacher" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timemodified" NEXT="ratingself"/>
+        <FIELD NAME="ratingself" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="ratingteacher" NEXT="ratingpeer"/>
+        <FIELD NAME="ratingpeer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="ratingself" NEXT="ratingclass"/>
+        <FIELD NAME="ratingclass" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="ratingpeer" NEXT="class"/>
+        <FIELD NAME="class" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="ratingclass" NEXT="usedpeers"/>
+        <FIELD NAME="usedpeers" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="ratingpeer" NEXT="beforelabel"/>
+        <FIELD NAME="beforelabel" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" PREVIOUS="usedpeers"
+               NEXT="afterlabel"/>
+        <FIELD NAME="afterlabel" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" PREVIOUS="beforelabel"
+               NEXT="delayedteachergrade"/>
+        <FIELD NAME="delayedteachergrade" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="afterlabel" NEXT="allowstudentupload"/>
+        <FIELD NAME="allowstudentupload" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="delayedteachergrade" NEXT="allowstudentpeerselection"/>
+        <FIELD NAME="allowstudentpeerselection" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="allowstudentupload" NEXT="sort"/>
+        <FIELD NAME="sort" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="allowstudentpeerselection" NEXT="order"/>
+        <FIELD NAME="order" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="sort" NEXT="isregisteredemail"/>
+
+        <FIELD NAME="isregisteredemail" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="order" NEXT="ismobilequickmail"/>
+        <FIELD NAME="ismobilequickmail" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isregisteredemail" NEXT="teachercommentnotification"/>
+        <FIELD NAME="teachercommentnotification" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="ismobilequickmail" NEXT="isfirstassessmentbyteacher"/>
+        <FIELD NAME="isfirstassessmentbyteacher" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="teachercommentnotification" NEXT="isadditionalassessment"/>
+        <FIELD NAME="isadditionalassessment" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isfirstassessmentbyteacher" NEXT="teachernotificationtemplate"/>
+        <FIELD NAME="teachernotificationtemplate" TYPE="text" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="isadditionalassessment" NEXT="peercommentnotification"/>
+        <FIELD NAME="peercommentnotification" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="teachernotificationtemplate" NEXT="isfirstassessmentbystudent"/>
+        <FIELD NAME="isfirstassessmentbystudent" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="peercommentnotification" NEXT="peertnotificationtemplate"/>
+        <FIELD NAME="peertnotificationtemplate" TYPE="text" NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="isfirstassessmentbystudent" NEXT="remindernotification"/>
+        <FIELD NAME="remindernotification" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="peertnotificationtemplate" NEXT="isbeforeduedate"/>
+        <FIELD NAME="isbeforeduedate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="remindernotification" NEXT="isonduedate"/>
+        <FIELD NAME="isonduedate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isbeforeduedate" NEXT="isafterduedate"/>
+        <FIELD NAME="isafterduedate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isonduedate" NEXT="beforeduedate"/>
+        <FIELD NAME="beforeduedate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isafterduedate" NEXT="afterduedate"/>
+        <FIELD NAME="afterduedate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="beforeduedate" NEXT="isnovideouploaded"/>
+        <FIELD NAME="isnovideouploaded" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="afterduedate" NEXT="isnoselcfassessment"/>
+        <FIELD NAME="isnoselcfassessment" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isnovideouploaded" NEXT="isnoselfassessmentwithcomments"/>
+        <FIELD NAME="isnoselfassessmentwithcomments" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isnoselfassessment" NEXT="isnopeerassessment"/>
+        <FIELD NAME="isnopeerassessment" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isnoselfassessmentwithcomments" NEXT="remindernotificationtemplate"/>
+        <FIELD NAME="remindernotificationtemplate" TYPE="text"  NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="isnopeerassessment" NEXT="videonotification"/>
+        <FIELD NAME="videonotification" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="remindernotificationtemplate" NEXT="isfirstupload"/>
+        <FIELD NAME="isfirstupload" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="videonotification" NEXT="iswheneverupload"/>
+        <FIELD NAME="iswheneverupload" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="isfirstupload" NEXT="videonotificationtemplate"/>
+        <FIELD NAME="videonotificationtemplate" TYPE="text"  NOTNULL="false"
+               SEQUENCE="false" PREVIOUS="iswheneverupload" NEXT="nextsendmaildate"/>
+        <FIELD NAME="nextsendmaildate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="videonotificationtemplate" NEXT="sort"/>
+
+
+        <FIELD NAME="fairnessbonus" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="nextsendmaildate" NEXT="bonuspercentage"/>
+        <FIELD NAME="bonuspercentage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="fairnessbonus" NEXT="bonusscale1"/>
+        <FIELD NAME="bonusscale1" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonusscale1" NEXT="bonus1"/>
+        <FIELD NAME="bonus1" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus1" NEXT="bonusscale2"/>
+        <FIELD NAME="bonusscale2" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonusscale2" NEXT="bonus2"/>
+        <FIELD NAME="bonus2" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus2" NEXT="bonusscale3"/>
+        <FIELD NAME="bonusscale3" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonusscale3" NEXT="bonus3"/>
+        <FIELD NAME="bonus3" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus3" NEXT="bonusscale4"/>
+        <FIELD NAME="bonusscale4" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus3" NEXT="bonus4"/>
+        <FIELD NAME="bonus4" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus5" NEXT="bonusscale6"/>
+        <FIELD NAME="bonusscale5" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus4" NEXT="bonus4"/>
+        <FIELD NAME="bonus5" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonusscale5" NEXT="bonusscale6"/>
+        <FIELD NAME="bonusscale6" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus5" NEXT="bonus6"/>
+        <FIELD NAME="bonus6" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonusscale6" NEXT="selffairnessbonus"/>
+
+        <FIELD NAME="selffairnessbonus" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="bonus6" NEXT="selfbonuspercentage"/>
+        <FIELD NAME="selfbonuspercentage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selffairnessbonus" NEXT="selfbonusscale1"/>
+        <FIELD NAME="selfbonusscale1" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonuspercentage" NEXT="selfbonus1"/>
+        <FIELD NAME="selfbonus1" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonusscale1" NEXT="selfbonusscale2"/>
+        <FIELD NAME="selfbonusscale2" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonus1" NEXT="selfbonus2"/>
+        <FIELD NAME="selfbonus2" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonusscale2" NEXT="selfbonusscale3"/>
+        <FIELD NAME="selfbonusscale3" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonus2" NEXT="selfbonus3"/>
+        <FIELD NAME="selfbonus3" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonusscale3" NEXT="selfbonusscale4"/>
+        <FIELD NAME="selfbonusscale4" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonus3" NEXT="selfbonus4"/>
+        <FIELD NAME="selfbonus4" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonusscale4" NEXT="selfbonusscale5"/>
+        <FIELD NAME="selfbonusscale5" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonus4" NEXT="selfbonus5"/>
+        <FIELD NAME="selfbonus5" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonusscale5" NEXT="selfbonusscale6"/>
+        <FIELD NAME="selfbonusscale6" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonus5" NEXT="selfbonus6"/>
+        <FIELD NAME="selfbonus6" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0"
+               SEQUENCE="false" PREVIOUS="selfbonusscale6"/>
+
+
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="course" UNIQUE="false" FIELDS="course"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="videoassessment_aggregation" COMMENT="集計済み評価" PREVIOUS="videoassessment"
+           NEXT="videoassessment_grade_items">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="videoassessment"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="id" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="videoassessment" NEXT="timing"/>
+        <FIELD NAME="timing" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid"
+               NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timing" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timemodified" NEXT="gradebefore"/>
+        <FIELD NAME="gradebefore" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="grade" NEXT="gradeafter"/>
+        <FIELD NAME="gradeafter" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradebefore" NEXT="gradebeforeteacher"/>
+        <FIELD NAME="gradebeforeteacher" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradeafter" NEXT="gradebeforeself"/>
+        <FIELD NAME="gradebeforeself" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradebeforeteacher" NEXT="gradebeforepeer"/>
+        <FIELD NAME="gradebeforepeer" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradebeforeself" NEXT="gradebeforeclass"/>
+        <FIELD NAME="gradebeforeclass" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradebeforepeer" NEXT="gradebeforetraining"/>
+        <FIELD NAME="gradebeforetraining" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradebeforeclass" NEXT="passtraining"/>
+        <FIELD NAME="passtraining" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradebeforetraining" NEXT="gradeafterteacher"/>
+        <FIELD NAME="gradeafterteacher" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="passtraining" NEXT="gradeafterself"/>
+        <FIELD NAME="gradeafterself" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradeafterteacher" NEXT="gradeafterpeer"/>
+        <FIELD NAME="gradeafterpeer" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradeafterself"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="videoassessment"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="videoassessment_grade_items" COMMENT="評定項目" PREVIOUS="videoassessment_aggregation"
+           NEXT="videoassessment_grades">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="videoassessment"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="id" NEXT="type"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="videoassessment"
+               NEXT="gradeduser"/>
+        <FIELD NAME="gradeduser" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="type" NEXT="grader"/>
+        <FIELD NAME="grader" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradeduser" NEXT="usedbypeermarking"/>
+        <FIELD NAME="usedbypeermarking" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="grader"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="videoassessment"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="videoassessment_grades" COMMENT="評定データ" PREVIOUS="videoassessment_grade_items"
+           NEXT="videoassessment_videos">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="videoassessment"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="id" NEXT="gradeitem"/>
+        <FIELD NAME="gradeitem" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="videoassessment" NEXT="timemarked"/>
+        <FIELD NAME="timemarked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="gradeitem" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="11" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timemarked" NEXT="submissioncomment"/>
+        <FIELD NAME="submissioncomment" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="grade"
+               NEXT="mailed"/>
+        <FIELD NAME="mailed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="submissioncomment" NEXT="isnotifystudent"/>
+        <FIELD NAME="isnotifystudent" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="mailed"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="videoassessment"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="videoassessment_videos" COMMENT="ビデオ" PREVIOUS="videoassessment_grades"
+           NEXT="videoassessment_video_assocs">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="videoassessment"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="id" NEXT="filepath"/>
+        <FIELD NAME="filepath" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false"
+               PREVIOUS="videoassessment" NEXT="filename"/>
+        <FIELD NAME="filename" TYPE="char" LENGTH="225" NOTNULL="true" SEQUENCE="false" PREVIOUS="filepath"
+               NEXT="thumbnailname"/>
+        <FIELD NAME="thumbnailname" TYPE="char" LENGTH="225" NOTNULL="true" SEQUENCE="false" PREVIOUS="filename"
+               NEXT="tmpname"/>
+        <FIELD NAME="tmpname" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="thumbnailname"
+               NEXT="originalname"/>
+        <FIELD NAME="originalname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="tmpname"
+               NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="originalname" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timecreated"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="videoassessment"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="videoassessment_video_assocs" COMMENT="ビデオ割り当て" PREVIOUS="videoassessment_videos"
+           NEXT="videoassessment_peers">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="videoassessment"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="id" NEXT="videoid"/>
+        <FIELD NAME="videoid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="videoassessment" NEXT="associationtype"/>
+        <FIELD NAME="associationtype" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="videoid"
+               NEXT="timing"/>
+        <FIELD NAME="timing" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="associationtype"
+               NEXT="associationid"/>
+        <FIELD NAME="associationid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="timing" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="associationid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="videoassessment"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="videoid" UNIQUE="false" FIELDS="videoid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="videoassessment_peers" COMMENT="ピアパートナー" PREVIOUS="videoassessment_video_assocs">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="videoassessment"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="id" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="videoassessment" NEXT="peerid"/>
+        <FIELD NAME="peerid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+               PREVIOUS="userid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="videoassessment"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="videoassessment_sort_items" COMMENT="Sort items" PREVIOUS="videoassessment_peers">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="itemid"/>
+        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" NEXT="type" PREVIOUS="id"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" NEXT="sortby" PREVIOUS="itemid"/>
+        <FIELD NAME="sortby" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="type"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="itemid"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="videoassessment_sort_order" COMMENT="Sort order" PREVIOUS="videoassessment_sort_items">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="sortitemid"/>
+        <FIELD NAME="sortitemid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" NEXT="userid" PREVIOUS="id"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" NEXT="sortorder" PREVIOUS="sortitemid"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="itemid"/>
+        <KEY NAME="sortitemid" TYPE="foreign" FIELDS="sortitemid" REFTABLE="videoassessment_sort_items"
+             REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>

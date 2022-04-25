@@ -1,0 +1,47 @@
+@charset "UTF-8";
+
+.teacher-notification-displaybtn,
+.reminder-notification-displaybtn,
+.peer-notification-displaybtn,
+.video-notification-displaybtn{
+    cursor: pointer;
+}
+
+.teacher-notification-displaybtn.expanded,
+.reminder-notification-displaybtn.expanded,
+.peer-notification-displaybtn.expanded,
+.video-notification-displaybtn.expanded{
+    padding: 0 5px 0 0.5rem;
+    margin-left: 1.5rem;
+    background: url(./images/expanded.svg) 0 center no-repeat;
+}
+
+.teacher-notification-displaybtn.collapsed,
+.reminder-notification-displaybtn.collapsed,
+.peer-notification-displaybtn.collapsed,
+.video-notification-displaybtn.collapsed{
+    padding: 0 5px 0 1.5rem;
+    margin-left: 1.5rem;
+    background: url(./images/collapsed.svg) 0 center no-repeat;
+}
+
+#fgroup_id_teachernotificationgroup .col-md-9.form-inline.felement,
+#fgroup_id_remindernotificationgroup .col-md-9.form-inline.felement,
+#fgroup_id_peernotificationgroup .col-md-9.form-inline.felement,
+#fgroup_id_videonotificationgroup .col-md-9.form-inline.felement {
+    padding-left: 60px;
+}
+.max-with{
+    width: 100%;
+}
+
+#bar-warp{
+    width:500px;
+    height:30px;
+    border:1px solid green;
+}
+#bar{
+    width:0px;
+    height:30px;
+    background:green;
+}

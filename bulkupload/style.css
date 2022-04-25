@@ -1,0 +1,68 @@
+/**
+ * Video assessment
+ *
+ * @package videoassessment
+ * @author  VERSION2 Inc.
+ * @version $Id: style.css 823 2012-09-27 05:28:21Z yama $
+ */
+
+#page-mod-videoassessment-bulkupload-index fieldset#droparea {
+    width: 800px;
+    border: 1px solid black;
+    background-color: white;
+    padding: 1em;
+}
+#page-mod-videoassessment-bulkupload-index fieldset#droparea legend {
+    font-weight: bold;
+}
+
+#page-mod-videoassessment-bulkupload-index div#scrollarea {
+    width: 800px;
+    height: 500px;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
+#page-mod-videoassessment-bulkupload-index table#tasklist {
+    width: 780px;
+    color: black;
+    border: 1px solid gray;
+    border-collapse: collapse;
+}
+#page-mod-videoassessment-bulkupload-index table#tasklist th,
+#page-mod-videoassessment-bulkupload-index table#tasklist td {
+    border-color: gray;
+    border-style: solid;
+    border-width: 1px 0;
+    vertical-align: middle;
+}
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.error      { color: red; }
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.uploading  { color: navy; }
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.converting { color: blue; }
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.complete   { color: green; }
+
+#page-mod-videoassessment-bulkupload-index table#tasklist th.filesize { width: 4em; }
+#page-mod-videoassessment-bulkupload-index table#tasklist th.mimetype { width: 10em; }
+#page-mod-videoassessment-bulkupload-index table#tasklist th.status   { width: 5em; }
+#page-mod-videoassessment-bulkupload-index table#tasklist th.progress { width: 10em; }
+
+#page-mod-videoassessment-bulkupload-index table#tasklist td.filesize { text-align: right; }
+#page-mod-videoassessment-bulkupload-index table#tasklist td.mimetype { text-align: center; }
+#page-mod-videoassessment-bulkupload-index table#tasklist td.progress { text-align: right; }
+
+#page-mod-videoassessment-bulkupload-index table#tasklist td.progress table {
+    border: 1px solid gray;
+    margin: auto;
+}
+#page-mod-videoassessment-bulkupload-index table#tasklist td.progress table td {
+    font-size: 1px;
+    width: 2px;
+    height: 15px;
+    padding: 0;
+    background-color: white;
+}
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.uploading  td.progress table td.done { background-color: navy; }
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.converting td.progress table td.done { background-color: blue; }
+#page-mod-videoassessment-bulkupload-index table#tasklist tr.complete   td.progress table td.done { background-color: green; }
