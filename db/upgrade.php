@@ -742,7 +742,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         }
         upgrade_mod_savepoint(true, 20201116001, 'videoassessment');
     }
-    if ($oldversion < 20201116001) {
+    if ($oldversion < 20220808001) {
         $table = new xmldb_table('videoassessment_aggregation');
 
         $field = new xmldb_field('selffairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
@@ -753,7 +753,108 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20201116001, 'videoassessment');
+
+    }
+    if ($oldversion < 20220808001) {
+        $table = new xmldb_table('videoassessment_grades');
+
+        $field = new xmldb_field('submissioncommentformat', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+
+    if ($oldversion < 20220808001) {
+        $table = new xmldb_table('videoassessment');
+
+        $field = new xmldb_field('allowsubmissionsfromdate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('duedate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('cutoffdate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('gradingduedate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('isselfassesstype', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('ispeerassesstype', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('isteacherassesstype', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('isclassassesstype', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('selfassess', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('peerassess', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('teacherassess', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('classassess', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('numberofpeers', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('gradingsimpledirect', XMLDB_TYPE_TEXT, null, null, false, null, null,'numberofpeers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+    if ($oldversion < 20220808001) {
+        $table = new xmldb_table('videoassessment');
+
+        $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER,10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+    if ($oldversion < 20220808001) {
+        $table = new xmldb_table('videoassessment');
+
+        $field = new xmldb_field('gradepass_videoassessment', XMLDB_TYPE_INTEGER,10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+
+    if ($oldversion < 20220808001) {
+        $table = new xmldb_table('videoassessment_aggregation');
+
+        $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('finalscore', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 20220808001, 'videoassessment');
     }
     return true;
 }

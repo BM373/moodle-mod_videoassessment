@@ -139,4 +139,67 @@ class mod_videoassessment_renderer extends plugin_renderer_base {
 
         return $o;
     }
+
+    function render_videoassess_info_status($va){
+        $o ='';
+        if($va->allowsubmissionsfromdate != 0 || $va->duedate!=0|| $va->cutoffdate!=0){
+            $o .= $this->output->container_start('submissionstatustable');
+            $o .= $this->output->heading("Videoassess state info", 3);
+            $o .= $this->output->box_start('boxaligncenter submissionsummarytable');
+
+            $t = new html_table();
+            $time = time();
+            $duedate = $va->duedate;
+            $cutoffdate = $va->cutoffdate;
+            if ($duedate > 0) {
+                if ($va->allowsubmissionsfromdate) {
+                    // allowsubmissionsfrom date.
+                    $cell1content = get_string('allowsubmissionsfromdate', 'assign');
+                    $cell2content = userdate($va->allowsubmissionsfromdate);
+                    $this->add_table_row_tuple($t, $cell1content, $cell2content);
+                }
+
+                // Due date.
+                $cell1content = get_string('duedate', 'assign');
+                if ($duedate - $time <= 0) {
+                    $cell2content = userdate($duedate).'('.get_string('assignmentisdue', 'videoassessment').')';
+                } else {
+                    $cell2content = format_time($duedate - $time);
+                }
+                //$cell2content = userdate($duedate);
+                $this->add_table_row_tuple($t, $cell1content, $cell2content);
+
+                if ($va->cutoffdate) {
+                    // Cut off date.
+                    $cell1content = get_string('cutoffdate', 'assign');
+                    if ($cutoffdate > $time) {
+                        $cell2content = get_string('latesubmissionsaccepted', 'videoassessment', userdate($va->cutoffdate));
+                    } else {
+                        $cell2content = userdate($va->cutoffdate).'('.get_string('nomoresubmissionsaccepted', 'videoassessment').')';
+                    }
+                    $this->add_table_row_tuple($t, $cell1content, $cell2content);
+                }
+
+            }
+            $o .= html_writer::table($t);
+            $o .= $this->output->box_end();
+            $o .= $this->output->container_end();
+            return $o;
+        }
+    }
+    private function add_table_row_tuple(html_table $table, $first, $second, $firstattributes = [],
+                                         $secondattributes = []) {
+        $row = new html_table_row();
+        $cell1 = new html_table_cell($first);
+        $cell1->header = true;
+        if (!empty($firstattributes)) {
+            $cell1->attributes = $firstattributes;
+        }
+        $cell2 = new html_table_cell($second);
+        if (!empty($secondattributes)) {
+            $cell2->attributes = $secondattributes;
+        }
+        $row->cells = array($cell1, $cell2);
+        $table->data[] = $row;
+    }
 }

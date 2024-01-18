@@ -80,30 +80,79 @@ class assess extends \moodleform {
 
         $grademenu = make_grades_menu($va->va->grade);
         $gradinginstances = $this->use_advanced_grading();
+
         foreach ($va->timings as $timing) {
-            // ルーブリック
-            if (!empty($gradinginstances->$timing)) {
-                $gradinginstance = $gradinginstances->$timing;
-                $gradinginstance->get_controller()->set_grade_range($grademenu);
-//                 $gradinginstance = $gradinginstance->get_controller()->get_current_instance();
-                $gradingelement = $mform->addElement(
-                        'grading', 'advancedgrading'.$timing,
-                        $va->str('grade').':',
-                    array('gradinginstance' => $gradinginstance));
-                if ($data->gradingdisabled) {
-                    $gradingelement->freeze();
-                } else {
-                    $mform->addElement('hidden', 'advancedgradinginstanceid', $gradinginstance->get_id());
-                    $mform->setType('advancedgradinginstanceid', PARAM_INT);
-                }
 
-            } else {
-                // 2012/05/09 ルーブリックが作成されていなければ評定できないようにする
-                $mform->addElement('hidden', 'xgrade'.$timing, -1);
-                $mform->setType('xgrade'.$timing, PARAM_INT);
-                continue;
+            if(property_exists($this->_customdata,'grade'.$timing)){
+                $grade = $this->_customdata->{'grade'.$timing};
             }
+            if ($gradinginstances) {
+                // ルーブリック
+                //grade type -rubric
+                $mform->addElement('hidden', 'gradecategory' . $timing, 1);
+                $mform->setType('gradecategory'.$timing, PARAM_RAW);
+                if (!empty($gradinginstances->$timing)) {
+                    $gradinginstance = $gradinginstances->$timing;
+                    $gradinginstance->get_controller()->set_grade_range($grademenu);
+//                 $gradinginstance = $gradinginstance->get_controller()->get_current_instance();
+                    $gradingelement = $mform->addElement(
+                        'grading', 'advancedgrading' . $timing,
+                        $va->str('grade') . ':',
+                        array('gradinginstance' => $gradinginstance));
+                    if ($data->gradingdisabled) {
+                        $gradingelement->freeze();
+                    } else {
+                        $mform->addElement('hidden', 'advancedgradinginstanceid', $gradinginstance->get_id());
+                        $mform->setType('advancedgradinginstanceid', PARAM_INT);
+                    }
+                } else {
+                    // 2012/05/09 ルーブリックが作成されていなければ評定できないようにする
+                    $mform->addElement('hidden', 'xgrade' . $timing, -1);
+                    $mform->setType('xgrade' . $timing, PARAM_INT);
+                    continue;
+                }
+            }else {
+                // Use simple direct grading.
+                if ($va->va->grade > 0) {
+                    //grade type -simple direct grading【point】
+                    $mform->addElement('hidden', 'gradecategory' . $timing, 2);
+                    $mform->setType('gradecategory'.$timing, PARAM_RAW);
+                    $name = get_string('gradeoutof', 'assign', $va->va->grade);
+                    if (!$data->gradingdisabled) {
+                        $gradingelement = $mform->addElement('text', 'xgrade'.$timing, $name);
+                        $mform->addHelpButton('xgrade'.$timing, 'gradeoutofhelp', 'assign');
+                        $mform->setType('xgrade'.$timing, PARAM_RAW);
+                        if (isset($grade->grade)) {
+                            $mform->setDefault('xgrade'.$timing, $grade->grade);
+                        }
+                    } else {
+                        $strgradelocked = get_string('gradelocked', 'assign');
+                        $mform->addElement('static', 'gradedisabled', $name, $strgradelocked);
+                        $mform->addHelpButton('gradedisabled', 'gradeoutofhelp', 'assign');
+                    }
+                } else {
+                    //grade type -simple direct grading【scale】
+                    $mform->addElement('hidden', 'gradecategory' . $timing, 3);
+                    $mform->setType('gradecategory'.$timing, PARAM_RAW);
+                    $grademenu = array(-1 => get_string("nograde")) + make_grades_menu($va->va->grade);
+                    if (count($grademenu) > 1) {
+                        $gradingelement = $mform->addElement('select', 'xgrade'.$timing, get_string('grade') . ':', $grademenu);
+                        // The grade is already formatted with format_float so it needs to be converted back to an integer.
+                        if (!empty($data->grade)) {
+                            $data->grade = (int)unformat_float($data->grade);
+                        }
 
+                        $mform->setType('xgrade'.$timing, PARAM_INT);
+                        if (isset($grade->grade)) {
+                            $mform->setDefault('xgrade'.$timing, $grade->grade);
+                        }
+                        if ($data->gradingdisabled) {
+                            $gradingelement->freeze();
+                        }
+
+                    }
+                }
+            }
             if (!empty($data->enableoutcomes)) {
                 foreach($data->grading_info->outcomes as $n=>$outcome) {
                     $options = make_grades_menu(-$outcome->scaleid);
@@ -121,21 +170,21 @@ class assess extends \moodleform {
                 }
             }
             $course_context = \context_module::instance($data->cm->id);
-            $grade = $this->_customdata->{'grade'.$timing};
+            $gradestr = '-';
             if (isset($grade->grade) && $grade->grade > -1) {
                 $gradestr = $grade->grade.'%';
-            } else {
-                $gradestr = '-';
             }
             $mform->addElement('static', 'finalgrade'.$timing, va::str('currentgrade').':' ,
                     \html_writer::tag('span', $gradestr, array('class' => 'mark')));
             $mform->setType('finalgrade'.$timing, PARAM_INT);
 
-            $mform->addElement('textarea', 'submissioncomment'.$timing,
-                    get_string('feedback', 'videoassessment').':',
-            		array('cols' => 50, 'rows' => 8));
+            $mform->addElement('editor', 'submissioncomment'.$timing,get_string('feedback', 'videoassessment').':',
+            		array('cols' => 50, 'rows' => 8), array('maxfiles' => EDITOR_UNLIMITED_FILES,
+                    'noclean' => true, 'context' => $course_context, 'subdirs' => true));
+
             if (isset($grade->submissioncomment)) {
-            	$mform->setDefault('submissioncomment'.$timing, $grade->submissioncomment);
+            $mform->setDefault('submissioncomment'.$timing, array('text' => $grade->submissioncomment,
+                'format' => FORMAT_HTML));
             }
             if($data->gradertype == "teacher" || $data->gradertype == "peer")
             $mform->addElement('advcheckbox',"isnotifystudent","notify student",array(),array(0,1));
@@ -147,7 +196,23 @@ class assess extends \moodleform {
 
         }
     }
+    public function validation($data, $files)
+    {
+        // Allow plugin videoassessment types to do any extra validation after the form has been submitted
+        $errors = parent::validation($data, $files);
+        $cdata = $this->_customdata;
+        /* @var $va \videoassess\va */
+        $va = $cdata->va;
+        foreach ($va->timings as $timing) {
+            if (!empty($data['xgrade'.$timing]) && $va->va->grade > 0) {
+                if (0 > $data['xgrade'.$timing] || $data['xgrade'.$timing] > 100) {
+                    $errors['xgrade'.$timing] = 'Enter a number from 0-100. ';
+                }
+            }
+        }
 
+        return $errors;
+    }
     /**
      *
      * @param boolean $cancel
@@ -221,6 +286,7 @@ class assess extends \moodleform {
 
         return $data;
     }
+
 
     /**
      *

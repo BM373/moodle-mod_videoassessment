@@ -140,3 +140,27 @@ $string['uploadingvideo_help'] = 'You can share your recorded performance for as
 <br />3) record on an SD card for bulk upload. Go to Manage Videos >> Bulk upload for that process. Note: this screen is only available to students if the default for “Allow student upload of videos” is kept at “Yes”.';
 $string['uploadyoutube']  = 'Link to Youtube Video';
 $string['uploadyoutube_help'] = 'For better performance, upload your video into your personal YouTube account or another video sharing site. Then copy the link and paste the link into the box for that link. When you link to a Youtube file, there is no thumbnail photo showing on the assessment screen. Just play the video and it will appear.';
+$string['quickSetup']  = 'Quick Setup';
+$string['grade_rating_name'] = 'Rating';
+$string['grade_grading_name'] = 'Grading';
+
+$string['gradeitem:beforeteacher'] = 'Teacher';
+$string['gradeitem:beforetraining'] = 'Training Pre-test';
+$string['gradeitem:beforeself'] = 'Self';
+$string['gradeitem:beforepeer'] = 'Peer';
+$string['gradeitem:beforeclass'] = 'Class';
+
+$string['graded'] = 'Graded';
+$string['recordnewvideo']  = 'Record New Video';
+$string['recordradios']  = 'Record New Video';
+$string['recordradios_help']  = 'Record New Video is for directly recording a video for assessment.
+This function accesses the camera on your computer or mobile phone and starts a video recording.
+In contrast, the “Upload Video File” selection goes to the photo/video library of files to allow you to select a previously recorded video to upload.
+<br/>*Click the stop recording button, and then upload it automatically*';
+
+$string['calendardue'] = '{$a} is due';
+$string['calendargradingdue'] = '{$a} is due to be graded';
+
+$string['assignmentisdue'] = 'videoassessment is due';
+$string['latesubmissionsaccepted'] = 'Allowed until {$a}';
+$string['nomoresubmissionsaccepted'] = 'Only allowed for participants who have been granted an extension';

@@ -48,12 +48,23 @@ class mod_videoassessment_rubric_form_duplicate extends moodleform {
 
         if (!$data['areas']) {
             $errors['areas[' . $areaIds[0] . ']'] = get_string('pleasechoosegradingareas', 'videoassessment');
-        } else {
-            $areaDefinitions = $DB->get_records_sql('SELECT areaid FROM {grading_definitions} WHERE areaid IN (' . implode(', ', array_keys($data['areas'])) . ')');
-
-            if (!empty($areaDefinitions)) {
+        }
+        else {
+            $areaDefinitions = $DB->get_records_sql('SELECT areaid,timecreated FROM {grading_definitions} WHERE areaid IN (' . implode(', ', array_keys($data['areas'])) . ')');
+            $areasGrading = $DB->get_records('grading_areas', array('contextid' => $data['contextid']));
+            if (is_array($areasGrading)) {
+                foreach ($areasGrading as $area) {
+                    if ($area->areaname == 'beforeteacher') {
+                        $areaTeacherId = $area->id;
+                    }
+                }
+            }
+            $gradingDefinitionTeacher = $DB->get_record('grading_definitions', array('areaid' => $areaTeacherId));
+            if (!empty($areaDefinitions) && isset($gradingDefinitionTeacher)) {
                 foreach ($areaDefinitions as $area) {
-                    $errors['areas[' . $area->areaid . ']'] = get_string('gradingareadefined', 'videoassessment');
+                    if($gradingDefinitionTeacher->timecreated == $area->timecreated){
+                        $errors['areas[' . $area->areaid . ']'] = get_string('gradingareadefined', 'videoassessment');
+                    }
                 }
             }
         }

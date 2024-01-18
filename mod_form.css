@@ -45,3 +45,31 @@
     height:30px;
     background:green;
 }
+
+.recordrtc button {
+    font-size: inherit;
+}
+
+.recordrtc button, .recordrtc select {
+    vertical-align: middle;
+    line-height: 1;
+    padding: 2px 5px;
+    height: auto;
+    font-size: inherit;
+    margin: 0;
+}
+
+.recordrtc, .recordrtc .header {
+    display: block;
+    text-align: center;
+    padding-top: 0;
+}
+
+.recordrtc video, .recordrtc img {
+    max-width: 100%!important;
+    vertical-align: top;
+}
+
+.recordrtc audio {
+    vertical-align: bottom;
+}

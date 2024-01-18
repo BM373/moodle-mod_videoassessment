@@ -90,6 +90,10 @@ if ($data = $dForm->get_data()) {
         $gradingDefinitionOther = clone $gradingDefinitionTeacher;
 
         foreach ($areas as $areaId => $val) {
+            $areaDefinition = $DB->get_record('grading_definitions', array('areaid'=>$areaId));
+            if(isset($areaDefinition)){
+                $DB->delete_records('grading_definitions', array('areaid'=>$areaId));
+            }
             $gradingDefinitionOther->areaid = $areaId;
             $definitionIds[] = $DB->insert_record('grading_definitions', $gradingDefinitionOther);
         }

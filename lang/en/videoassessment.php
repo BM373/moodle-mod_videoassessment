@@ -158,7 +158,7 @@ $string['uploadvideo'] = 'Upload a video';
 $string['uploadvideo_help'] = 'Here a teacher can click a link and upload a single video file. The file should contain the performance of one student. Record the video of each performance separately. During video upload the file is compressed to 10% of the original size.';
 $string['uploadvideos'] = 'Upload videos';
 $string['usedpeers'] = 'Number of Peer Assessments';
-$string['usedpeers_help'] = 'A teacher can set the number of peer assessments from 0 to 3. In the Manage Videos menu, the teacher can then assign the peer automatically or manually.';
+$string['usedpeers_help'] = 'A teacher can set the number of peer assessments from 0 to 3. In the Ratings menu, the teacher can then assign the peer automatically or manually.The default is always “0” peers, except when a percentage for peer assessment is assigned to above 0%. Then the default becomes “1” and can be manually re-set from 1-3.';
 $string['video'] = 'Video';
 $string['videoalreadyassociated'] = '{$a} has been already associated with a video.';
 $string['videoassessment:addinstance'] = 'Add a new video assessment';
@@ -287,13 +287,13 @@ $string['managevideos_help'] = 'The “Manage Videos” admin page has nine func
 <br />g. Publish Videos
 <br />h. Assign Class
 <br />i.  Duplicate Rubric';
-$string['notifications_help']  = 'Notifications send the assessment information to the students via their email inboxes or their mobile quickmail addresses. There are four kinds of notificiations:
+$string['notifications_help'] = 'Notifications send the assessment information to the students via their email inboxes or their mobile quickmail addresses. There are four kinds of notificiations:
 <br />a. Teacher Comment notification
 <br />b. Peer Comment notification
 <br />c. Reminder notification
 <br />d. Video upload/reupload notification';
 $string['notificationcarriergroup'] = 'Notification carrier';
-$string['notificationcarriergroup_help'] ='There are two choices for notifications: by the registered Moodle email address in the site, or by Mobile Quickmail (an optional block for using mobile phone email addresses). One or both can be selected.';
+$string['notificationcarriergroup_help'] = 'There are two choices for notifications: by the registered Moodle email address in the site, or by Mobile Quickmail (an optional block for using mobile phone email addresses). One or both can be selected.';
 $string['teachercommentnotification'] = 'Notification content';
 $string['teachercommentnotification_help'] = 'a. Teacher Comment notification is to send an email to the student whenever a teacher makes comments and saves the assessment.
 <br />b. Peer Comment notification: is to send an email notification to the student whenever a peer makes comments and saves the assessment.
@@ -306,7 +306,7 @@ $string['modgrade_help'] = 'For video assessment, do not change the default sett
 
 $string['advancedgradingmethodsgroup'] = 'Grading Methods';
 $string['advancedgradingmethodsgroup_help'] = 'For video assessment, do not change the default settings here for “Grading Method”. All settings use rubric, because that is the best method of performance assessment. If you change the settings, the video assessment system may not work.';
-$string['classgrading']  = 'Whole Class Grading';
+$string['classgrading'] = 'Whole Class Grading';
 $string['classgrading_help'] = 'If you want the whole class of students to watch a live performance and assess it in real time, use this feature. To turn on whole class grading, click ‘Open Class Grading’.  The default is “Close class grading”.  All the student’s grades will be totaled into one average grade.';
 $string['fairnessbonus'] = 'Peer Fairness Bonus';
 $string['fairnessbonus_help'] = 'The Peer Fairness bonus rewards students who score ‘fairly’, that is, their scores are not all ‘100s” or “0s” and fairly close to what the teacher is scoring. The options for setting up this tool include deciding how much of a bonus (% of final score) you will assign, and how much of that bonus students will receive based on proximity to the teachers score.';
@@ -317,5 +317,33 @@ $string['uploadingvideo_help'] = 'You can share your recorded performance for as
 <br />1) Upload a single file of your video performance here or 
 <br />2) upload your file into YouTube and link to that video. Set your camera to its lowest resolution for fast response. Record a single video file in your device and upload here. Additionally, teachers can: 
 <br />3) record on an SD card for bulk upload. Go to Manage Videos >> Bulk upload for that process. Note: this screen is only available to students if the default for “Allow student upload of videos” is kept at “Yes”.';
-$string['uploadyoutube']  = 'Link to Youtube Video';
+$string['uploadyoutube'] = 'Link to Youtube Video';
 $string['uploadyoutube_help'] = 'For better performance, upload your video into your personal YouTube account or another video sharing site. Then copy the link and paste the link into the box for that link. When you link to a Youtube file, there is no thumbnail photo showing on the assessment screen. Just play the video and it will appear.';
+
+
+$string['quickSetup'] = 'Quick Setup';
+$string['quickSetup_help'] = 'Quick Setup';
+$string['grade_rating_name'] = 'Rating';
+$string['grade_grading_name'] = 'Grading';
+
+
+$string['gradeitem:beforeteacher'] = 'Teacher';
+$string['gradeitem:beforetraining'] = 'Training Pre-test';
+$string['gradeitem:beforeself'] = 'Self';
+$string['gradeitem:beforepeer'] = 'Peer';
+$string['gradeitem:beforeclass'] = 'Class';
+
+$string['graded'] = 'Graded';
+$string['recordnewvideo'] = 'Record New Video';
+$string['recordradios'] = 'Record New Video';
+$string['recordradios_help'] = 'Record New Video is for directly recording a video for assessment.
+This function accesses the camera on your computer or mobile phone and starts a video recording.
+In contrast, the “Upload Video File” selection goes to the photo/video library of files to allow you to select a previously recorded video to upload.
+<br/>*Click the stop recording button, and then upload it automatically*';
+
+$string['calendardue'] = '{$a} is due';
+$string['calendargradingdue'] = '{$a} is due to be graded';
+
+$string['assignmentisdue'] = 'videoassessment is due';
+$string['latesubmissionsaccepted'] = 'Allowed until {$a}';
+$string['nomoresubmissionsaccepted'] = 'Only allowed for participants who have been granted an extension';
