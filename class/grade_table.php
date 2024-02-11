@@ -71,7 +71,21 @@ class grade_table
     }
 
     /**
-     * 教員用一覧表示
+     * Checks if the user ID is valid and logs an error if it is not.
+     *
+     * @param mixed $user The user object being checked.
+     * @return bool Returns true if the ID is valid, otherwise false.
+     */
+    private function validate_user_id($user) {
+        if (empty($user->id)) {
+            error_log("Error: Missing user->id for the user. User skipped.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Teacher list display
      */
     public function print_teacher_grade_table()
     {
@@ -158,6 +172,10 @@ class grade_table
             /* End */
 
             foreach ($users as $user) {
+                if (empty($user->id)) {
+                    error_log("Error: Missing user->id for the user in the function print_teacher_grade_table. User skipped.");
+                    continue;
+                }
                 $agg = $this->va->get_aggregated_grades($user->id);
                 foreach (array(
                              'userid', 'gradebeforeteacher', 'gradebeforeself', 'gradebeforepeer', 'gradebeforeclass',
