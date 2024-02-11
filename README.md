@@ -7,7 +7,7 @@ Requirements
 * Moodle 2.5 or later
 * ffmpeg
 * MP4Box
-* Future VAM versions may require Moodle 4.2, which requires PHP 8.0)
+* Future VAM versions may require Moodle 4.2, which requires PHP 8.0
 
 Optional parameter adjustment
 -----------------------------
