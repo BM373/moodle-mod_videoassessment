@@ -2664,11 +2664,7 @@ class va
     public function get_students($userfields = null, $groupid = null)
     {
         if (!$userfields) {
-            if (function_exists('get_all_user_name_fields')) {
-                $userfields = 'u.id, ' . get_all_user_name_fields(true, 'u');
-            } else {
-                $userfields = 'u.id, u.firstname, u.lastname';
-            }
+            $userfields = \core_user\fields::for_identity($this->context)->get_sql('u', false, '', '', false)->selects;
         }
 
         if ($groupid === null) {
@@ -2904,22 +2900,18 @@ class va
     {
         global $DB;
 
-        if (function_exists('get_all_user_name_fields')) {
-            $userfields = 'u.id, ' . get_all_user_name_fields(true, 'u');
-        } else {
-            $userfields = 'u.id, u.firstname, u.lastname';
-        }
+        $userfields = \core_user\fields::for_identity($this->context)->get_sql('u', false, '', '', false)->selects;
 
         if ($sort_manually) {
             $order = ' ORDER BY sortorder ASC';
         }
 
         $contextcourse = \context_course::instance($this->course->id);
-        $params = array(
+        $params = [
             'contextid' => $contextcourse->id,
             'roleid' => 5,
             'courseid' => $this->course->id
-        );
+        ];
 
         if (!empty($groupid)) {
             $join = ' JOIN {groups_members} gm ON gm.userid = u.id';
