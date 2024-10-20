@@ -481,7 +481,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     	upgrade_mod_savepoint(true, 2019041410, 'videoassessment');
     }
 
-    if ($oldversion < 20200917003) {
+    if ($oldversion < 2020091703) {
         $table = new xmldb_table('videoassessment');
         $field = new xmldb_field('isregisteredemail', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0','allowstudentpeerselection');
         if (!$dbman->field_exists($table, $field)) {
@@ -593,7 +593,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20200917003, 'videoassessment');
+        upgrade_mod_savepoint(true, 2020091703, 'videoassessment');
     }
 
     if ($oldversion < 20200917002) {
