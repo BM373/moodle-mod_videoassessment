@@ -1,4 +1,30 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Upgrade code for installation of Video Assessment.
+ *
+ * You can have a rather longer description of the file as well,
+ * if you like, and it can span multiple lines.
+ *
+ * @package    mod_videoassessment
+ * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -596,16 +622,16 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2020091703, 'videoassessment');
     }
 
-    if ($oldversion < 20200917002) {
+    if ($oldversion < 2020091702) {
         $table = new xmldb_table('videoassessment_grades');
         $field = new xmldb_field('isnotifystudent', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 1);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20200917002, 'videoassessment');
+        upgrade_mod_savepoint(true, 2020091702, 'videoassessment');
     }
 
-    if ($oldversion < 20200922002) {
+    if ($oldversion < 2020092202) {
         $table = new xmldb_table('videoassessment');
         $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
@@ -663,9 +689,9 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20200922002, 'videoassessment');
+        upgrade_mod_savepoint(true, 2020092202, 'videoassessment');
     }
-    if ($oldversion < 20200924002) {
+    if ($oldversion < 2020092402) {
         $table = new xmldb_table('videoassessment_aggregation');
 
         $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
@@ -680,9 +706,9 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20200924002, 'videoassessment');
+        upgrade_mod_savepoint(true, 2020092402, 'videoassessment');
     }
-    if ($oldversion < 20201116001) {
+    if ($oldversion < 2020111601) {
         $table = new xmldb_table('videoassessment');
         $field = new xmldb_field('selffairnessbonus', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
@@ -740,9 +766,9 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20201116001, 'videoassessment');
+        upgrade_mod_savepoint(true, 2020111601, 'videoassessment');
     }
-    if ($oldversion < 20220808001) {
+    if ($oldversion < 2022080801) {
         $table = new xmldb_table('videoassessment_aggregation');
 
         $field = new xmldb_field('selffairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
@@ -755,7 +781,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         }
 
     }
-    if ($oldversion < 20220808001) {
+    if ($oldversion < 2022080801) {
         $table = new xmldb_table('videoassessment_grades');
 
         $field = new xmldb_field('submissioncommentformat', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
@@ -764,7 +790,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         }
     }
 
-    if ($oldversion < 20220808001) {
+    if ($oldversion < 2022080801) {
         $table = new xmldb_table('videoassessment');
 
         $field = new xmldb_field('allowsubmissionsfromdate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
@@ -826,7 +852,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
     }
-    if ($oldversion < 20220808001) {
+    if ($oldversion < 2022080801) {
         $table = new xmldb_table('videoassessment');
 
         $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER,10, null, XMLDB_NOTNULL, null, 0);
@@ -834,7 +860,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
     }
-    if ($oldversion < 20220808001) {
+    if ($oldversion < 2022080801) {
         $table = new xmldb_table('videoassessment');
 
         $field = new xmldb_field('gradepass_videoassessment', XMLDB_TYPE_INTEGER,10, null, XMLDB_NOTNULL, null, 0);
@@ -843,7 +869,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         }
     }
 
-    if ($oldversion < 20220808001) {
+    if ($oldversion < 2022080801) {
         $table = new xmldb_table('videoassessment_aggregation');
 
         $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
@@ -854,7 +880,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 20220808001, 'videoassessment');
+        upgrade_mod_savepoint(true, 2022080801, 'videoassessment');
     }
     return true;
 }
