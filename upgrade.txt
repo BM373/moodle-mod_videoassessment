@@ -27,8 +27,27 @@
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, print.php.
     Converted file to use EOL for Unix(LF).
-
-
+* Converted README.md to use EOL for Unix(LF).
+* Converted recordvideo.js to use EOL for Unix(LF).
+* Converted RecordRTC.js to use EOL for Unix(LF).
+* Converted record.js to use EOL for Unix(LF).
+* Converted publish.js to use EOL for Unix(LF).
+* Converted module.js to use EOL for Unix(LF).
+* Added boilerplate to file, modedit.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, mod_form.php.
+    Converted file to use EOL for Unix(LF).
+* Converted mod_form.js to use EOL for Unix(LF).
+* Added boilerplate to file, mod_form.css.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, managegrades.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, locallib.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, lib.php.
+    Converted file to use EOL for Unix(LF).
+    
+    
 === Earlier changes ===
 
 * Were not documented in this way. Sorry.
