@@ -1,0 +1,34 @@
+=== 1.0.0 ===
+* Added file, upgrade.txt, for tracking changes.
+* Added boilerplate to file, /db/upgrade.php.
+    Fixed build date errors in line 510 and 622. (20200917003 to 2020091703)
+    Fixed build date errors in line 625 and 631. (20200917002 to 2020091702)
+    Fixed build date errors in line 634 and 692. (20200922002 to 2020092202)
+    Fixed build date errors in line 694 and 709. (20200924002 to 2020092402)
+    Fixed build date errors in line 711 and 769. (20201116001 to 2020111601)
+    Fixed build date errors in line 771, 784, 793, 855, 863, 872, and 883. (20220808001 to 2022080801)
+    Converted file to use EOL for Unix(LF).
+
+* Added boilerplate to file, view.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, view.css.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, viewpreview.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, version.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, styles-print.css.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, styles.css.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, settings.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, renderer.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, print.php.
+    Converted file to use EOL for Unix(LF).
+
+
+=== Earlier changes ===
+
+* Were not documented in this way. Sorry.
