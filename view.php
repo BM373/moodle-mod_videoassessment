@@ -155,4 +155,3 @@ $context = context_module::instance($cm->id);
 
 $va = new videoassess\va($context, $cm, $course);
 echo $va->view($action);
-
