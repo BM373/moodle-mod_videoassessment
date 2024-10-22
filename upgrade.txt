@@ -1,4 +1,5 @@
 === 1.0.0 ===
+20241019
 * Added file, upgrade.txt, for tracking changes.
 * Added boilerplate to file, /db/upgrade.php.
     Fixed build date errors in line 510 and 622. (20200917003 to 2020091703)
@@ -8,7 +9,7 @@
     Fixed build date errors in line 711 and 769. (20201116001 to 2020111601)
     Fixed build date errors in line 771, 784, 793, 855, 863, 872, and 883. (20220808001 to 2022080801)
     Converted file to use EOL for Unix(LF).
-
+* Created monologo.png file.
 * Added boilerplate to file, view.php.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, view.css.
@@ -25,6 +26,7 @@
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, renderer.php.
     Converted file to use EOL for Unix(LF).
+20241020
 * Added boilerplate to file, print.php.
     Converted file to use EOL for Unix(LF).
 * Converted README.md to use EOL for Unix(LF).
@@ -33,6 +35,7 @@
 * Converted record.js to use EOL for Unix(LF).
 * Converted publish.js to use EOL for Unix(LF).
 * Converted module.js to use EOL for Unix(LF).
+20241021
 * Added boilerplate to file, modedit.php.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, mod_form.php.
@@ -46,8 +49,25 @@
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, lib.php.
     Converted file to use EOL for Unix(LF).
-    
-    
+20241022
+* Converted jquery-sortable.js to use EOL for Unix(LF).
+* Converted jquery-1.12.4.js to use EOL for Unix(LF).
+* Converted grademanage.js to use EOL for Unix(LF).
+* Converted getHTMLMediaElement.js to use EOL for Unix(LF).
+* Converted getHTMLMediaElement.css to use EOL for Unix(LF).
+* Converted duplicate.css to use EOL for Unix(LF).
+* Converted DetectRTC.js to use EOL for Unix(LF).
+* Added boilerplate to file, deletevideos.php.
+    Converted file to use EOL for Unix(LF).
+* Converted assess.js to use EOL for Unix(LF).
+* Converted assess.css to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/rubric/duplicate.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/rubric/form_duplicate.php.
+    Converted file to use EOL for Unix(LF).
+
+
+
 === Earlier changes ===
 
 * Were not documented in this way. Sorry.
