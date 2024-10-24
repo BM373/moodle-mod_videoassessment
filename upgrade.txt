@@ -5,6 +5,7 @@
 20241019
 * Added file, upgrade.txt, for tracking changes.
 * Added boilerplate to file, /db/upgrade.php.
+    Fixed most codechecker recomendations.
     Fixed build date errors in line 510 and 622. (20200917003 to 2020091703)
     Fixed build date errors in line 625 and 631. (20200917002 to 2020091702)
     Fixed build date errors in line 634 and 692. (20200922002 to 2020092202)
@@ -15,10 +16,12 @@
     Added missing parenthesis in two locations in line 56 and line 67.
 
 * Added boilerplate to file, view.php.
+    Fixed codechecker recomendations.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, view.css.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, videopreview.php.
+    Fixed codechecker recomendations.
     Converted file to use EOL for Unix(LF).
     Added required parenthesis in lines 25 and 26.
     Changed to short array syntax in line 29 and 31.
@@ -29,8 +32,14 @@
 * Added boilerplate to file, styles.css.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, settings.php.
+    Fixed codechecker recomendations.
     Converted file to use EOL for Unix(LF).
     Converted tab indents to spaces in 111 places in the code.
+    Changed to short array syntax in line 43 to 49.
+    Opening brace should be on the same line as the declaration for class admin_setting_configtext_ffmpegcommand
+    Opening brace should be on the same line as the declaration public function validate($data) {
+    Expected "if (...) {\n"; found "if (...)\n {\n"
+    
 * Added boilerplate to file, renderer.php.
     Converted file to use EOL for Unix(LF).
 20241020
