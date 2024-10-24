@@ -73,10 +73,10 @@ class page_delete_video extends page {
 		$form->display();
 
 		$datadir = $CFG->dataroot;
-		echo $this->output->box(get_string('diskspacetmpl', 'videoassessment', (object)array(
+		echo $this->output->box(get_string('diskspacetmpl', 'videoassessment', [
 				'free' => display_size(disk_free_space($datadir)),
 				'total' => display_size(disk_total_space($datadir))
-		)));
+		]));
 
 		echo $this->output->footer();
 	}
