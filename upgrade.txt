@@ -63,6 +63,8 @@
 * Converted DetectRTC.js to use EOL for Unix(LF).
 * Added boilerplate to file, deletevideos.php.
     Converted file to use EOL for Unix(LF).
+    Added missing parenthesis in three locations, lines 33, 34, and 35.
+    Converted array in lines 76 thru 79 to use squarebrackets,[].
 * Converted assess.js to use EOL for Unix(LF).
 * Converted assess.css to use EOL for Unix(LF).
 * Added boilerplate to file, /videoassesment/rubric/duplicate.php.
@@ -77,7 +79,6 @@
     Converted file to use EOL for Unix(LF).
 * Converted /videoassesment/db/install.xml to use EOL for Unix(LF).
 * Converted /videoassesment/db/tasks.php to use EOL for Unix(LF).
-* Added missing parenthesis in two locations in the 
 
 === Earlier changes ===
 
