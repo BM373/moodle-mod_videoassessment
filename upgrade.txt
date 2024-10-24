@@ -1,4 +1,7 @@
 === 1.0.0 ===
+20241018
+* Created monologo.png file.
+
 20241019
 * Added file, upgrade.txt, for tracking changes.
 * Added boilerplate to file, /db/upgrade.php.
@@ -9,7 +12,8 @@
     Fixed build date errors in line 711 and 769. (20201116001 to 2020111601)
     Fixed build date errors in line 771, 784, 793, 855, 863, 872, and 883. (20220808001 to 2022080801)
     Converted file to use EOL for Unix(LF).
-* Created monologo.png file.
+    Added missing parenthesis in two locations in line 56 and line 67.
+
 * Added boilerplate to file, view.php.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, view.css.
@@ -65,8 +69,15 @@
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, /videoassesment/rubric/form_duplicate.php.
     Converted file to use EOL for Unix(LF).
-
-
+20241024
+* Added boilerplate to file, /videoassesment/db/access.php.
+    Converted file to use EOL for Unix(LF).
+* Converted /videoassesment/db/events.php to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/db/install.php.
+    Converted file to use EOL for Unix(LF).
+* Converted /videoassesment/db/install.xml to use EOL for Unix(LF).
+* Converted /videoassesment/db/tasks.php to use EOL for Unix(LF).
+* Added missing parenthesis in two locations in the 
 
 === Earlier changes ===
 
