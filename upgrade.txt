@@ -18,8 +18,9 @@
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, view.css.
     Converted file to use EOL for Unix(LF).
-* Added boilerplate to file, viewpreview.php.
+* Added boilerplate to file, videopreview.php.
     Converted file to use EOL for Unix(LF).
+    Added required parenthesis in lines 25 and 26.
 * Added boilerplate to file, version.php.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, styles-print.css.
