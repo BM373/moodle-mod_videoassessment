@@ -40,12 +40,12 @@ if ($ADMIN->fulltree) {
 
     require_once($CFG->dirroot.'/mod/videoassessment/lib.php');
 
-    $formats = array(
+    $formats = [
         '.mp4'  => '.mp4  - H.264',
         '.webm' => '.webm - WebM',
         '.ogv'  => '.ogv  - Theora',
         '.flv'  => '.flv  - Flash Video',
-        );
+        ];
     $settings->add(
         new admin_setting_configselect('videoassessment_videoformat',
             get_string('videoformat', 'videoassessment'),
@@ -54,13 +54,10 @@ if ($ADMIN->fulltree) {
         );
 
     if (!class_exists('admin_setting_configtext_ffmpegcommand')) {
-        class admin_setting_configtext_ffmpegcommand extends admin_setting_configtext
-        {
-            public function validate($data)
-            {
+        class admin_setting_configtext_ffmpegcommand extends admin_setting_configtext {
+            public function validate($data) {
                 if (strpos($data, '{INPUT}') <= stripos($data, 'ffmpeg') ||
-                    strpos($data, '{OUTPUT}') <= stripos($data, 'ffmpeg'))
-                {
+                    strpos($data, '{OUTPUT}') <= stripos($data, 'ffmpeg')) {
                     return get_string('validateerror', 'admin');
                 }
                 return true;
@@ -87,12 +84,12 @@ if ($ADMIN->fulltree) {
             get_string('mp4boxcommanddesc', 'videoassessment'),
             '/usr/local/bin/MP4Box', PARAM_RAW, 60)
         );
-    
+
     $settings->add(new admin_setting_heading('backupdefaults', new lang_string('backupdefaults', 'videoassessment'), ''));
     $settings->add(
         new admin_setting_configcheckbox('videoassessment/backupusers',
             new lang_string('backupusers', 'videoassessment'),
-            new lang_string('backupusersdesc','videoassessment'),
+            new lang_string('backupusersdesc', 'videoassessment'),
             0)
         );
 }
