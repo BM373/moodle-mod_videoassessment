@@ -21,6 +21,7 @@
 * Added boilerplate to file, videopreview.php.
     Converted file to use EOL for Unix(LF).
     Added required parenthesis in lines 25 and 26.
+    Changed to short array syntax in line 29 and 31.
 * Added boilerplate to file, version.php.
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, styles-print.css.
