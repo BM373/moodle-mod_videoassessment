@@ -30,6 +30,7 @@
     Converted file to use EOL for Unix(LF).
 * Added boilerplate to file, settings.php.
     Converted file to use EOL for Unix(LF).
+    Converted tab indents to spaces in 111 places in the code.
 * Added boilerplate to file, renderer.php.
     Converted file to use EOL for Unix(LF).
 20241020
