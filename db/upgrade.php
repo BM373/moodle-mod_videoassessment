@@ -53,7 +53,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2013080900) {
-    	require_once $CFG->dirroot . '/mod/videoassessment/locallib.php';
+    	require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 
     	$mods = $DB->get_records('videoassessment');
     	foreach ($mods as $mod) {
@@ -64,7 +64,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2015032010) {
-        require_once $CFG->dirroot . '/mod/videoassessment/locallib.php';
+        require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 
         $DB->delete_records('grade_items', array('itemnumber' => 4));
         $DB->delete_records('grade_items', array('itemnumber' => 5));
