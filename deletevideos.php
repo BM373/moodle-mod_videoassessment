@@ -30,9 +30,9 @@ namespace videoassess;
 use videoassess\va;
 use videoassess\form\videos_delete;
 
-require_once '../../config.php';
-require_once $CFG->dirroot . '/mod/videoassessment/locallib.php';
-require_once $CFG->dirroot . '/mod/videoassessment/class/form/videos_delete.php';
+require_once('../../config.php');
+require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
+require_once($CFG->dirroot . '/mod/videoassessment/class/form/videos_delete.php');
 
 class page_delete_video extends page {
 	public function execute() {
