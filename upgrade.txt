@@ -91,6 +91,50 @@
     Converted file to use EOL for Unix(LF).
 * Converted /videoassesment/db/install.xml to use EOL for Unix(LF).
 * Converted /videoassesment/db/tasks.php to use EOL for Unix(LF).
+20241026
+* Converted /videoassesment/lang/en/videoassesment.php to use EOL for Unix(LF).
+* Converted /videoassesment/lang/ja/videoassesment.php to use EOL for Unix(LF).
+* Converted /videoassesment/font/font-awesome/css/font-awesome.css to use EOL for Unix(LF).
+* Converted /videoassesment/font/font-awesome/css/font-awesome.min.css to use EOL for Unix(LF).
+* Converted /videoassesment/classes/observer.php to use EOL for Unix(LF).
+* Converted /videoassesment/classes/task/reminder_notification_mail_cron.php to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/classes/grades/gradeitems.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/video.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/va.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/util.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/table_export.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/rubric.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/print_page.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/page.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/grade_table.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/function.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/renderer/renderer.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/renderer/print_renderer.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/form/video_delete.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/form/video_upload.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/form/video_publish.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/form/video_assoc.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/form/assign_class.php.
+    Converted file to use EOL for Unix(LF).
+* Added boilerplate to file, /videoassesment/class/form/assess.php.
+    Converted file to use EOL for Unix(LF).
+
 
 === Earlier changes ===
 
