@@ -145,7 +145,7 @@ require_login($cm->course, true, $cm);
 $PAGE->set_url($url);
 $PAGE->set_heading($cm->name);
 /* MinhTB VERSION 2 */
-// $PAGE->requires->jquery();
+/* $PAGE->requires->jquery();*/
 $PAGE->requires->js('/mod/videoassessment/jquery-1.12.4.js', true);
 /* END */
 if ($action == "") {
