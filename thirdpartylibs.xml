@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>font/font-awesome</location>
+        <name>Font Awesome - http://fontawesome.com</name>
+        <version>4.3.0</version>
+        <license>SIL OFL</license>
+        <licenseversion>1.1</licenseversion>
+    </library>
+    <library>
+        <location>DetectRTC.js</location>
+        <name>DetectRTC.js - https://github.com/muaz-khan/DetectRTC</name>
+        <version>1.4.1</version>
+        <license>Muaz Khan</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>RecordRTC.js</location>
+        <name>RecordRTC.js - https://github.com/muaz-khan/RecordRTC</name>
+        <version>5.6.2</version>
+        <license>Muaz Khan</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>jquery-sortable.js</location>
+        <name>jquery-sortable.js - http://johnny.github.com/jquery-sortable/</name>
+        <version>0.9.12</version>
+        <license>Jonas von Andrian</license>
+        <licenseversion></licenseversion>
+    </library>
+</libraries>
