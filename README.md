@@ -4,10 +4,9 @@ Video Assessment
 Requirements
 ------------
 
-* Moodle 2.5 or later
+* Moodle 4.0 to 4.3
 * ffmpeg
 * MP4Box
-* Future VAM versions may require Moodle 4.2, which requires PHP 8.0
 
 Optional parameter adjustment
 -----------------------------
