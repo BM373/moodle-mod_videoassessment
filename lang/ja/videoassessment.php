@@ -189,7 +189,7 @@ $string['latesubmissionsaccepted'] = 'Allowed until {$a}';
 $string['nomoresubmissionsaccepted'] = 'Only allowed for participants who have been granted an extension';
 
 /* privacy:metadata */
-$string['privacy:metadata:videoassessment'] = 'ビデオ評価ファイルに関する情報。';
+$string['privacy:metadata:videoassessment'] = 'ビデオアセスメントファイルに関する情報。';
 $string['privacy:metadata:videoassessment:course'] = 'コースID番号。';
 $string['privacy:metadata:videoassessment:name'] = 'コースの名前。';
 $string['privacy:metadata:videoassessment:intro'] = 'ファイルに関する詳細。';
@@ -200,27 +200,27 @@ $string['privacy:metadata:videoassessment:ratingself'] = 'ユーザー自身に�
 $string['privacy:metadata:videoassessment:ratingpeer'] = 'ピアによる評価。';
 $string['privacy:metadata:videoassessment:class'] = 'クラスの数。';
 
-$string['privacy:metadata:videoassessment_aggregation'] = 'ビデオ評価の集計に関する情報。';
-$string['privacy:metadata:videoassessment_aggregation:videoassessment'] = 'ビデオ評価ID。';
-$string['privacy:metadata:videoassessment_aggregation:userid'] = 'このビデオ評価集約の対象となるユーザー。';
-$string['privacy:metadata:videoassessment_aggregation:timing'] = 'ビデオ評価の集約時間。';
+$string['privacy:metadata:videoassessment_aggregation'] = 'ビデオアセスメントの集計に関する情報。';
+$string['privacy:metadata:videoassessment_aggregation:videoassessment'] = 'ビデオアセスメントID。';
+$string['privacy:metadata:videoassessment_aggregation:userid'] = 'このビデオアセスメント集約の対象となるユーザー。';
+$string['privacy:metadata:videoassessment_aggregation:timing'] = 'ビデオアセスメントの集約時間。';
 $string['privacy:metadata:videoassessment_aggregation:timemodified'] = '最終更新時刻。';
 
 $string['privacy:metadata:videoassessment_grades'] = 'ビデオに関する評価記録。';
-$string['privacy:metadata:videoassessment_grades:videoassessment'] = 'ビデオ評価ID。';
+$string['privacy:metadata:videoassessment_grades:videoassessment'] = 'ビデオアセスメントID。';
 $string['privacy:metadata:videoassessment_grades:gradeitem'] = 'グレーディング ID';
 $string['privacy:metadata:videoassessment_grades:timemarked'] = 'グレーディングエントリー時間。';
 $string['privacy:metadata:videoassessment_grades:grade'] = 'グレード番号。';
 $string['privacy:metadata:videoassessment_grades:submissioncomment'] = '成績についてのコメント。';
 
 $string['privacy:metadata:videoassessment_grade_items'] = 'グレード一覧。';
-$string['privacy:metadata:videoassessment_grade_items:videoassessment'] = 'ビデオ評価ID。';
+$string['privacy:metadata:videoassessment_grade_items:videoassessment'] = 'ビデオアセスメントID。';
 $string['privacy:metadata:videoassessment_grade_items:type'] = 'グレード名またはグレードの種類。';
 $string['privacy:metadata:videoassessment_grade_items:gradeduser'] = '評価するユーザー。';
 
 $string['privacy:metadata:videoassessment_peers'] = 'ピアパートナー情報。';
-$string['privacy:metadata:videoassessment_peers:videoassessment'] = 'ビデオ評価 ID。';
-$string['privacy:metadata:videoassessment_peers:userid'] = 'ピアパートナーユーザー ID。';
+$string['privacy:metadata:videoassessment_peers:videoassessment'] = 'ビデオアセスメントID。';
+$string['privacy:metadata:videoassessment_peers:userid'] = 'ピアパートナーユーザーID。';
 $string['privacy:metadata:videoassessment_peers:peerid'] = 'ピア ID。';
 
 $string['privacy:metadata:videoassessment_sort_items'] = '並べ替え項目のリスト。';
@@ -228,11 +228,11 @@ $string['privacy:metadata:videoassessment_sort_items:itemid'] = 'アイテムID�
 $string['privacy:metadata:videoassessment_sort_items:type'] = '並べ替え項目の種類。';
 
 $string['privacy:metadata:videoassessment_sort_order'] = '並べ替え項目の並べ替え順序。';
-$string['privacy:metadata:videoassessment_sort_order:sortitemid'] = '並べ替え項目の ID。';
+$string['privacy:metadata:videoassessment_sort_order:sortitemid'] = '並べ替え項目のID。';
 $string['privacy:metadata:videoassessment_sort_order:userid'] = 'この並べ替え可能なアイテムの対象者。';
 
 $string['privacy:metadata:videoassessment_videos'] = 'アップロードされた動画に関する情報。';
-$string['privacy:metadata:videoassessment_videos:videoassessment'] = 'ビデオ評価ID。';
+$string['privacy:metadata:videoassessment_videos:videoassessment'] = 'ビデオアセスメントID。';
 $string['privacy:metadata:videoassessment_videos:filepath'] = 'ビデオファイルのパス。';
 $string['privacy:metadata:videoassessment_videos:filename'] = 'ビデオファイルのサーバー名。';
 $string['privacy:metadata:videoassessment_videos:originalname'] = 'アップロードされたビデオファイルの名前。';
@@ -240,7 +240,7 @@ $string['privacy:metadata:videoassessment_videos:timecreated'] = 'ファイル�
 $string['privacy:metadata:videoassessment_videos:timemodified'] = 'ファイルの最終変更時刻。';
 
 $string['privacy:metadata:videoassessment_video_assocs'] = 'ビデオ課題。';
-$string['privacy:metadata:videoassessment_video_assocs:videoassessment'] = 'ビデオ評価ID。';
-$string['privacy:metadata:videoassessment_video_assocs:videoid'] = 'ビデオストレージ ID。';
+$string['privacy:metadata:videoassessment_video_assocs:videoassessment'] = 'ビデオアセスメントID。';
+$string['privacy:metadata:videoassessment_video_assocs:videoid'] = 'ビデオストレージID。';
 $string['privacy:metadata:videoassessment_video_assocs:associationid'] = 'この動画に関連するユーザー。';
 $string['privacy:metadata:videoassessment_video_assocs:timemodified'] = '最終更新日時。';
