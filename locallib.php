@@ -36,10 +36,9 @@ require_once($CFG->libdir . '/formslib.php');
  */
 function videoassessment_get_ffmpeg_path() {
     $cmd = get_config('videoassessment', 'ffmpegcommand');
-
     if (!empty($cmd)) {
         $parts = explode(' ', $cmd);
-        return escapeshellcmd($parts[0]);
+        return $parts[0];
     }
 
     $sysiswindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
@@ -51,7 +50,7 @@ function videoassessment_get_ffmpeg_path() {
     }
 
     if ($returncode === 0 && !empty($output)) {
-        return escapeshellcmd(trim($output[0]));
+        return trim($output[0]);
     }
 
     return false;

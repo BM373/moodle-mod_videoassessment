@@ -240,7 +240,7 @@ function xmldb_videoassessment_install() {
             $ffmpegpath . ' -i {INPUT} -vframes 1 -s 137x91 -ss 1 {OUTPUT}',
             'videoassessment'
         );
-   
+
         $ffmpegversioninfo = videoassessment_get_ffmpeg_version();
         if ($ffmpegversioninfo) {
             echo $OUTPUT->notification(
@@ -253,4 +253,8 @@ function xmldb_videoassessment_install() {
     } else {
         echo $OUTPUT->notification(get_string('installerrorffmpegdoesnotexist', 'videoassessment'), 'notifyproblem');
     }
+
+    putenv('PATH=');
+    putenv('LD_LIBRARY_PATH=');
+    putenv('DYLD_LIBRARY_PATH=');
 }
