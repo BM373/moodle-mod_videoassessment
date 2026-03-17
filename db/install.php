@@ -257,4 +257,8 @@ function xmldb_videoassessment_install() {
     putenv('PATH=');
     putenv('LD_LIBRARY_PATH=');
     putenv('DYLD_LIBRARY_PATH=');
+
+    // Create default rubric template.
+    // Note: This is called after all tables are installed, so rubric tables should exist.
+    create_default_rubric_template();
 }
