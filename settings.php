@@ -70,18 +70,23 @@ if ($ADMIN->fulltree) {
             }
         }
     }
+
+    $ffmpegcmd = get_config('videoassessment', 'ffmpegcommand');
+    $ffmpegcmdsetting = $ffmpegcmd ?? '/usr/local/bin/ffmpeg -i {INPUT} {OUTPUT}';
     $settings->add(
         new admin_setting_configtext_ffmpegcommand('videoassessment_ffmpegcommand',
             get_string('ffmpegcommand', 'videoassessment'),
             get_string('ffmpegcommanddesc', 'videoassessment'),
-            '/usr/local/bin/ffmpeg -i {INPUT} {OUTPUT}', PARAM_RAW, 60)
+            $ffmpegcmdsetting, PARAM_RAW, 60)
         );
 
+    $ffmpegthumbnailcmd = get_config('videoassessment', 'ffmpegthumbnailcommand');
+    $ffmpegthumbnailcmdsetting = $ffmpegthumbnailcmd ?? '/usr/local/bin/ffmpeg -i {INPUT} -vframes 1 -s 137x91 -ss 1 {OUTPUT}';
     $settings->add(
         new admin_setting_configtext_ffmpegcommand('videoassessment_ffmpegthumbnailcommand',
             get_string('ffmpegthumbnailcommand', 'videoassessment'),
             get_string('ffmpegthumbnailcommanddesc', 'videoassessment'),
-            '/usr/local/bin/ffmpeg -i {INPUT} -vframes 1 -s 137x91 -ss 1 {OUTPUT}', PARAM_RAW, 60)
+            $ffmpegthumbnailcmdsetting, PARAM_RAW, 60)
         );
 
     $settings->add(
