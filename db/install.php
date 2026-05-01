@@ -66,7 +66,7 @@ function create_default_rubric_template() {
             "SELECT ga.id, gd.id as definitionid
              FROM {grading_areas} ga
              JOIN {grading_definitions} gd ON gd.areaid = ga.id
-             WHERE ga.contextid = ? 
+             WHERE ga.contextid = ?
              AND ga.component = 'core_grading'
              AND gd.method = 'rubric'
              AND gd.name = ?",

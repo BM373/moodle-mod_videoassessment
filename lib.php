@@ -1006,7 +1006,7 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             "SELECT gd.*
              FROM {grading_definitions} gd
              JOIN {grading_areas} ga ON ga.id = gd.areaid
-             WHERE ga.contextid = ? AND ga.component = 'mod_videoassessment' 
+             WHERE ga.contextid = ? AND ga.component = 'mod_videoassessment'
                AND gd.method = 'rubric' AND gd.status = ?
              ORDER BY gd.timemodified DESC
              LIMIT 1",
@@ -1348,7 +1348,7 @@ function videoassessment_cm_info_view(cm_info $cm) {
             (function() {
                 // Don't redirect if we're already on the grading management page or any grading-related page.
                 var currentUrl = window.location.href;
-                if (currentUrl.indexOf('/grade/grading/') !== -1 || 
+                if (currentUrl.indexOf('/grade/grading/') !== -1 ||
                     currentUrl.indexOf('/grade/grading/form/') !== -1 ||
                     currentUrl.indexOf('/grade/grading/pick.php') !== -1 ||
                     currentUrl.indexOf('/grade/grading/edit.php') !== -1) {
@@ -1357,25 +1357,25 @@ function videoassessment_cm_info_view(cm_info $cm) {
                     sessionStorage.removeItem('videoassessment_processed_tokens');
                     return;
                 }
-                
+
                 // Only proceed if we're on the course page or activity view page.
-                if (currentUrl.indexOf('/course/view.php') === -1 && 
+                if (currentUrl.indexOf('/course/view.php') === -1 &&
                     currentUrl.indexOf('/mod/videoassessment/view.php') === -1) {
                     return;
                 }
-                
+
                 var redirectData = sessionStorage.getItem('videoassessment_check_grading_redirect');
-                
+
                 // Only proceed if we have the sessionStorage flag.
                 if (!redirectData) {
                     return;
                 }
-                
+
                 // Parse the data: 'timestamp:token'.
                 var parts = redirectData.split(':');
                 var storedTime = parseInt(parts[0], 10);
                 var token = parts[1] || '';
-                
+
                 // Check if this token was already processed.
                 var processedTokens = JSON.parse(sessionStorage.getItem('videoassessment_processed_tokens') || '[]');
                 if (processedTokens.indexOf(token) !== -1) {
@@ -1383,18 +1383,18 @@ function videoassessment_cm_info_view(cm_info $cm) {
                     sessionStorage.removeItem('videoassessment_check_grading_redirect');
                     return;
                 }
-                
+
                 // Remove the redirect flag immediately to prevent re-triggering.
                 sessionStorage.removeItem('videoassessment_check_grading_redirect');
-                
+
                 var now = Date.now();
-                
+
                 // Only proceed if the redirect was set less than 2 seconds ago.
                 // Very short time window to prevent redirects when navigating away.
                 if (now - storedTime > 2000) {
                     return;
                 }
-                
+
                 // Mark this token as processed immediately.
                 processedTokens.push(token);
                 // Keep only last 10 tokens to prevent storage bloat.
@@ -1402,7 +1402,7 @@ function videoassessment_cm_info_view(cm_info $cm) {
                     processedTokens = processedTokens.slice(-10);
                 }
                 sessionStorage.setItem('videoassessment_processed_tokens', JSON.stringify(processedTokens));
-                
+
                 // Check for redirect via AJAX.
                 fetch('{$checkUrl}', {credentials: 'same-origin'})
                     .then(function(response) { return response.json(); })

@@ -1509,7 +1509,7 @@ class va {
         $PAGE->requires->js_amd_inline("
             require(['jquery'], function(\$) {
                 console.log('[VideoAssessment] Inline script loaded');
-                
+
                 // Mobile detection function.
                 function isMobile() {
                     var width = window.innerWidth;
@@ -1520,12 +1520,12 @@ class va {
                     }
                     return width <= 768 && isPortrait;
                 }
-                
+
                 // Get video container.
                 function getVideoContainer() {
                     return \$('.assess-form-videos, .path-mod-videoassessment .assess-form-videos');
                 }
-                
+
                 // Hide/show video functions with animation.
                 function hideVideo() {
                     if (isMobile()) {
@@ -1536,7 +1536,7 @@ class va {
                         }
                     }
                 }
-                
+
                 function showVideo() {
                     if (isMobile()) {
                         var \$container = getVideoContainer();
@@ -1545,16 +1545,16 @@ class va {
                         }
                     }
                 }
-                
+
                 // Setup handlers for remark textareas
                 // Mobile: Hide video when textarea is focused, show when blurred.
                 function setupRemarkHandlers() {
                     console.log('[VideoAssessment] Setting up remark handlers...');
-                    
+
                     // Find remark textareas.
                     var \$remarkTextareas = \$('.remark textarea, td.remark textarea, .criterion .remark textarea, .gradingform_rubric .remark textarea');
                     console.log('[VideoAssessment] Found remark textareas:', \$remarkTextareas.length);
-                    
+
                     // Handle focus/blur.
                     \$remarkTextareas.off('focus.videoassessment-remark blur.videoassessment-remark')
                         .on('focus.videoassessment-remark', function() {
@@ -1570,22 +1570,22 @@ class va {
                                 }
                             }, 150);
                         });
-                    
+
                     // Catch-all click handler.
                     \$(document).off('click.videoassessment-remark-all').on('click.videoassessment-remark-all', function(e) {
                         var \$target = \$(e.target);
-                        var isRemark = \$target.closest('.remark').length > 0 || 
+                        var isRemark = \$target.closest('.remark').length > 0 ||
                                        \$target.is('.remark') ||
                                        \$target.closest('.remark textarea').length > 0 ||
                                        \$target.is('.remark textarea');
-                        
+
                         if (isRemark && isMobile()) {
                             console.log('[VideoAssessment] Clicked in remark area');
                             hideVideo();
                         }
                     });
                 }
-                
+
                 // Setup immediately and after delays.
                 setTimeout(setupRemarkHandlers, 100);
                 setTimeout(setupRemarkHandlers, 500);
