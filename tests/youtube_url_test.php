@@ -93,6 +93,62 @@ final class youtube_url_test extends \basic_testcase {
             ],
             'empty string' => ['', null],
             'malformed URL' => ['not a url', null],
+            // Boundary: id length must be exactly 11 chars; 10 is too short.
+            'id one char too short' => ['https://www.youtube.com/watch?v=dQw4w9WgXc', null],
+            // Boundary: 12 chars must NOT match; the regex anchors the end.
+            'id one char too long' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQQ', null],
+            // Boundary: id with disallowed characters (`!`).
+            'id with disallowed char' => ['https://www.youtube.com/watch?v=dQw4w9!gXcQ', null],
+            // Common Shorts share form ends with extra `?si=`.
+            'shorts with si=' => [
+                'https://www.youtube.com/shorts/dQw4w9WgXcQ?si=AbCdEfG',
+                'dQw4w9WgXcQ',
+            ],
+            // Watch URL with v= NOT in first position.
+            'watch URL with v= in second position' => [
+                'https://www.youtube.com/watch?feature=share&v=dQw4w9WgXcQ',
+                'dQw4w9WgXcQ',
+            ],
+            // Watch URL with v= followed by fragment.
+            'watch URL with fragment' => [
+                'https://www.youtube.com/watch?v=dQw4w9WgXcQ#t=10',
+                'dQw4w9WgXcQ',
+            ],
+            // Mobile shorts.
+            'mobile shorts URL' => [
+                'https://m.youtube.com/shorts/dQw4w9WgXcQ',
+                'dQw4w9WgXcQ',
+            ],
+            // HTTP (not HTTPS) standard watch URL.
+            'http watch URL' => [
+                'http://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'dQw4w9WgXcQ',
+            ],
+            // Defence-in-depth against XSS-style attempts: do not blindly
+            // accept attacker-controlled fragments.
+            'attacker injects javascript:' => [
+                'javascript:alert(1)//youtube.com/watch?v=dQw4w9WgXcQ',
+                null,
+            ],
+            'data: URL with v=' => [
+                'data:text/html,<script>?v=dQw4w9WgXcQ',
+                null,
+            ],
+            // Hostname must be youtube.com / youtu.be exactly; no
+            // attacker-owned subdomain trick.
+            'lookalike host evil.youtube.com.attacker.example' => [
+                'https://youtube.com.attacker.example/watch?v=dQw4w9WgXcQ',
+                null,
+            ],
+            'lookalike host www.youtube.com.evil' => [
+                'https://www.youtube.com.evil/watch?v=dQw4w9WgXcQ',
+                null,
+            ],
+            // Edge: youtu.be without leading slash inside the path.
+            'youtu.be path traversal attempt' => [
+                'https://youtu.be/../etc/passwd',
+                null,
+            ],
         ];
     }
 
@@ -154,6 +210,65 @@ final class youtube_url_test extends \basic_testcase {
         $this->assertSame(
             'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
             youtube_url::embed_url('dQw4w9WgXcQ', true)
+        );
+    }
+
+    /**
+     * Boundary tests for is_shorts() with edge-case URLs.
+     *
+     * @covers \mod_videoassessment\youtube_url::is_shorts
+     */
+    public function test_is_shorts_boundaries(): void {
+        // Empty input is not shorts.
+        $this->assertFalse(youtube_url::is_shorts(''));
+        // Mobile shorts is shorts.
+        $this->assertTrue(youtube_url::is_shorts('https://m.youtube.com/shorts/dQw4w9WgXcQ'));
+        // Embed is NOT shorts (the iframe form is a separate path).
+        $this->assertFalse(youtube_url::is_shorts('https://www.youtube.com/embed/dQw4w9WgXcQ'));
+        // The youtu.be short form is NOT a Shorts video.
+        $this->assertFalse(youtube_url::is_shorts('https://youtu.be/dQw4w9WgXcQ'));
+        // The /shorts/ path on a lookalike host must not be detected.
+        $this->assertFalse(
+            youtube_url::is_shorts('https://youtube.com.attacker.example/shorts/dQw4w9WgXcQ')
+        );
+    }
+
+    /**
+     * Boundary tests for thumbnail_url() — input is not validated, so the
+     * helper must be safe with arbitrary 11-char-id-shaped strings.
+     *
+     * @covers \mod_videoassessment\youtube_url::thumbnail_url
+     */
+    public function test_thumbnail_url_boundaries(): void {
+        // The helper does not re-validate the id; the contract is "build a
+        // URL from this id". Confirm it works with the full range of
+        // legal id characters.
+        $this->assertSame(
+            'https://i.ytimg.com/vi/abcdefghijk/maxresdefault.jpg',
+            youtube_url::thumbnail_url('abcdefghijk')
+        );
+        $this->assertSame(
+            'https://i.ytimg.com/vi/A_-1234567z/maxresdefault.jpg',
+            youtube_url::thumbnail_url('A_-1234567z')
+        );
+    }
+
+    /**
+     * Boundary tests for embed_url(): default vs nocookie hosts both
+     * produce the canonical /embed/ form.
+     *
+     * @covers \mod_videoassessment\youtube_url::embed_url
+     */
+    public function test_embed_url_boundaries(): void {
+        // Default (cookie-bearing) host.
+        $this->assertSame(
+            'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            youtube_url::embed_url('dQw4w9WgXcQ', false)
+        );
+        // Privacy-enhanced (nocookie) host.
+        $this->assertSame(
+            'https://www.youtube-nocookie.com/embed/A_-1234567z',
+            youtube_url::embed_url('A_-1234567z', true)
         );
     }
 }

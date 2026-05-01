@@ -69,6 +69,37 @@ final class rubric_navigation_test extends \basic_testcase {
                 false,
             ],
             'empty URL' => ['', false],
+            // Boundary: full HTTP URL (Moodle's me() can return either a
+            // path or a full URL depending on context).
+            'full URL with our plugin' => [
+                'https://moodle.example/grade/grading/form/rubric/edit.php?component=mod_videoassessment&contextid=42',
+                true,
+            ],
+            // Boundary: query-string-only ordering does not matter — the
+            // matcher should be order-agnostic.
+            'component param last' => [
+                '/grade/grading/form/rubric/edit.php?contextid=42&areaid=99&component=mod_videoassessment',
+                true,
+            ],
+            // Boundary: lookalike component name (substring match) must
+            // not classify another plugin as ours.
+            'mod_videoassessment_extra component' => [
+                '/grade/grading/form/rubric/edit.php?component=mod_videoassessment_extra&contextid=42',
+                false,
+            ],
+            // Boundary: a fragment (#) after the URL must not break the
+            // match.
+            'url with fragment' => [
+                '/grade/grading/form/rubric/edit.php?component=mod_videoassessment&contextid=42#main',
+                true,
+            ],
+            // Boundary: scoring system would be a different rubric type;
+            // any other path under /grade/grading/form/ is not our edit
+            // page.
+            'guide form (not rubric)' => [
+                '/grade/grading/form/guide/edit.php?component=mod_videoassessment&contextid=42',
+                false,
+            ],
         ];
     }
 
@@ -98,5 +129,31 @@ final class rubric_navigation_test extends \basic_testcase {
         $params = $url->params();
         $this->assertSame('123', (string) $params['id']);
         $this->assertSame('assess', $params['action']);
+    }
+
+    /**
+     * Boundary: id=0 (degenerate but the helper should still return a
+     * URL; downstream view.php will reject id=0 with an
+     * `invaliddata` exception).
+     *
+     * @covers \mod_videoassessment\rubric_navigation::finish_rubric_url
+     */
+    public function test_finish_rubric_url_with_id_zero(): void {
+        $url = rubric_navigation::finish_rubric_url(0);
+        $params = $url->params();
+        $this->assertSame('0', (string) $params['id']);
+        $this->assertSame('assess', $params['action']);
+    }
+
+    /**
+     * Boundary: large id (within PHP_INT_MAX); confirm there is no
+     * silent integer overflow.
+     *
+     * @covers \mod_videoassessment\rubric_navigation::finish_rubric_url
+     */
+    public function test_finish_rubric_url_with_large_id(): void {
+        $url = rubric_navigation::finish_rubric_url(2147483647);
+        $params = $url->params();
+        $this->assertSame('2147483647', (string) $params['id']);
     }
 }

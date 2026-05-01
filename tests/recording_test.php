@@ -63,4 +63,40 @@ final class recording_test extends \basic_testcase {
         $this->assertStringContainsString('2', $label);
         $this->assertStringContainsString('min', $label);
     }
+
+    /**
+     * Boundary: max length is exactly 2 minutes; converting to ms must be
+     * 120000 so the AMD `record` module's setTimeout argument matches.
+     *
+     * @covers \mod_videoassessment\recording::max_length_seconds
+     */
+    public function test_max_length_translates_to_120000_ms(): void {
+        $this->assertSame(120000, recording::max_length_seconds() * 1000);
+    }
+
+    /**
+     * Boundary: empty base label still produces a non-empty result so the
+     * UI does not collapse to the bare time suffix.
+     *
+     * @covers \mod_videoassessment\recording::label_with_limit
+     */
+    public function test_label_with_empty_base_label(): void {
+        $label = recording::label_with_limit('');
+        // Even with empty base, "(2 min max)" suffix should still appear.
+        $this->assertStringContainsString('2', $label);
+        $this->assertStringContainsString('min', $label);
+        $this->assertNotEmpty(trim($label));
+    }
+
+    /**
+     * Boundary: an HTML-shaped base label is kept verbatim — the helper
+     * is plain string concatenation, not a renderer, so callers
+     * remain responsible for escaping.
+     *
+     * @covers \mod_videoassessment\recording::label_with_limit
+     */
+    public function test_label_with_special_chars_preserved(): void {
+        $label = recording::label_with_limit('録画 & 撮影');
+        $this->assertStringContainsString('録画 & 撮影', $label);
+    }
 }

