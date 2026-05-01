@@ -11,6 +11,19 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 - GitHub Actions workflow `moodle-ci.yml` running the Moodle Plugin CI matrix across
   Moodle 4.5 / 5.0 / 5.1 / 5.2 × MariaDB / PostgreSQL in parallel.
 - `CHANGELOG.md` (this file) introduced for the Shinonome Labo fork.
+- `.gitattributes` enforcing LF line endings on all first-party text files.
+
+### Changed
+- `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
+  raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
+  and bump the build to `2026050100`.
+- Convert all first-party source files (PHP, JS sources, CSS, Mustache, YAML, Markdown,
+  etc.) from CRLF to LF line endings.
+
+### Fixed
+- Complete the PHPDoc `@param` list of `mod_videoassessment\va::get_courses_managed_by`
+  (added the missing `$catid` parameter) and reorder the `@param` entries of
+  `mod_videoassessment\va::get_peers_sort` to match the function signature.
 
 ### Planned (tracked by 2026-04 fix list)
 The items below are planned and tracked but **not yet implemented**.

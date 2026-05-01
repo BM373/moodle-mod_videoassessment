@@ -3444,6 +3444,7 @@ class va {
      * Get the list of courses that the specified user can access as a teacher.
      *
      * @param int $userid
+     * @param int|null $catid Optional category id; when provided, restrict to that category.
      * @return object[]
      * @global object $CFG
      */
@@ -3616,8 +3617,8 @@ class va {
     /**
      * Get peer user ids for a user with optional manual sorting.
      *
-     * @param int $groupid Group id to filter (0 for course scope)
      * @param int $userid Base user id whose peers are returned
+     * @param int $groupid Group id to filter (0 for course scope)
      * @param bool $sortmanually Whether to apply manual sort order if available
      * @param string|null $order Raw ORDER BY fragment when needed
      * @return int[] Ordered list of peer user ids
