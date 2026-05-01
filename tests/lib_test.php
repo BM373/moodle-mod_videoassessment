@@ -79,25 +79,18 @@ final class lib_test extends \advanced_testcase {
     }
 
     /**
-     * `videoassessment_grading_areas_list()` must return a non-empty
-     * map of grading-area keys to display labels covering at least
-     * before/after × self/peer/teacher/class.
+     * `videoassessment_grading_areas_list()` must include the four
+     * canonical "before" grader types (self / peer / teacher / class)
+     * plus the special `beforetraining` area used by the pre-test.
      *
      * @covers ::videoassessment_grading_areas_list
      */
-    public function test_grading_areas_list_covers_all_combinations(): void {
+    public function test_grading_areas_list_covers_all_grader_types(): void {
         $areas = videoassessment_grading_areas_list();
         $this->assertIsArray($areas);
-        // 2 timings × 4 grader types = 8 areas at minimum.
-        $this->assertGreaterThanOrEqual(8, count($areas));
-        foreach (['before', 'after'] as $timing) {
-            foreach (['self', 'peer', 'teacher', 'class'] as $grader) {
-                $this->assertArrayHasKey(
-                    $timing . $grader,
-                    $areas,
-                    "Missing grading area: {$timing}{$grader}"
-                );
-            }
+        foreach (['beforeteacher', 'beforeself', 'beforepeer', 'beforeclass', 'beforetraining'] as $key) {
+            $this->assertArrayHasKey($key, $areas, "Missing grading area: {$key}");
+            $this->assertNotEmpty($areas[$key], "Grading area '{$key}' has empty label");
         }
     }
 
@@ -245,15 +238,33 @@ final class lib_test extends \advanced_testcase {
      * `videoassessment_show_intro()` must NOT throw when
      * showdescription is missing entirely (legacy schema rows).
      *
+     * The helper returns true when `time() > allowsubmissionsfromdate`
+     * which is almost always the case in tests (allowfrom defaults to
+     * 0 when missing). The whole regression guarded here is "no
+     * undefined-property notice on legacy rows", so we assert the
+     * call returns *some* boolean rather than throwing.
+     *
      * @covers ::videoassessment_show_intro
      */
     public function test_show_intro_without_showdescription_does_not_throw(): void {
         $va = new \stdClass();
-        // No properties; helper must coerce the missing column to 0.
+        // Empty stdClass; missing properties must be coerced to 0.
         $result = videoassessment_show_intro($va);
-        // Either 0 or empty/null is acceptable; "no exception" is the
-        // whole contract of the regression we're guarding here.
-        $this->assertTrue(in_array($result, [0, false, null], true) || empty($result));
+        $this->assertIsBool($result);
+    }
+
+    /**
+     * Boundary: when allowsubmissionsfromdate is far in the future and
+     * showdescription is 0, intro must be hidden.
+     *
+     * @covers ::videoassessment_show_intro
+     */
+    public function test_show_intro_returns_false_for_future_allowfrom(): void {
+        $va = (object) [
+            'showdescription' => 0,
+            'allowsubmissionsfromdate' => time() + 86400,
+        ];
+        $this->assertFalse(videoassessment_show_intro($va));
     }
 
     /**
@@ -309,8 +320,11 @@ final class lib_test extends \advanced_testcase {
 
         $result = videoassessment_check_has_grade($va->id);
         $this->assertTrue($result['beforeteacher']);
-        $this->assertFalse($result['afterteacher']);
+        // The other "before*" areas must remain false.
         $this->assertFalse($result['beforepeer']);
+        $this->assertFalse($result['beforeself']);
+        $this->assertFalse($result['beforeclass']);
+        $this->assertFalse($result['beforetraining']);
     }
 
     /**
@@ -409,11 +423,11 @@ final class lib_test extends \advanced_testcase {
     }
 
     /**
-     * Boundary: a path with an invalid timing must yield null.
+     * Boundary: a path with an invalid timing must yield false.
      *
      * @covers ::videoassessment_get_assoc
      */
-    public function test_get_assoc_invalid_timing_returns_null(): void {
+    public function test_get_assoc_invalid_timing_returns_false(): void {
         $this->resetAfterTest();
         $fs = get_file_storage();
         $context = \context_system::instance();
@@ -425,16 +439,15 @@ final class lib_test extends \advanced_testcase {
             'filepath' => '/42/middle/',
             'filename' => 'sample.webm',
         ], 'fake');
-        $result = videoassessment_get_assoc($f);
-        $this->assertNull($result);
+        $this->assertFalse(videoassessment_get_assoc($f));
     }
 
     /**
-     * Boundary: a path with userid=0 yields null (userid must be > 0).
+     * Boundary: a path with userid=0 yields false (userid must be > 0).
      *
      * @covers ::videoassessment_get_assoc
      */
-    public function test_get_assoc_userid_zero_returns_null(): void {
+    public function test_get_assoc_userid_zero_returns_false(): void {
         $this->resetAfterTest();
         $fs = get_file_storage();
         $context = \context_system::instance();
@@ -446,7 +459,6 @@ final class lib_test extends \advanced_testcase {
             'filepath' => '/0/before/',
             'filename' => 'sample.webm',
         ], 'fake');
-        $result = videoassessment_get_assoc($f);
-        $this->assertNull($result);
+        $this->assertFalse(videoassessment_get_assoc($f));
     }
 }

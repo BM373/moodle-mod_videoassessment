@@ -29,24 +29,16 @@ namespace mod_videoassessment;
  *
  * The matrix CI run already executes the full suite against MariaDB and
  * PostgreSQL in parallel, so any of these tests that depends on
- * driver-specific behaviour will fail loudly on the affected DB. The
- * tests pin three classes of compatibility concern that have actually
- * bitten the plugin in the wild:
+ * driver-specific behaviour will fail loudly on the affected DB.
  *
- *  - Reserved-keyword column names (PG broke at runtime; see
- *    `schema_test`'s sister test).
- *  - Round-tripping of UTF-8 multi-byte data, including 4-byte
- *    characters (utf8mb4 emoji, kanji surrogates, etc.).
- *  - Numeric / boolean / timestamp coercion: PG and MariaDB disagree on
- *    the type of `1` vs `'1'` in some contexts, and bool comparisons
- *    behave differently when `tinyint(1)` is involved.
+ * Tests use the plugin generator to create activities (it knows the
+ * full required-column list); the tests then `update_record` the
+ * specific column under test so we exercise the driver round-trip
+ * rather than the Moodle insert validation path.
  */
 final class db_compat_test extends \advanced_testcase {
     /**
-     * The driver under test (`mariadb`, `mysqli`, `pgsql`, ...).
-     *
-     * Useful for a couple of branches below where the assertion
-     * deliberately checks driver-specific behaviour.
+     * The driver family under test (`mysql`, `postgres`, ...).
      *
      * @return string
      */
@@ -56,66 +48,64 @@ final class db_compat_test extends \advanced_testcase {
     }
 
     /**
-     * Insert + read-back round-trip of UTF-8 multi-byte data into the
-     * `videoassessment` activity row.
+     * Build a fresh activity row via the data generator (which knows
+     * all of videoassessment's NOT NULL columns), and return it.
+     *
+     * @return \stdClass
+     */
+    private function fresh_va(): \stdClass {
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_videoassessment');
+        return $generator->create_instance(['course' => $course->id]);
+    }
+
+    /**
+     * UTF-8 multi-byte round-trip on `name` and `intro`.
      *
      * @coversNothing
      */
-    public function test_utf8_roundtrip_on_activity_name(): void {
+    public function test_utf8_roundtrip_on_activity_name_and_intro(): void {
         $this->resetAfterTest();
         global $DB;
 
-        $course = $this->getDataGenerator()->create_course();
+        $va = $this->fresh_va();
         // Mix of ASCII, 3-byte (kanji, kana) and 4-byte (emoji) UTF-8.
         $name = 'Video Assessment テスト 🎥 видео';
         $intro = 'Multibyte description: 日本語 한국어 中文 🚀 Ω≈ç';
-
-        $vaid = $DB->insert_record('videoassessment', (object) [
-            'course' => $course->id,
+        $DB->update_record('videoassessment', (object) [
+            'id' => $va->id,
             'name' => $name,
             'intro' => $intro,
-            'introformat' => FORMAT_HTML,
-            'timecreated' => time(),
-            'timemodified' => time(),
         ]);
 
-        $row = $DB->get_record('videoassessment', ['id' => $vaid]);
+        $row = $DB->get_record('videoassessment', ['id' => $va->id]);
         $this->assertSame($name, $row->name);
         $this->assertSame($intro, $row->intro);
     }
 
     /**
-     * NULL-vs-empty-string round-trip — PostgreSQL distinguishes them in
-     * `WHERE col = ''` whereas MySQL/MariaDB are lax. Confirm the
-     * plugin's tables let an empty TEXT column come back as either
-     * NULL or '' depending on what was written.
+     * Empty-string round-trip on TEXT — both drivers must round-trip
+     * an empty string without coercing it to NULL or vice-versa.
      *
      * @coversNothing
      */
-    public function test_null_vs_empty_intro_roundtrip(): void {
+    public function test_empty_intro_roundtrip(): void {
         $this->resetAfterTest();
         global $DB;
 
-        $course = $this->getDataGenerator()->create_course();
-        $vaid = $DB->insert_record('videoassessment', (object) [
-            'course' => $course->id,
-            'name' => 'NULL test',
+        $va = $this->fresh_va();
+        $DB->update_record('videoassessment', (object) [
+            'id' => $va->id,
             'intro' => '',
-            'introformat' => FORMAT_HTML,
-            'timecreated' => time(),
-            'timemodified' => time(),
         ]);
 
-        $row = $DB->get_record('videoassessment', ['id' => $vaid]);
-        // Both DBs must report intro as a string (possibly empty).
+        $row = $DB->get_record('videoassessment', ['id' => $va->id]);
         $this->assertIsString($row->intro);
         $this->assertSame('', $row->intro);
     }
 
     /**
-     * Boolean-shaped columns are stored as integers in Moodle's XMLDB.
-     * Confirm both DBs accept `0` and `1` and round-trip without
-     * coercing to `'true'`/`'false'` or NULL.
+     * Bool-shaped int columns (0/1) round-trip without driver coercion.
      *
      * @coversNothing
      */
@@ -123,30 +113,21 @@ final class db_compat_test extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        $course = $this->getDataGenerator()->create_course();
-        $vaid = $DB->insert_record('videoassessment', (object) [
-            'course' => $course->id,
-            'name' => 'bool test',
-            'intro' => '',
-            'introformat' => FORMAT_HTML,
+        $va = $this->fresh_va();
+        $DB->update_record('videoassessment', (object) [
+            'id' => $va->id,
             'fairnessbonus' => 1,
             'selffairnessbonus' => 0,
-            'timecreated' => time(),
-            'timemodified' => time(),
         ]);
 
-        $row = $DB->get_record('videoassessment', ['id' => $vaid]);
-        // Moodle returns numeric columns as numeric strings; cast to
-        // compare across drivers.
+        $row = $DB->get_record('videoassessment', ['id' => $va->id]);
         $this->assertSame(1, (int) $row->fairnessbonus);
         $this->assertSame(0, (int) $row->selffairnessbonus);
     }
 
     /**
-     * Confirm `WHERE col IN (?, ?, ...)` with a mix of integer and
-     * string parameters works on both DBs. PG is strict about
-     * parameter type binding; MariaDB is lax. Moodle's
-     * get_in_or_equal() must paper over this.
+     * `WHERE col IN (?, ?, ...)` with mixed-type params works on both
+     * DBs via Moodle's get_in_or_equal helper.
      *
      * @coversNothing
      */
@@ -154,17 +135,9 @@ final class db_compat_test extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        $course = $this->getDataGenerator()->create_course();
         $ids = [];
         for ($i = 0; $i < 3; $i++) {
-            $ids[] = $DB->insert_record('videoassessment', (object) [
-                'course' => $course->id,
-                'name' => "row {$i}",
-                'intro' => '',
-                'introformat' => FORMAT_HTML,
-                'timecreated' => time(),
-                'timemodified' => time(),
-            ]);
+            $ids[] = $this->fresh_va()->id;
         }
 
         [$insql, $inparams] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
@@ -173,36 +146,31 @@ final class db_compat_test extends \advanced_testcase {
     }
 
     /**
-     * Confirm a large unsigned integer (2^31 - 1, just under MySQL INT
-     * max) round-trips without overflow on either DB.
+     * Boundary: 2^31 - 1 in a 10-digit INT column round-trips.
      *
      * @coversNothing
      */
-    public function test_large_int_roundtrip(): void {
+    public function test_large_int_roundtrip_on_timedue(): void {
         $this->resetAfterTest();
         global $DB;
 
-        $course = $this->getDataGenerator()->create_course();
+        $va = $this->fresh_va();
         $maxint = 2147483647;
-        $vaid = $DB->insert_record('videoassessment', (object) [
-            'course' => $course->id,
-            'name' => 'large int',
-            'intro' => '',
-            'introformat' => FORMAT_HTML,
-            'timecreated' => $maxint,
-            'timemodified' => $maxint,
+        $DB->update_record('videoassessment', (object) [
+            'id' => $va->id,
+            'timedue' => $maxint,
+            'timeavailable' => $maxint,
         ]);
 
-        $row = $DB->get_record('videoassessment', ['id' => $vaid]);
-        $this->assertSame($maxint, (int) $row->timecreated);
-        $this->assertSame($maxint, (int) $row->timemodified);
+        $row = $DB->get_record('videoassessment', ['id' => $va->id]);
+        $this->assertSame($maxint, (int) $row->timedue);
+        $this->assertSame($maxint, (int) $row->timeavailable);
     }
 
     /**
-     * Confirm the plugin table list matches install.xml so that the
-     * sister `schema_test` reserved-keyword check is exhaustive. If a
-     * future migration adds a table without updating
-     * `schema_test::plugin_table_provider`, this test fails.
+     * Confirm install.xml's table list matches the
+     * schema_test::plugin_table_provider mirror (otherwise the
+     * reserved-keyword guard misses new tables silently).
      *
      * @coversNothing
      */
@@ -231,10 +199,8 @@ final class db_compat_test extends \advanced_testcase {
     }
 
     /**
-     * PostgreSQL is case-sensitive with quoted identifiers but Moodle
-     * stores identifiers lowercase. Confirm `get_columns()` returns
-     * lowercase keys on both DBs so plugin code that does
-     * `array_key_exists('order', ...)` works portably.
+     * `get_columns()` returns lowercase keys on both DBs so plugin
+     * code using `array_key_exists()` works portably.
      *
      * @coversNothing
      */
@@ -243,6 +209,7 @@ final class db_compat_test extends \advanced_testcase {
         global $DB;
 
         $columns = $DB->get_columns('videoassessment');
+        $this->assertNotEmpty($columns);
         foreach (array_keys($columns) as $name) {
             $this->assertSame(
                 strtolower($name),
@@ -257,8 +224,7 @@ final class db_compat_test extends \advanced_testcase {
     }
 
     /**
-     * Confirm that `text` columns can hold the full minimum-required
-     * length on both DBs (Moodle's TEXT type maps to LONGTEXT/text).
+     * TEXT column holds at least 64 KiB on both drivers.
      *
      * @coversNothing
      */
@@ -266,26 +232,21 @@ final class db_compat_test extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
 
-        $course = $this->getDataGenerator()->create_course();
-        // A 64 KiB payload — comfortably above the 65535-byte limit of
-        // MySQL's TEXT (which Moodle never uses, but we want to be
-        // sure neither driver truncates).
-        $largeintro = str_repeat('ABCDE', 13107); // 65535 bytes.
-        $vaid = $DB->insert_record('videoassessment', (object) [
-            'course' => $course->id,
-            'name' => 'big intro',
+        $va = $this->fresh_va();
+        // A 64 KiB ASCII payload — comfortably above the 65535-byte
+        // limit of MySQL's TEXT (Moodle uses LONGTEXT but we want to
+        // be sure neither driver truncates).
+        $largeintro = str_repeat('ABCDE', 13107);
+        $DB->update_record('videoassessment', (object) [
+            'id' => $va->id,
             'intro' => $largeintro,
-            'introformat' => FORMAT_HTML,
-            'timecreated' => time(),
-            'timemodified' => time(),
         ]);
-        $row = $DB->get_record('videoassessment', ['id' => $vaid]);
+        $row = $DB->get_record('videoassessment', ['id' => $va->id]);
         $this->assertSame($largeintro, $row->intro);
     }
 
     /**
-     * Verify the active driver under test is one we explicitly support
-     * in the matrix.
+     * Driver family must be one we explicitly support in the matrix.
      *
      * @coversNothing
      */
@@ -297,5 +258,61 @@ final class db_compat_test extends \advanced_testcase {
                 . 'mod_videoassessment is verified against MariaDB (mysql family) '
                 . 'and PostgreSQL only.'
         );
+    }
+
+    /**
+     * SQL ordering must be deterministic across drivers when an
+     * explicit ORDER BY clause is given. PG and MariaDB disagree on
+     * default ordering, so the plugin must always specify it.
+     *
+     * @coversNothing
+     */
+    public function test_explicit_order_by_is_deterministic(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_videoassessment');
+        $names = ['Charlie', 'Alpha', 'Bravo'];
+        $ids = [];
+        foreach ($names as $n) {
+            $va = $generator->create_instance(['course' => $course->id, 'name' => $n]);
+            $ids[$n] = $va->id;
+        }
+
+        $rows = $DB->get_records_sql(
+            'SELECT id, name FROM {videoassessment} WHERE id ' .
+                $DB->sql_compare_text('id') . ' IN (?, ?, ?) ORDER BY name ASC',
+            array_values($ids)
+        );
+        $this->assertSame(['Alpha', 'Bravo', 'Charlie'], array_values(array_column($rows, 'name')));
+    }
+
+    /**
+     * `update_record` with a column rename target works on both
+     * drivers (the plugin's upgrade.php uses XMLDB rename_field()
+     * which has historically diverged between PG and MariaDB).
+     *
+     * Smoke test: confirm the canonical sortorder column rename
+     * (formerly `order`) persisted across upgrade and is queryable.
+     *
+     * @coversNothing
+     */
+    public function test_sortorder_column_is_queryable(): void {
+        $this->resetAfterTest();
+        global $DB;
+
+        $va = $this->fresh_va();
+        $DB->update_record('videoassessment', (object) [
+            'id' => $va->id,
+            'sortorder' => 42,
+        ]);
+        $row = $DB->get_record('videoassessment', ['id' => $va->id]);
+        $this->assertSame(42, (int) $row->sortorder);
+
+        // The legacy column name (`order`) must NOT exist anymore.
+        $columns = $DB->get_columns('videoassessment');
+        $this->assertArrayNotHasKey('order', $columns);
+        $this->assertArrayHasKey('sortorder', $columns);
     }
 }
