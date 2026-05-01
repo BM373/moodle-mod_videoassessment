@@ -1108,5 +1108,18 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2025120815, 'videoassessment');
     }
 
+    if ($oldversion < 2026050100) {
+        // Issue #11: rename `order` column on the videoassessment table to
+        // `sortorder` because `order` is a PostgreSQL reserved keyword and
+        // every $DB->update_record('videoassessment', ...) call generated
+        // unparsable SQL on PostgreSQL deployments.
+        $table = new xmldb_table('videoassessment');
+        $oldfield = new xmldb_field('order', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        if ($dbman->field_exists($table, $oldfield)) {
+            $dbman->rename_field($table, $oldfield, 'sortorder');
+        }
+        upgrade_mod_savepoint(true, 2026050100, 'videoassessment');
+    }
+
     return true;
 }

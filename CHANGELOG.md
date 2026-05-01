@@ -20,6 +20,17 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 - Convert all first-party source files (PHP, JS sources, CSS, Mustache, YAML, Markdown,
   etc.) from CRLF to LF line endings.
 
+### Fixed (customer-requested 2026-04 fixes)
+- **#11** Rename the `order` column on the `videoassessment` table to
+  `sortorder`. `order` is a PostgreSQL reserved keyword, which caused
+  `$DB->update_record('videoassessment', ...)` to fail with
+  `ERROR: syntax error at or near "order"` on PostgreSQL deployments
+  (originally reported by SGU after migrating from MariaDB to PostgreSQL).
+  An idempotent `rename_field()` migration is added at version
+  `2026050100`. New regression test `tests/schema_test.php` enumerates
+  every plugin-owned table and asserts no column collides with
+  PostgreSQL's reserved keywords.
+
 ### Removed
 - `templates/course_options.mustache` and `templates/section_options.mustache`.
   These partial templates emitted bare `<option>` elements and could not pass
