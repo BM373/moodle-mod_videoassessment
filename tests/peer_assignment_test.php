@@ -136,4 +136,103 @@ final class peer_assignment_test extends \basic_testcase {
             );
         }
     }
+
+    /**
+     * Boundary: empty user list returns an empty mapping.
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_empty_user_list_returns_empty_mapping(): void {
+        $va = $this->make_stub_va();
+        $this->assertSame([], $va->get_random_peers_for_users([], 3));
+    }
+
+    /**
+     * Boundary: numpeers == -1 means "everyone else", so each user is
+     * paired with every other user in the list.
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_numpeers_minus_one_assigns_everyone_else(): void {
+        $va = $this->make_stub_va();
+        $userids = [10, 20, 30, 40];
+        $mappings = $va->get_random_peers_for_users($userids, -1);
+        foreach ($userids as $uid) {
+            $expected = array_values(array_diff($userids, [$uid]));
+            sort($expected);
+            $actual = $mappings[$uid];
+            sort($actual);
+            $this->assertSame(
+                $expected,
+                $actual,
+                "User {$uid} expected to be paired with all others when numpeers = -1"
+            );
+        }
+    }
+
+    /**
+     * Boundary: when there are fewer users than numpeers + 1 (i.e. not
+     * enough people to fully populate the round-robin), the algorithm
+     * falls back to "everyone else" so the activity still works.
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_too_few_users_falls_back_to_all_others(): void {
+        $va = $this->make_stub_va();
+        // 3 Users but numpeers = 5 -> not enough.
+        $userids = [1, 2, 3];
+        $mappings = $va->get_random_peers_for_users($userids, 5);
+        foreach ($userids as $uid) {
+            $expected = array_values(array_diff($userids, [$uid]));
+            sort($expected);
+            $actual = $mappings[$uid];
+            sort($actual);
+            $this->assertSame($expected, $actual);
+            $this->assertCount(2, $actual, "User {$uid} should have 2 peers (all others)");
+        }
+    }
+
+    /**
+     * Boundary: a single user → no peers (the user list contains only
+     * themselves, so array_diff yields empty).
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_single_user_has_no_peers(): void {
+        $va = $this->make_stub_va();
+        $mappings = $va->get_random_peers_for_users([42], 3);
+        $this->assertSame([], $mappings[42]);
+    }
+
+    /**
+     * Boundary: numpeers == 0 means each user gets an empty peer list.
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_zero_peers_per_user(): void {
+        $va = $this->make_stub_va();
+        $mappings = $va->get_random_peers_for_users([1, 2, 3, 4], 0);
+        foreach ($mappings as $uid => $peers) {
+            $this->assertSame([], $peers, "User {$uid} should have no peers when numpeers = 0");
+        }
+    }
+
+    /**
+     * Boundary: numpeers exactly equal to count(users) - 1 -> every
+     * user is paired with every other user (tight max).
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_numpeers_equals_count_minus_one(): void {
+        $va = $this->make_stub_va();
+        $userids = [11, 22, 33, 44, 55];
+        $mappings = $va->get_random_peers_for_users($userids, 4);
+        foreach ($userids as $uid) {
+            $expected = array_values(array_diff($userids, [$uid]));
+            sort($expected);
+            $actual = $mappings[$uid];
+            sort($actual);
+            $this->assertSame($expected, $actual);
+        }
+    }
 }
