@@ -31,7 +31,7 @@
 .path-mod-videoassessment .right {
     text-align: right;
 }
-.path-mod-videoassessment .center-btn{
+.path-mod-videoassessment .center-btn {
     text-align: center;
     margin-top: 50px;
 }
@@ -39,16 +39,33 @@
 /** General Styles **/
 .path-mod-videoassessment .userpicture,
 .path-mod-videoassessment .picture.user,
-.path-mod-videoassessment .picture.teacher {width:35px;height: 35px;vertical-align:top;}
+.path-mod-videoassessment .picture.teacher {
+    width: 35px;
+    height: 35px;
+    vertical-align: top;
+}
 .path-mod-videoassessment .feedback .files,
 .path-mod-videoassessment .feedback .grade,
 .path-mod-videoassessment .feedback .outcome,
-.path-mod-videoassessment .feedback .finalgrade {float: right;}
-.path-mod-videoassessment .feedback .disabledfeedback {width: 500px;height: 250px;}
-.path-mod-videoassessment .feedback .from {float: left;}
-.path-mod-videoassessment .files img {margin-right: 4px;}
-.path-mod-videoassessment .files a {white-space:nowrap;}
-.path-mod-videoassessment .late {color: red;}
+.path-mod-videoassessment .feedback .finalgrade {
+    float: right;
+}
+.path-mod-videoassessment .feedback .disabledfeedback {
+    width: 500px;
+    height: 250px;
+}
+.path-mod-videoassessment .feedback .from {
+    float: left;
+}
+.path-mod-videoassessment .files img {
+    margin-right: 4px;
+}
+.path-mod-videoassessment .files a {
+    white-space: nowrap;
+}
+.path-mod-videoassessment .late {
+    color: red;
+}
 .path-mod-videoassessment iframe.videopreview {
     margin: auto;
     border: none;
@@ -56,72 +73,132 @@
 .path-mod-videoassessment .gradetable {
     margin: auto;
 }
-.path-mod-videoassessment .gradetable .r1, .path-mod-videoassessment .videoassoc-studentlist.r1 {
-    background-color: #F3F3F3;
+.path-mod-videoassessment .gradetable .r1,
+.path-mod-videoassessment .videoassoc-studentlist.r1 {
+    background-color: #f3f3f3;
 }
 .path-mod-videoassessment .tasklink-current {
     font-weight: bold;
 }
 
 /** Styles for submissions.php **/
-#page-mod-videoassessment-submissions fieldset.felement {margin-left: 16%;}
-#page-mod-videoassessment-submissions form#options div {text-align:right;margin-left:auto;margin-right:20px;}
-#page-mod-videoassessment-submissions .header .commands {display: inline;}
-#page-mod-videoassessment-submissions .picture {width: 35px;}
+#page-mod-videoassessment-submissions fieldset.felement {
+    margin-left: 16%;
+}
+#page-mod-videoassessment-submissions form#options div {
+    text-align: right;
+    margin-left: auto;
+    margin-right: 20px;
+}
+#page-mod-videoassessment-submissions .header .commands {
+    display: inline;
+}
+#page-mod-videoassessment-submissions .picture {
+    width: 35px;
+}
 #page-mod-videoassessment-submissions .fullname,
 #page-mod-videoassessment-submissions .timemodified,
-#page-mod-videoassessment-submissions .timemarked {text-align: left;}
+#page-mod-videoassessment-submissions .timemarked {
+    text-align: left;
+}
 #page-mod-videoassessment-submissions .submissions .grade,
 #page-mod-videoassessment-submissions .submissions .outcome,
-#page-mod-videoassessment-submissions .submissions .finalgrade {text-align: right;}
-#page-mod-videoassessment-submissions .submissions .header.noheader {display:none;}
-#page-mod-videoassessment-submissions .qgprefs #optiontable {text-align:right;margin-left:auto;}
+#page-mod-videoassessment-submissions .submissions .finalgrade {
+    text-align: right;
+}
+#page-mod-videoassessment-submissions .submissions .header.noheader {
+    display: none;
+}
+#page-mod-videoassessment-submissions .qgprefs #optiontable {
+    text-align: right;
+    margin-left: auto;
+}
 
 /** Styles for view.php **/
-#page-mod-videoassessment-view .feedback {margin:10px auto;}
-#page-mod-videoassessment-view .feedback .grade {text-align: right;}
-#page-mod-videoassessment-view #online .singlebutton {text-align: center;}
-#page-mod-videoassessment-view #dates .c0 {text-align:right;font-weight:bold;}
-#page-mod-videoassessment-view .totalgrade { text-align: center }
-#page-mod-videoassessment-view .gradetable td { text-align: center }
-#page-mod-videoassessment-view .gradetable .user { text-align: left }
+#page-mod-videoassessment-view .feedback {
+    margin: 10px auto;
+}
+#page-mod-videoassessment-view .feedback .grade {
+    text-align: right;
+}
+#page-mod-videoassessment-view #online .singlebutton {
+    text-align: center;
+}
+#page-mod-videoassessment-view #dates .c0 {
+    text-align: right;
+    font-weight: bold;
+}
+#page-mod-videoassessment-view .totalgrade {
+    text-align: center;
+}
+#page-mod-videoassessment-view .gradetable td {
+    text-align: center;
+}
+#page-mod-videoassessment-view .gradetable .user {
+    text-align: left;
+}
 #page-mod-videoassessment-view .gradetable .mark,
 #page-mod-videoassessment-view .gradetable .totalmark {
     vertical-align: bottom;
     padding-bottom: 20px;
     white-space: nowrap;
 }
-#page-mod-videoassessment-view .gradetable .mark { font-size: 160% }
-#page-mod-videoassessment-view .gradetable .totalmark { font-size: 200% }
+#page-mod-videoassessment-view .gradetable .mark {
+    font-size: 160%;
+}
+#page-mod-videoassessment-view .gradetable .totalmark {
+    font-size: 200%;
+}
 #page-mod-videoassessment-view .assessmentreportlink {
     font-size: 150%;
     text-align: center;
 }
 
-#page-mod-videoassessment-submissions .mform.optionspref .fitem .fitemtitle {width:50%;}
-#page-mod-videoassessment-submissions .mform.optionspref .fitem .felement {width: 30%; margin-left: 51%;}
+#page-mod-videoassessment-submissions .mform.optionspref .fitem .fitemtitle {
+    width: 50%;
+}
+#page-mod-videoassessment-submissions .mform.optionspref .fitem .felement {
+    width: 30%;
+    margin-left: 51%;
+}
 
-#page-mod-videoassessment-submissions .optionspref {width: 50%;}
-#page-mod-videoassessment-submissions .fastgbutton {text-align: center;}
+#page-mod-videoassessment-submissions .optionspref {
+    width: 50%;
+}
+#page-mod-videoassessment-submissions .fastgbutton {
+    text-align: center;
+}
 
 .path-mod-videoassessment .gradingform {
     margin-left: 405px;
 }
-.path-mod-videoassessment .gradingform .mark { font-size: 120% }
+.path-mod-videoassessment .gradingform .mark {
+    font-size: 120%;
+}
 .path-mod-videoassessment .gradingform_rubric.editable .level {
     cursor: pointer;
 }
 
 #page-mod-videoassessment-submissions.dir-rtl .fullname,
 #page-mod-videoassessment-submissions.dir-rtl .timemodified,
-#page-mod-videoassessment-submissions.dir-rtl .timemarked {text-align:right;}
-#page-mod-videoassessment-submissions.dir-rtl .mform.optionspref .fitem .fitemtitle {text-align:left;}
-#page-mod-videoassessment-type-uploadsingle-upload.dir-rtl .mdl-left {text-align:right;}
+#page-mod-videoassessment-submissions.dir-rtl .timemarked {
+    text-align: right;
+}
+#page-mod-videoassessment-submissions.dir-rtl .mform.optionspref .fitem .fitemtitle {
+    text-align: left;
+}
+#page-mod-videoassessment-type-uploadsingle-upload.dir-rtl .mdl-left {
+    text-align: right;
+}
 
 /* Hide errors when both before and after rubrics are not present. */
-#page-mod-videoassessment-submissions .gradingform .error { display: none }
+#page-mod-videoassessment-submissions .gradingform .error {
+    display: none;
+}
 
-.mod-videoassessment-download-link {text-align:right;}
+.mod-videoassessment-download-link {
+    text-align: right;
+}
 
 .path-mod-videoassessment .button-firstassess,
 .path-mod-videoassessment .button-assessagain,
@@ -135,7 +212,7 @@
     -webkit-box-shadow: rgba(0, 0, 0, 1) 0 1px 0;
     -moz-box-shadow: rgba(0, 0, 0, 1) 0 1px 0;
     box-shadow: rgba(0, 0, 0, 1) 0 1px 0;
-    color: #000000;
+    color: #000;
     font-size: 9px;
     font-family: Helvetica, Verdana, sans-serif;
     font-weight: bold;
@@ -147,11 +224,6 @@
 
 .path-mod-videoassessment .button-firstassess {
     border-top: 1px solid #fcd96f;
-    background: #ffc17f;
-    background: -webkit-gradient(linear, left top, left bottom, from(#fca01f), to(#ffc17f));
-    background: -webkit-linear-gradient(top, #fca01f, #ffc17f);
-    background: -moz-linear-gradient(top, #fca01f, #ffc17f);
-    background: -ms-linear-gradient(top, #fca01f, #ffc17f);
     background: -o-linear-gradient(top, #fca01f, #ffc17f);
 }
 
@@ -167,11 +239,6 @@
 
 .path-mod-videoassessment .button-assessagain {
     border-top: 1px solid #a3cfff;
-    background: #b5d9ff;
-    background: -webkit-gradient(linear, left top, left bottom, from(#209cfa), to(#b5d9ff));
-    background: -webkit-linear-gradient(top, #209cfa, #b5d9ff);
-    background: -moz-linear-gradient(top, #209cfa, #b5d9ff);
-    background: -ms-linear-gradient(top, #209cfa, #b5d9ff);
     background: -o-linear-gradient(top, #209cfa, #b5d9ff);
 }
 .path-mod-videoassessment .button-assessagain:hover {
@@ -183,11 +250,7 @@
     background: #6eaaff;
 }
 .path-mod-videoassessment .button-download {
-    background: -webkit-gradient(linear, left top, left bottom, from(#c0c0c0), to(#ffffff));
-    background: -webkit-linear-gradient(top, #cccccc, #ffffff);
-    background: -moz-linear-gradient(top, #cccccc, #ffffff);
-    background: -ms-linear-gradient(top, #cccccc, #ffffff);
-    background: -o-linear-gradient(top, #cccccc, #ffffff);
+    background: -o-linear-gradient(top, #ccc, #fff);
 }
 .path-mod-videoassessment .button-download:hover {
     background: orange;
@@ -197,7 +260,7 @@
     overflow: auto;
     width: 430px;
     height: 270px;
-    border: 1px solid #EEE;
+    border: 1px solid #eee;
     margin: 3px 0;
 }
 
@@ -205,7 +268,8 @@
     font-size: 90%;
 }
 
-.path-mod-videoassessment #videopreview, #page-mod-videoassessment-videopreview {
+.path-mod-videoassessment #videopreview,
+#page-mod-videoassessment-videopreview {
     background-color: black;
 }
 
@@ -251,6 +315,7 @@
     margin-top: 0.5em;
 }
 .gradingform_rubric .criteria {
+    /* stylelint-disable-next-line declaration-no-important */
     height: auto !important;
 }
 
@@ -276,24 +341,29 @@
 }
 
 .path-mod-videoassessment .duplicate-page #rubric-rubric.gradingform_rubric .options {
+    /* stylelint-disable-next-line declaration-no-important */
     display: none !important;
 }
 
 .path-mod-videoassessment .duplicate-page .box.generalbox.rubricmappingexplained {
+    /* stylelint-disable-next-line declaration-no-important */
     display: none !important;
 }
 
-.path-mod-videoassessment .id_order_students, #manually-list {
+.path-mod-videoassessment .id_order_students,
+#manually-list {
     padding: 0;
     margin: 0;
 }
 
-.path-mod-videoassessment .id_order_students li, #manually-list li {
+.path-mod-videoassessment .id_order_students li,
+#manually-list li {
     margin-bottom: 5px;
     list-style-type: none;
 }
 
-.path-mod-videoassessment .id_order_students li .name, #manually-list .name {
+.path-mod-videoassessment .id_order_students li .name,
+#manually-list .name {
     width: 200px;
     height: 40px;
     line-height: 40px;
@@ -304,10 +374,11 @@
     float: left;
 }
 
-.path-mod-videoassessment .id_order_students .placeholder, #manually-list .placeholder {
+.path-mod-videoassessment .id_order_students .placeholder,
+#manually-list .placeholder {
     display: block;
-    width: 0px;
-    height: 0px;
+    width: 0;
+    height: 0;
     border: 5px solid transparent;
     border-left-color: #333;
     position: relative;
@@ -323,7 +394,9 @@
     z-index: 2000;
 }
 
-.path-mod-videoassessment body.dragging, body.dragging * {
+.path-mod-videoassessment body.dragging,
+body.dragging * {
+    /* stylelint-disable-next-line declaration-no-important */
     cursor: move !important;
 }
 
@@ -371,13 +444,17 @@
 .template-actions .action.pick img,
 .template-actions .action.pick.template svg,
 .template-actions .action.pick svg {
+    /* stylelint-disable-next-line declaration-no-important */
     filter: brightness(0) invert(1) !important;
+    /* stylelint-disable-next-line declaration-no-important */
     -webkit-filter: brightness(0) invert(1) !important;
 }
 
 .template-actions .action.pick.template svg path,
 .template-actions .action.pick svg path {
+    /* stylelint-disable-next-line declaration-no-important */
     fill: #fff !important;
+    /* stylelint-disable-next-line declaration-no-important */
     stroke: #fff !important;
 }
 
@@ -397,12 +474,16 @@
 .template-actions .action.remove img[src*="delete"],
 .template-actions .action.remove img[src*="t/delete"],
 .template-actions .action.remove svg {
+    /* stylelint-disable-next-line declaration-no-important */
     filter: brightness(0) invert(1) !important;
+    /* stylelint-disable-next-line declaration-no-important */
     -webkit-filter: brightness(0) invert(1) !important;
 }
 
 .template-actions .action.remove svg path {
+    /* stylelint-disable-next-line declaration-no-important */
     fill: #fff !important;
+    /* stylelint-disable-next-line declaration-no-important */
     stroke: #fff !important;
 }
 
