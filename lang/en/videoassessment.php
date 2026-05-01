@@ -184,6 +184,7 @@ $string['fileuploadlinks'] = 'File uploads / Links';
 $string['fileuploads'] = 'File uploads';
 $string['finalscore'] = 'Final    Score';
 $string['finalscorefortable'] = 'Final score';
+$string['finishmakingrubric'] = 'Finish making rubric → Go to assess';
 $string['firstassess'] = 'First assess';
 $string['firstassessmentbystudent'] = 'First assessment by student';
 $string['firstassessmentbyteacher'] = 'First assessment by teacher';

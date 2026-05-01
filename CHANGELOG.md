@@ -21,6 +21,19 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#12** Add a "Finish making rubric → Go to assess" navigation
+  button on the rubric edit screen. The page is owned by Moodle core
+  (`/grade/grading/form/rubric/edit.php`), so the button is injected
+  via a Moodle 4.5+ hook callback registered in `db/hooks.php`. The
+  callback `\mod_videoassessment\hook_callbacks::inject_finish_rubric_button`
+  fires on every page render, calls
+  `rubric_navigation::is_videoassessment_rubric_edit_url()` to scope
+  the injection, and queues the AMD module
+  `mod_videoassessment/finish_rubric_button` only when the page is the
+  rubric edit form for a videoassessment activity. URL classification
+  + assess-page URL building live in `\mod_videoassessment\rubric_navigation`,
+  exercised by 7 data-driven tests in `tests/rubric_navigation_test.php`.
+  New language string `finishmakingrubric` (en + ja).
 - **#6** Videos recorded inside the teacher's "Feedback Box" editor are
   preserved through the display pipeline. Both `view.php`'s
   `getallcomments` AJAX branch and `classes/print_page.php`'s comment

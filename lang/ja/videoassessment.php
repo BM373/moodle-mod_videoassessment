@@ -161,6 +161,7 @@ $string['filedeleted'] = 'ファイルが削除されました。';
 $string['fileuploadlinks'] = 'ファイルアップロード / リンク';
 $string['finalscore'] = '最終スコア';
 $string['finalscorefortable'] = '最終スコア';
+$string['finishmakingrubric'] = 'ルーブリック編集を終えて評価画面へ';
 $string['firstassess'] = '【初回評価】';
 $string['firstassessmentbystudent'] = '学生による初回評価';
 $string['firstassessmentbyteacher'] = '教師による初回評価';
