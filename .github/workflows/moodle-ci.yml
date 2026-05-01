@@ -116,11 +116,15 @@ jobs:
 
       - name: Moodle Code Checker
         if: ${{ !cancelled() }}
-        # 0 errors required; warnings temporarily relaxed (200) while
-        # legacy issues (LineLength, InlineComment text, RequireLogin in
-        # bulkupload entry points, etc.) are worked through alongside the
-        # 13 customer-facing fixes. Tighten this back to 0 before release.
-        run: moodle-plugin-ci codechecker --max-warnings 200
+        # 0 errors required. Warning ceiling has been progressively
+        # tightened from 200 -> 100 as the 13 customer-facing fixes
+        # touched each file: 8 RequireLogin warnings cleared, 8 @global
+        # docblock tags removed, ~22 decorative-comment lines removed
+        # from mod_form, ~21 trailing-comment-style adjustments. The
+        # remaining warnings are predominantly LineLength.TooLong on
+        # legacy SQL / HTML construction and a small CommentedOutCode
+        # tail; the next pass will work them down to 0.
+        run: moodle-plugin-ci codechecker --max-warnings 100
 
       - name: Moodle PHPDoc Checker
         if: ${{ !cancelled() }}
