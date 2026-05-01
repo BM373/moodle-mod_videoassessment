@@ -83,11 +83,11 @@ final class rubric_total_test extends \basic_testcase {
      * Confirm the calculator returns the expected total/max/percent.
      *
      * @dataProvider totals_provider
-     * @param array<int, int[]> $criteria  Criterion id => list of level scores.
-     * @param array<int, int> $selected   Criterion id => chosen score.
+     * @param array $criteria Criterion id => list of level scores.
+     * @param array $selected Criterion id => chosen score.
      * @param int $expectedtotal Sum of chosen level scores.
-     * @param int $expectedmax   Sum of the maximum level score per criterion.
-     * @param int $expectedpct   Rounded percentage (or 0 when max == 0).
+     * @param int $expectedmax Sum of the maximum level score per criterion.
+     * @param int $expectedpct Rounded percentage (or 0 when max == 0).
      * @covers \mod_videoassessment\rubric_total::calculate
      */
     public function test_calculate(

@@ -39,7 +39,7 @@ final class preventexecpath_test extends \basic_testcase {
     /**
      * The locked-executable string must be defined for English.
      *
-     * @covers \mod_videoassessment
+     * @coversNothing
      */
     public function test_lock_message_exists(): void {
         $message = get_string('admin_settings_executable_locked', 'mod_videoassessment');

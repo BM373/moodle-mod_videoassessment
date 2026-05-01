@@ -59,7 +59,7 @@ final class mobile_ui_test extends \basic_testcase {
     /**
      * The floating video container must respect iOS safe-area insets.
      *
-     * @covers \mod_videoassessment
+     * @coversNothing
      */
     public function test_assess_css_has_safe_area_inset(): void {
         $css = $this->read_css('assess.css');
@@ -75,7 +75,7 @@ final class mobile_ui_test extends \basic_testcase {
     /**
      * A media query for phone-sized viewports must be declared.
      *
-     * @covers \mod_videoassessment
+     * @coversNothing
      */
     public function test_assess_css_has_phone_breakpoint(): void {
         $css = $this->read_css('assess.css');
@@ -92,7 +92,7 @@ final class mobile_ui_test extends \basic_testcase {
      * (e.g. via `scroll-margin-top` so the iOS keyboard does not hide
      * them).
      *
-     * @covers \mod_videoassessment
+     * @coversNothing
      */
     public function test_assess_css_handles_textarea_focus(): void {
         $css = $this->read_css('assess.css');

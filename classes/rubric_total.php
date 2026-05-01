@@ -40,14 +40,14 @@ final class rubric_total {
     /**
      * Compute the running rubric total.
      *
-     * @param array<int|string, int[]> $criteria Map criterion-id =>
-     *     list of available level scores for that criterion.
-     * @param array<int|string, int> $selected Map criterion-id =>
-     *     score that the grader has currently picked. Criteria absent
-     *     from this map count as zero towards the running total but
-     *     still contribute their max to the denominator.
-     * @return array{total:int,max:int,percentage:int} Running totals
-     *     plus the rounded percentage (0 when `max == 0`).
+     * @param array $criteria Map criterion-id => list of available
+     *     level scores (int[]) for that criterion.
+     * @param array $selected Map criterion-id => score (int) that the
+     *     grader has currently picked. Criteria absent from this map
+     *     count as zero towards the running total but still contribute
+     *     their max to the denominator.
+     * @return array Running totals: `total` (int), `max` (int) and
+     *     `percentage` (int, 0 when `max == 0`).
      */
     public static function calculate(array $criteria, array $selected): array {
         $total = 0;
@@ -70,7 +70,7 @@ final class rubric_total {
     /**
      * Format a running total in the canonical "X / Y (Z%)" form.
      *
-     * @param array{total:int,max:int,percentage:int} $result
+     * @param array $result Output of {@see calculate()}.
      * @return string Display text (or "-" when no rubric has been provided).
      */
     public static function format(array $result): string {

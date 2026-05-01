@@ -191,14 +191,14 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // legacy `preventvideouploads` setting still acts as a hard kill
         // switch for backward compatibility (sites that haven't run the
         // upgrade migration yet).
-        $allowexternallinks  = get_config('videoassessment', 'allowexternallinks');
-        $allowvideouploads   = get_config('videoassessment', 'allowvideouploads');
+        $allowexternallinks = get_config('videoassessment', 'allowexternallinks');
+        $allowvideouploads = get_config('videoassessment', 'allowvideouploads');
         $allowvideorecording = get_config('videoassessment', 'allowvideorecording');
         // Treat `false` (setting not yet defined on this site) as the new
         // default of 1, so a Moodle that has not run the migration yet
         // still behaves as documented.
-        $allowexternallinks  = ($allowexternallinks  === false) ? 1 : (int)$allowexternallinks;
-        $allowvideouploads   = ($allowvideouploads   === false) ? 1 : (int)$allowvideouploads;
+        $allowexternallinks = ($allowexternallinks === false) ? 1 : (int)$allowexternallinks;
+        $allowvideouploads = ($allowvideouploads === false) ? 1 : (int)$allowvideouploads;
         $allowvideorecording = ($allowvideorecording === false) ? 1 : (int)$allowvideorecording;
         $preventvideouploads = !$allowvideouploads || !$allowvideorecording;
 
