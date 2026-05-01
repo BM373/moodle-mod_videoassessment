@@ -13,6 +13,12 @@ on:
 permissions:
   contents: read
 
+# Opt JS-based actions into Node.js 24 ahead of GitHub forcing the bump
+# on 2026-06-02. Without this, every job emits a "Node.js 20 actions are
+# deprecated" warning for actions/checkout@v4 and actions/setup-node@v4.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     name: ${{ matrix.moodle-branch }} / ${{ matrix.database }} / PHP ${{ matrix.php }}
@@ -104,21 +110,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci phplint
 
-      - name: PHP Copy/Paste Detector
-        if: ${{ !cancelled() }}
-        # sebastian/phpcpd is officially abandoned (Composer prints
-        # "Package sebastian/phpcpd is abandoned, you should avoid using
-        # it.") and moodle-plugin-ci itself prints
-        # "The phpcpd command is deprecated and will be removed in 5.0.0.
-        # No replacement is planned." Keep the report informational so an
-        # upstream-deprecated tool cannot block CI; the residual clones
-        # (lib.php has been deduped via videoassessment_handle_post_save_rubric_redirect()
-        # and grade_table.php via resolve_sorted_users(); the remaining
-        # clones live in distinct feature files video_publish.php /
-        # videos_delete.php where extracting a shared helper would be a
-        # premature abstraction).
-        continue-on-error: true
-        run: moodle-plugin-ci phpcpd
+      # The phpcpd step has been removed: sebastian/phpcpd is officially
+      # abandoned ("Package sebastian/phpcpd is abandoned, you should
+      # avoid using it") and moodle-plugin-ci prints "The phpcpd command
+      # is deprecated and will be removed in 5.0.0. No replacement is
+      # planned." Keeping it produced two annotations per matrix job for
+      # zero ongoing benefit. The major duplicate blocks were already
+      # extracted into videoassessment_handle_post_save_rubric_redirect()
+      # (lib.php) and grade_table::resolve_sorted_users() before the step
+      # was retired.
 
       - name: PHP Mess Detector
         if: ${{ !cancelled() }}
