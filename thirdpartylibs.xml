@@ -35,11 +35,4 @@
         <license>Muaz Khan</license>
         <licenseversion></licenseversion>
     </library>
-    <library>
-        <location>amd/src/getHTMLMediaElement.js</location>
-        <name>getHTMLMediaElement.js - https://github.com/muaz-khan/RecordRTC</name>
-        <version>1.0.0</version>
-        <license>Muaz Khan</license>
-        <licenseversion></licenseversion>
-    </library>
 </libraries>
