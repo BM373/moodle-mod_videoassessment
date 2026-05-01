@@ -21,6 +21,16 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#5** Replace the random peer-assignment algorithm in
+  `va::get_random_peers_for_users()` with a load-balancing pass that
+  tracks how often each user has already been chosen and always picks
+  the candidate with the lowest count (random tiebreak). The previous
+  algorithm only ensured that *each user received* `numpeers` peers,
+  which meant some users were *chosen as* a peer many more times than
+  others. The new contract -- every user is chosen within ±1 of the
+  expected mean -- is pinned by `tests/peer_assignment_test.php`.
+  Non-student-role exclusion in `assign_random_peers()` was already
+  correct and is left untouched.
 - **#10** Emit fine-grained logstore events from the Video Assessment
   workflow. Four new event classes are introduced under
   `\mod_videoassessment\event\`:

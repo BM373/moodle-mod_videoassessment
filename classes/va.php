@@ -3048,72 +3048,51 @@ class va {
             return $peers;
         }
 
-        // Simple, reliable algorithm: assign peers round by round.
-        // Shuffle user list for randomness.
+        // Item #5 (2026-04 fix programme): the previous algorithm picked
+        // the first available peer for each round, which left some users
+        // chosen as a peer many more times than others. Replace it with
+        // a load-balancing pass that tracks how often each user has
+        // already been chosen and always picks the candidate with the
+        // lowest count (random tiebreak via the initial shuffle).
+        $chosencount = array_fill_keys($userids, 0);
+
+        // Process users in random order so the first user does not
+        // systematically get the easiest pickings.
         $shuffled = $userids;
         shuffle($shuffled);
-        $numusers = count($shuffled);
 
-        // For each round (peer slot 0 to numpeers-1), assign one peer to each user.
-        for ($round = 0; $round < $numpeers; $round++) {
-            // Create a list of users that still need peers in this round.
-            $usersneedingpeers = [];
-            foreach ($shuffled as $userid) {
-                if (count($peers[$userid]) < $numpeers) {
-                    $usersneedingpeers[] = $userid;
-                }
-            }
-
-            // Shuffle the list for randomness.
-            shuffle($usersneedingpeers);
-
-            // For each user needing a peer, assign one.
-            foreach ($usersneedingpeers as $userid) {
-                // Get all potential peers (all other users).
-                $potentialpeers = array_values(array_diff($shuffled, [$userid]));
-                shuffle($potentialpeers);
-
-                // Find the first peer that:
-                // 1. Is not the user themselves
-                // 2. Hasn't been assigned to this user yet
-                // 3. This user hasn't been assigned to that peer yet (optional, but better distribution).
-                $assigned = false;
-                foreach ($potentialpeers as $peerid) {
-                    if (!in_array($peerid, $peers[$userid])) {
-                        $peers[$userid][] = $peerid;
-                        $assigned = true;
-                        break;
-                    }
-                }
-
-                // If we couldn't assign (shouldn't happen), log a warning.
-                if (!$assigned) {
-                    debugging("Could not assign peer to user $userid in round $round. Current peers: " . implode(',', $peers[$userid]), DEBUG_NORMAL);
-                }
-            }
-        }
-
-        // Final verification: ensure everyone has the required number of peers.
-        // This handles edge cases where the algorithm above didn't assign enough.
-        foreach ($userids as $userid) {
-            while (count($peers[$userid]) < $numpeers) {
-                $found = false;
-                // Get all other users as potential peers.
-                $remaining = array_values(array_diff($userids, [$userid]));
-                shuffle($remaining);
-
-                foreach ($remaining as $peerid) {
-                    if (!in_array($peerid, $peers[$userid])) {
-                        $peers[$userid][] = $peerid;
-                        $found = true;
-                        break;
-                    }
-                }
-                if (!$found) {
-                    // Not enough unique users - this shouldn't happen if numpeers < count(userids).
-                    debugging("User $userid only has " . count($peers[$userid]) . " peers but needs $numpeers. Total users: " . count($userids), DEBUG_NORMAL);
+        foreach ($shuffled as $userid) {
+            for ($slot = 0; $slot < $numpeers; $slot++) {
+                // Candidates are all users except the user themselves and
+                // anyone already in their peer list.
+                $candidates = array_values(array_diff($userids, [$userid], $peers[$userid]));
+                if (empty($candidates)) {
+                    // Should not happen because numpeers < count(userids)
+                    // is guaranteed by the early return above.
+                    debugging(
+                        "Could not assign peer slot {$slot} to user {$userid}: "
+                            . 'no candidates remain (count='
+                            . count($peers[$userid]) . ').',
+                        DEBUG_NORMAL
+                    );
                     break;
                 }
+
+                // Shuffle candidates so equal-count peers are picked
+                // randomly, then pick the one with the lowest current
+                // chosen-count.
+                shuffle($candidates);
+                $bestpeer = $candidates[0];
+                $bestcount = $chosencount[$bestpeer];
+                foreach ($candidates as $candidate) {
+                    if ($chosencount[$candidate] < $bestcount) {
+                        $bestpeer = $candidate;
+                        $bestcount = $chosencount[$candidate];
+                    }
+                }
+
+                $peers[$userid][] = $bestpeer;
+                $chosencount[$bestpeer]++;
             }
         }
 
