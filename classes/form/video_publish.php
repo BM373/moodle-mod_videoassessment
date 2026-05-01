@@ -55,7 +55,13 @@ class video_publish extends \moodleform {
         $sectionopts = [];
         $sectionopts[0] = '';
         if (!empty($categories)) {
-            $mform->addElement('select', 'category', get_string('category'), $categories, ['id' => 'publish-category', 'style' => 'min-width: 270px']);
+            $mform->addElement(
+                'select',
+                'category',
+                get_string('category'),
+                $categories,
+                ['id' => 'publish-category', 'style' => 'min-width: 270px']
+            );
             if (!empty($categories)) {
                 $courseopts[0] = '(' . get_string('new') . ')';
             }

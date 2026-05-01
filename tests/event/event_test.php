@@ -18,7 +18,7 @@
  * Unit tests for the four new mod_videoassessment events.
  *
  * @package    mod_videoassessment
- * @copyright  2026 Shinonome Labo Co., Ltd.
+ * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

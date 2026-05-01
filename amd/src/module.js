@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable no-alert, no-restricted-properties, no-empty-function */
 /**
  * Video assessment
  *
@@ -22,7 +23,7 @@
  */
 
 // Define the module using AMD.
-define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
+define(['jquery', 'core/log', 'jqueryui'], function($, log) {
 
     const videoassessment = {
 
@@ -40,7 +41,7 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
                 autoOpen: false,
                 width: 450,
                 height: 420
-            }).draggable({ handle: ".ui-dialog-titlebar" });
+            }).draggable({handle: ".ui-dialog-titlebar"});
 
             $('.videodel').on('click', (e) => {
                 if (!confirm(M.str.videoassessment.reallydeletevideo)) {
@@ -182,7 +183,7 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
 
         videosSaveAssociations() {
             const assocdata = [];
-            $('.assocuser').each(function () {
+            $('.assocuser').each(function() {
                 assocdata.push([$(this).val(), $(this).is(':checked')]);
             });
             $('#id_assocdata').val(JSON.stringify(assocdata));
@@ -204,7 +205,9 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
                     const $peerRubric = $node.find(`#rubrics-${timing}peer`);
                     const $classRubric = $node.find(`#rubrics-${timing}class`);
 
-                    if (!$teacherRubric.length) { return; }
+                    if (!$teacherRubric.length) {
+ return;
+}
 
                     $teacherRubric.find('.remark').addClass('rubrictext-teacher');
                     $node.find(`#heading-${timing}teacher`).hide();
@@ -289,7 +292,7 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
         },
 
         initCheckAll(allSelector, checkBoxesSelector) {
-            $(allSelector).on('click', function () {
+            $(allSelector).on('click', function() {
                 $(checkBoxesSelector).prop('checked', $(this).is(':checked'));
             });
         },
@@ -316,14 +319,18 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
                     let critFound = false;
                     $node.find(`#rubrics-${timing}${targetGrade} .criterion`).each((index, tcrit) => {
                         const $tcrit = $(tcrit);
-                        if (critFound) { return; }
+                        if (critFound) {
+ return;
+}
 
                         if ($tcrit.find('.description').html() === critName && index === rowIndex) {
                             critFound = true;
                             let levelFound = false;
                             $tcrit.find('.level').each((index, level) => {
                                 const $level = $(level);
-                                if (levelFound) { return; }
+                                if (levelFound) {
+ return;
+}
 
                                 if ($level.find('.definition').html() === levelName && index === colIndex) {
                                     levelFound = true;
@@ -382,14 +389,18 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
                     let critFound = false;
                     $node.find(`#rubrics-${timing}${graderType} .criteria:first .criterion`).each((index, tcrit) => {
                         const $tcrit = $(tcrit);
-                        if (critFound) { return; }
+                        if (critFound) {
+ return;
+}
 
                         if ($tcrit.find('.description').html() === critName && index === rowIndex) {
                             critFound = true;
                             let levelFound = false;
                             $tcrit.find('.level').each((index, level) => {
                                 const $level = $(level);
-                                if (levelFound) { return; }
+                                if (levelFound) {
+ return;
+}
 
                                 if ($level.find('.definition').html() === levelName && index === colIndex) {
                                     levelFound = true;
@@ -434,7 +445,7 @@ define(['jquery', 'core/log', 'jqueryui'], function ($, log) {
         },
 
         setStyleGradeCell($level, $tcrit, graderType, countPeer, countClass, countTeacher) {
-            $level.css({ 'border': 'none', 'border-left': '1px solid #ddd', 'border-right': '1px solid #ddd' });
+            $level.css({'border': 'none', 'border-left': '1px solid #ddd', 'border-right': '1px solid #ddd'});
             $tcrit.find('.checked').css('background', 'none');
             this.fillGradeCell($level, graderType, countPeer, countClass, countTeacher);
         },

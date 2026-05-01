@@ -271,7 +271,8 @@ class renderer extends plugin_renderer_base {
                     if ($cutoffdate > $time) {
                         $cell2content = get_string('latesubmissionsaccepted', 'videoassessment', userdate($va->cutoffdate));
                     } else {
-                        $cell2content = userdate($va->cutoffdate) . '(' . get_string('nomoresubmissionsaccepted', 'videoassessment') . ')';
+                        $cutoffstr = get_string('nomoresubmissionsaccepted', 'videoassessment');
+                        $cell2content = userdate($va->cutoffdate) . '(' . $cutoffstr . ')';
                     }
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);
                 }

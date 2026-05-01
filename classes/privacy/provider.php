@@ -370,7 +370,10 @@ class provider implements
             $DB->delete_records('videoassessment_peers', ['videoassessment' => $videoassessmentid, 'userid' => $userid]);
             $DB->delete_records('videoassessment_sort_order', ['userid' => $userid]);
             $DB->delete_records('videoassessment_grade_items', ['videoassessment' => $videoassessmentid, 'gradeduser' => $userid]);
-            $DB->delete_records('videoassessment_video_assocs', ['videoassessment' => $videoassessmentid, 'associationid' => $userid]);
+            $DB->delete_records(
+                'videoassessment_video_assocs',
+                ['videoassessment' => $videoassessmentid, 'associationid' => $userid]
+            );
         }
     }
 
@@ -399,11 +402,15 @@ class provider implements
         $params = array_merge(['videoassessment' => $videoassessmentid], $userinparams);
         $params2 = $userinparams;
 
-        $DB->delete_records_select('videoassessment_aggregation', "videoassessment = :videoassessment AND userid $userinsql", $params);
-        $DB->delete_records_select('videoassessment_peers', "videoassessment = :videoassessment AND userid $userinsql", $params);
+        $vauser = "videoassessment = :videoassessment AND userid $userinsql";
+        $vagraded = "videoassessment = :videoassessment AND gradeduser $userinsql";
+        $vagradeitem = "videoassessment = :videoassessment AND gradeitem $userinsql";
+        $vaassoc = "videoassessment = :videoassessment AND associationid $userinsql";
+        $DB->delete_records_select('videoassessment_aggregation', $vauser, $params);
+        $DB->delete_records_select('videoassessment_peers', $vauser, $params);
         $DB->delete_records_select('videoassessment_sort_order', "userid $userinsql", $params2);
-        $DB->delete_records_select('videoassessment_grades', "videoassessment = :videoassessment AND gradeitem $userinsql", $params);
-        $DB->delete_records_select('videoassessment_grade_items', "videoassessment = :videoassessment AND gradeduser $userinsql", $params);
-        $DB->delete_records_select('videoassessment_video_assocs', "videoassessment = :videoassessment AND associationid $userinsql", $params);
+        $DB->delete_records_select('videoassessment_grades', $vagradeitem, $params);
+        $DB->delete_records_select('videoassessment_grade_items', $vagraded, $params);
+        $DB->delete_records_select('videoassessment_video_assocs', $vaassoc, $params);
     }
 }

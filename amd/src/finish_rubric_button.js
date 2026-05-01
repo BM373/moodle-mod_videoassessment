@@ -17,7 +17,7 @@
  * Inject a "Finish making rubric" button into the core rubric edit page.
  *
  * @module     mod_videoassessment/finish_rubric_button
- * @copyright  2026 Shinonome Labo Co., Ltd.
+ * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define([], function() {

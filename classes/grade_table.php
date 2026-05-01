@@ -180,7 +180,7 @@ class grade_table {
             $users = array_keys($users);
         }
 
-        // if groupmembersonly used, remove users who are not in any group
+        // If groupmembersonly used, remove users who are not in any group.
         if ($users && !empty($CFG->enablegroupmembersonly) && $cm->groupmembersonly) {
             if ($groupingusers = groups_get_grouping_members($cm->groupingid, 'u.id', 'u.id')) {
                 $users = array_intersect($users, array_keys($groupingusers));
@@ -260,9 +260,6 @@ class grade_table {
                     'gradebeforeclass',
                     'gradebefore',
                     'videoassessment',
-                    /*'fairnessbonus',
-                    'selffairnessbonus',
-                    'finalscore',*/
                     'timemodified',
                 ];
                 foreach ($fields as $field) {
@@ -420,7 +417,7 @@ class grade_table {
             $users = array_keys($users);
         }
 
-        // if groupmembersonly used, remove users who are not in any group
+        // If groupmembersonly used, remove users who are not in any group.
         if ($users && !empty($CFG->enablegroupmembersonly) && $cm->groupmembersonly) {
             if ($groupingusers = groups_get_grouping_members($cm->groupingid, 'u.id', 'u.id')) {
                 $users = array_intersect($users, array_keys($groupingusers));
@@ -841,21 +838,33 @@ class grade_table {
         $row[$s + $n + 3] = $this->format_grade($user->{'grade' . $timing . 'self'});
         $row[$s + $n + 4] = $this->format_grade($user->{'grade' . $timing . 'peer'});
         $row[$s + $n + 5] = $this->format_grade($user->{'grade' . $timing . 'teacher'});
-        $row[$s + $n + 6] = $user->{'grade' . $timing . 'self'} === '-1' ? $this->format_grade(null) : $this->format_grade($user->{'grade' . $timing});
+        $selfempty = $user->{'grade' . $timing . 'self'} === '-1';
+        $finalcell = $selfempty ? $this->format_grade(null) : $this->format_grade($user->finalscore);
+        $row[$s + $n + 6] = $selfempty
+            ? $this->format_grade(null)
+            : $this->format_grade($user->{'grade' . $timing});
 
         if ($this->va->va->fairnessbonus == 1 && $this->va->va->selffairnessbonus == 0) {
-            $row[$s + $n + 7] = $user->fairnessbonus == 0 ? $this->format_grade(null) : $this->format_grade($user->fairnessbonus);
+            $row[$s + $n + 7] = $user->fairnessbonus == 0
+                ? $this->format_grade(null)
+                : $this->format_grade($user->fairnessbonus);
             $class[$s + $n + 7] = $class[$s + $n + 8] = 'totalmark';
-            $row[$s + $n + 8] = $user->{'grade' . $timing . 'self'} === '-1' ? $this->format_grade(null) : $this->format_grade($user->finalscore);
+            $row[$s + $n + 8] = $finalcell;
         } else if ($this->va->va->fairnessbonus == 0 && $this->va->va->selffairnessbonus == 1) {
-            $row[$s + $n + 7] = $user->selffairnessbonus == 0 ? $this->format_grade(null) : $this->format_grade($user->selffairnessbonus);
+            $row[$s + $n + 7] = $user->selffairnessbonus == 0
+                ? $this->format_grade(null)
+                : $this->format_grade($user->selffairnessbonus);
             $class[$s + $n + 7] = $class[$s + $n + 8] = 'totalmark';
-            $row[$s + $n + 8] = $user->{'grade' . $timing . 'self'} === '-1' ? $this->format_grade(null) : $this->format_grade($user->finalscore);
+            $row[$s + $n + 8] = $finalcell;
         } else if ($this->va->va->fairnessbonus == 1 && $this->va->va->selffairnessbonus == 1) {
-            $row[$s + $n + 7] = $user->selffairnessbonus == 0 ? $this->format_grade(null) : $this->format_grade($user->selffairnessbonus);
-            $row[$s + $n + 8] = $user->fairnessbonus == 0 ? $this->format_grade(null) : $this->format_grade($user->fairnessbonus);
+            $row[$s + $n + 7] = $user->selffairnessbonus == 0
+                ? $this->format_grade(null)
+                : $this->format_grade($user->selffairnessbonus);
+            $row[$s + $n + 8] = $user->fairnessbonus == 0
+                ? $this->format_grade(null)
+                : $this->format_grade($user->fairnessbonus);
             $class[$s + $n + 7] = $class[$s + $n + 8] = $class[$s + $n + 9] = 'totalmark';
-            $row[$s + $n + 9] = $user->{'grade' . $timing . 'self'} === '-1' ? $this->format_grade(null) : $this->format_grade($user->finalscore);
+            $row[$s + $n + 9] = $finalcell;
         }
 
         $class[0] = 'user';
@@ -914,10 +923,16 @@ class grade_table {
                     if ($flag == -1) {
                         $btnclass = ['class' => 'button-upload ' . $newbuttonclass, 'disabled' => 'disabled'];
                     }
+                    $uploadparams = [
+                        'action' => 'upload',
+                        'user' => $user->id,
+                        'timing' => $timing,
+                        'actionmodel' => $actionmodel,
+                    ];
                     $row[$s + 1] .= \html_writer::tag(
                         'div',
                         $OUTPUT->action_link(
-                            new \moodle_url($this->va->viewurl, ['action' => 'upload', 'user' => $user->id, 'timing' => $timing, 'actionmodel' => $actionmodel]),
+                            new \moodle_url($this->va->viewurl, $uploadparams),
                             $str,
                             null,
                             $btnclass
@@ -927,28 +942,42 @@ class grade_table {
                     $str = $mobile ? va::str('retakevideo') : va::str('reuploadvideo');
                     $actionmodel = 2;
                     if ($mobile) {
-                        $btnclass = ['class' => 'delete-video-button button-upload ' . $newbuttonclass];
+                        $btnclasses = 'delete-video-button button-upload ' . $newbuttonclass;
+                        $btnclass = ['class' => $btnclasses];
                         if ($flag == -1) {
-                            $btnclass = ['class' => 'delete-video-button button-upload ' . $newbuttonclass, 'disabled' => 'disabled'];
+                            $btnclass = ['class' => $btnclasses, 'disabled' => 'disabled'];
                         }
+                        $deleteparams = [
+                            'action' => 'deletevideo',
+                            'user' => $user->id,
+                            'videoid' => $video->data->id,
+                            'sesskey' => sesskey(),
+                        ];
                         $row[$s + 1] .= \html_writer::tag(
                             'div',
                             $OUTPUT->action_link(
-                                new \moodle_url($this->va->viewurl, ['action' => 'deletevideo', 'user' => $user->id, 'videoid' => $video->data->id, 'sesskey' => sesskey()]),
+                                new \moodle_url($this->va->viewurl, $deleteparams),
                                 'Delete Video',
                                 null,
                                 $btnclass
                             )
                         );
                     } else {
-                        $btnclass = ['class' => 'button-upload ' . $newbuttonclass];
+                        $btnclasses = 'button-upload ' . $newbuttonclass;
+                        $btnclass = ['class' => $btnclasses];
                         if ($flag == -1) {
-                            $btnclass = ['class' => 'button-upload ' . $newbuttonclass, 'disabled' => 'disabled'];
+                            $btnclass = ['class' => $btnclasses, 'disabled' => 'disabled'];
                         }
+                        $uploadparams = [
+                            'action' => 'upload',
+                            'user' => $user->id,
+                            'timing' => $timing,
+                            'actionmodel' => $actionmodel,
+                        ];
                         $row[$s + 1] .= \html_writer::tag(
                             'div',
                             $OUTPUT->action_link(
-                                new \moodle_url($this->va->viewurl, ['action' => 'upload', 'user' => $user->id, 'timing' => $timing, 'actionmodel' => $actionmodel]),
+                                new \moodle_url($this->va->viewurl, $uploadparams),
                                 $str,
                                 null,
                                 $btnclass
@@ -973,10 +1002,16 @@ class grade_table {
             ) {
                 $str = $mobile ? va::str('takevideo') : va::str('uploadvideo');
                 $actionmodel = 2;
+                $uploadparams = [
+                    'action' => 'upload',
+                    'user' => $user->id,
+                    'timing' => $timing,
+                    'actionmodel' => $actionmodel,
+                ];
                 $row[$s + 1] = \html_writer::tag(
                     'div',
                     $OUTPUT->action_link(
-                        new \moodle_url($this->va->viewurl, ['action' => 'upload', 'user' => $user->id, 'timing' => $timing, 'actionmodel' => $actionmodel]),
+                        new \moodle_url($this->va->viewurl, $uploadparams),
                         $str,
                         null,
                         ['class' => 'button-upload']

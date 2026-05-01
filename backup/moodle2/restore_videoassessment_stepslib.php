@@ -54,7 +54,10 @@ class restore_videoassessment_activity_structure_step extends restore_activity_s
             $grade = new restore_path_element('videoassessment_grade', '/activity/videoassessment/grades/grade');
             $paths[] = $grade;
 
-            $aggregation = new restore_path_element('videoassessment_aggregation', '/activity/videoassessment/aggregations/aggregation');
+            $aggregation = new restore_path_element(
+                'videoassessment_aggregation',
+                '/activity/videoassessment/aggregations/aggregation'
+            );
             $paths[] = $aggregation;
         }
 

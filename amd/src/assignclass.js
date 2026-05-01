@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable @babel/new-cap */
 /**
  * Video assessment
  *
@@ -20,10 +21,10 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery'], function ($) {
+define(['jquery'], function($) {
     return {
-        assignclassSortByGroup: function () {
-            $(document).ready(function () {
+        assignclassSortByGroup: function() {
+            $(document).ready(function() {
                 var sort = $('#sortby').val();
                 var groupid = $('#separate-group').val();
 
@@ -37,7 +38,7 @@ define(['jquery'], function ($) {
                 ajaxacsg.assignclasssortgroup("assignclasssortgroup", sort, groupid, id);
             });
             // Load sort manually list.
-            $('#sortby').change(function () {
+            $('#sortby').change(function() {
                 var t = $(this);
                 var sort = $('#sortby').val();
                 var groupid = $('#separate-group').val();
@@ -62,7 +63,7 @@ define(['jquery'], function ($) {
                 }
             });
 
-            $('#separate-group').change(function () {
+            $('#separate-group').change(function() {
                 var url = $(this).closest('form').attr('action');
                 var id = $(this).closest('form').find('input[type="hidden"][name="id"]').val();
                 var groupid = $(this).val();

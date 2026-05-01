@@ -1568,7 +1568,13 @@ class va {
                     console.log('[VideoAssessment] Setting up remark handlers...');
 
                     // Find remark textareas.
-                    var \$remarkTextareas = \$('.remark textarea, td.remark textarea, .criterion .remark textarea, .gradingform_rubric .remark textarea');
+                    var remarkSelectors = [
+                        '.remark textarea',
+                        'td.remark textarea',
+                        '.criterion .remark textarea',
+                        '.gradingform_rubric .remark textarea'
+                    ].join(', ');
+                    var \$remarkTextareas = \$(remarkSelectors);
                     console.log('[VideoAssessment] Found remark textareas:', \$remarkTextareas.length);
 
                     // Handle focus/blur.
@@ -2231,8 +2237,13 @@ class va {
             } else {
                 $a = new \stdClass();
                 $a->accepteddifference = $this->va->accepteddifference;
-                $a->button = '<a class="button-notice" href="'
-                    . new \moodle_url('/mod/videoassessment/view.php', ['id' => $this->cm->id, 'action' => 'assess', 'userid' => $user->id, 'gradertype' => 'training'])
+                $tryagainurl = new \moodle_url('/mod/videoassessment/view.php', [
+                    'id' => $this->cm->id,
+                    'action' => 'assess',
+                    'userid' => $user->id,
+                    'gradertype' => 'training',
+                ]);
+                $a->button = '<a class="button-notice" href="' . $tryagainurl
                     . '">' . self::str('tryagain') . '</a>';
 
                 $o .= self::str('failednotice', $a);
@@ -2381,8 +2392,12 @@ class va {
                         $plaintext = strip_tags($gradeitem->submissioncomment);
                         if (strlen($plaintext) > 30) {
                             $shortcomment = substr($plaintext, 0, 10);
-                            $commentbutton = "<button type='button' class='commentbutton btn btn-secondary' id = '"
-                                . $gradeitem->id . "' cmid = '" . $this->va->id . "' userid = '" . $userid . "' timing = '" . $timing . "'><h2>...</h2></button>";
+                            $commentbutton = "<button type='button'"
+                                . " class='commentbutton btn btn-secondary'"
+                                . " id = '" . $gradeitem->id . "'"
+                                . " cmid = '" . $this->va->id . "'"
+                                . " userid = '" . $userid . "'"
+                                . " timing = '" . $timing . "'><h2>...</h2></button>";
                             $comment = '<label class="mobile-submissioncomment">' . $shortcomment . '</label>';
                             $comment = $comment . $commentbutton;
                         } else {
@@ -2500,7 +2515,11 @@ class va {
                 $course = create_course($course);
 
                 $context = \context_course::instance($course->id, MUST_EXIST);
-                if (!empty($CFG->creatornewroleid) && !is_viewing($context, null, 'moodle/role:assign') && !is_enrolled($context, null, 'moodle/role:assign')) {
+                if (
+                    !empty($CFG->creatornewroleid)
+                    && !is_viewing($context, null, 'moodle/role:assign')
+                    && !is_enrolled($context, null, 'moodle/role:assign')
+                ) {
                     \enrol_try_internal_enrol($course->id, $USER->id, $CFG->creatornewroleid);
                 }
             }
@@ -2847,7 +2866,8 @@ class va {
 
         // Adtis.
         $va = $DB->get_record("videoassessment", ["id" => $this->instance]);
-        if ($va->fairnessbonus == 1 && (optional_param('gradertype', null, PARAM_TEXT) == 'peer' || optional_param('gradertype', null, PARAM_TEXT) == 'teacher')) {
+        $gradertype = optional_param('gradertype', null, PARAM_TEXT);
+        if ($va->fairnessbonus == 1 && ($gradertype == 'peer' || $gradertype == 'teacher')) {
             if ($gradeteacher > $gradepeer) {
                 $gradediff = $gradeteacher - $gradepeer;
                 $bonusscale = ($gradediff / $gradeteacher) * 100;
@@ -2895,7 +2915,7 @@ class va {
                 ? 100 : ($agg->selffairnessbonus + $agg->fairnessbonus + $agg->gradebefore);
         }
 
-        if ($va->selffairnessbonus == 1 && (optional_param('gradertype', null, PARAM_TEXT) == 'self' || optional_param('gradertype', null, PARAM_TEXT) == 'teacher')) {
+        if ($va->selffairnessbonus == 1 && ($gradertype == 'self' || $gradertype == 'teacher')) {
             if ($gradeteacher > $gradeself) {
                 $gradediff = $gradeteacher - $gradeself;
                 $selfbonusscale = ($gradediff / $gradeteacher) * 100;
@@ -3367,7 +3387,10 @@ class va {
      */
     public function get_students($userfields = null, $groupid = null) {
         if (!$userfields) {
-            $userfields = \core_user\fields::for_identity($this->context)->including('id', 'lastname', 'firstname', 'idnumber')->get_sql('u', false, '', '', false)->selects;
+            $userfields = \core_user\fields::for_identity($this->context)
+                ->including('id', 'lastname', 'firstname', 'idnumber')
+                ->get_sql('u', false, '', '', false)
+                ->selects;
         }
 
         if ($groupid === null) {
@@ -3631,7 +3654,10 @@ class va {
     public function get_students_sort($groupid = null, $sortmanually = false, $order = null) {
         global $DB;
 
-        $userfields = \core_user\fields::for_identity($this->context)->including('id', 'lastname', 'firstname', 'idnumber')->get_sql('u', false, '', '', false)->selects;
+        $userfields = \core_user\fields::for_identity($this->context)
+            ->including('id', 'lastname', 'firstname', 'idnumber')
+            ->get_sql('u', false, '', '', false)
+            ->selects;
 
         if ($sortmanually) {
             $order = ' ORDER BY sortorder ASC';
@@ -3783,7 +3809,10 @@ class va {
                     $trclass = 'odd';
                 }
 
-                $o .= \html_writer::start_tag('tr', ['class' => 'rubric-result ' . $trclass, 'id' => 'advancedgradingbefore-criteria-' . $rid]);
+                $o .= \html_writer::start_tag('tr', [
+                    'class' => 'rubric-result ' . $trclass,
+                    'id' => 'advancedgradingbefore-criteria-' . $rid,
+                ]);
 
                 $o .= \html_writer::start_tag('td', ['class' => 'bold']);
                 $o .= $rubric['description'];
@@ -3806,7 +3835,11 @@ class va {
 
                         $tdclass .= ' student-td';
                         $selected = true;
-                    } else if (!empty($historyfillings) && isset($historyfillings[$rid]) && in_array($lid, $historyfillings[$rid])) {
+                    } else if (
+                        !empty($historyfillings)
+                        && isset($historyfillings[$rid])
+                        && in_array($lid, $historyfillings[$rid])
+                    ) {
                         $selecteds .= \html_writer::start_tag('span', ['class' => 'student-selected score-selected']);
                         $selecteds .= self::str('self');
                         $selecteds .= \html_writer::end_tag('span');
@@ -3849,7 +3882,9 @@ class va {
                 if (!empty($teacherfilling) && !empty($studentfilling)) {
                     $minscore = min($scores);
                     $maxscore = max($scores);
-                    $differencescore = abs($scores[$studentfilling['criteria'][$rid]['levelid']] - $scores[$teacherfilling['criteria'][$rid]['levelid']]);
+                    $studentscore = $scores[$studentfilling['criteria'][$rid]['levelid']];
+                    $teacherscore = $scores[$teacherfilling['criteria'][$rid]['levelid']];
+                    $differencescore = abs($studentscore - $teacherscore);
                     $accepteddifference = $this->va->accepteddifference;
                     $difference = ($differencescore / ($maxscore - $minscore)) * 100;
 

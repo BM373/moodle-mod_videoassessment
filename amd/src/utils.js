@@ -21,7 +21,7 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([], function () {
+define([], function() {
     return {
 
         /**

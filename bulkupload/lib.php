@@ -576,7 +576,7 @@ class videoassessment_bulkupload {
         switch ($format) {
             case '.ogv':
             case '.ogg':
-                // use Vorbis instead of FLAC
+                // Use Vorbis instead of FLAC.
                 if (strpos($command, '-acodec') === false) {
                     $command = str_replace('{OUTPUT}', '-acodec libvorbis {OUTPUT}', $command);
                 }

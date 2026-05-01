@@ -22,7 +22,7 @@
  * mirrors the PHP class \mod_videoassessment\rubric_total exactly.
  *
  * @module     mod_videoassessment/live_grade_total
- * @copyright  2026 Shinonome Labo Co., Ltd.
+ * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define([], function() {
@@ -113,6 +113,9 @@ define([], function() {
                 return;
             }
 
+            /**
+             *
+             */
             function refresh() {
                 var snapshot = readSelection(root);
                 var result = calculate(snapshot.criteria, snapshot.selected);

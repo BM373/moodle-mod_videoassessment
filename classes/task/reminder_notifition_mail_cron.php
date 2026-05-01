@@ -68,10 +68,12 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
                 if ($this->check_trigger($videoassessment, $student)) {
                     $videoassessmentcompletionexpected = $cm->completionexpected;
                     mtrace('student ' . $student->username . ' mail send start...');
+                    $beforedelta = $videoassessmentcompletionexpected
+                        - (($videoassessment->beforeduedate * 24 * 60 * 60 * 1000) + time());
                     if (
                         $videoassessment->isbeforeduedate == 1
-                        && 0 <= ($videoassessmentcompletionexpected - (($videoassessment->beforeduedate * 24 * 60 * 60 * 1000) + time()))
-                        && ($videoassessmentcompletionexpected - (($videoassessment->beforeduedate * 24 * 60 * 60 * 1000) + time())) < 60000
+                        && 0 <= $beforedelta
+                        && $beforedelta < 60000
                     ) {
                         $this->send_mail($videoassessment, $student, current($teachers));
                     } else if (
@@ -90,10 +92,21 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
                     mtrace('student ' . $student->username . ' has been sent');
                 }
             }
-            if ($videoassessment->isonduedate == 1 && 0 <= ($videoassessmentcompletionexpected - time()) && ($videoassessmentcompletionexpected - time()) < 60000) {
-                $videoassessment->nextsendmaildate = time() + ($videoassessment->afterduedate * 24 * 60 * 60 * 1000);
-            } else if ($videoassessment->isafterduedate == 1 && 0 <= ($videoassessment->nextsendmaildate - time()) && ($videoassessment->nextsendmaildate - time()) < 60000) {
-                $videoassessment->nextsendmaildate = time() + ($videoassessment->afterduedate * 24 * 60 * 60 * 1000);
+            $expecteddelta = $videoassessmentcompletionexpected - time();
+            $nextsendmaildelta = $videoassessment->nextsendmaildate - time();
+            $afteroffset = $videoassessment->afterduedate * 24 * 60 * 60 * 1000;
+            if (
+                $videoassessment->isonduedate == 1
+                && 0 <= $expecteddelta
+                && $expecteddelta < 60000
+            ) {
+                $videoassessment->nextsendmaildate = time() + $afteroffset;
+            } else if (
+                $videoassessment->isafterduedate == 1
+                && 0 <= $nextsendmaildelta
+                && $nextsendmaildelta < 60000
+            ) {
+                $videoassessment->nextsendmaildate = time() + $afteroffset;
             }
             $DB->update_record('videoassessment', $videoassessment);
         }

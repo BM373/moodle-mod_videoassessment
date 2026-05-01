@@ -136,7 +136,11 @@ class print_page {
                 $o .= $OUTPUT->heading($this->va->str('allscores'), 3);
                 $timinggrades = [];
                 foreach ($this->va->gradertypes as $gradertype) {
-                    if ($this->va->va->class && $gradertype == 'class' && !has_capability('mod/videoassessment:grade', $this->va->context)) {
+                    if (
+                        $this->va->va->class
+                        && $gradertype == 'class'
+                        && !has_capability('mod/videoassessment:grade', $this->va->context)
+                    ) {
                         continue;
                     }
 
@@ -162,7 +166,11 @@ class print_page {
                         if (!is_null($gradeitems) && !empty($gradeitems)) {
                             foreach ($gradeitems as $gradeitem) {
                                 $o .= $controller->render_grade($PAGE, $gradeitem->id, $gradinginfo, '', false);
-                                $timinggrades[] = \html_writer::tag('span', (int) $gradeitem->grade, ['class' => 'rubrictext-' . $gradertype]);
+                                $timinggrades[] = \html_writer::tag(
+                                    'span',
+                                    (int) $gradeitem->grade,
+                                    ['class' => 'rubrictext-' . $gradertype]
+                                );
                                 $o .= \html_writer::tag('hr', '');
                             }
                         }
@@ -177,7 +185,11 @@ class print_page {
                     if (
                         $gradertype == 'training'
                         || $gradertype == 'class'
-                        || ($this->va->va->class && $gradertype == 'class' && !has_capability('mod/videoassessment:grade', $this->va->context))
+                        || (
+                            $this->va->va->class
+                            && $gradertype == 'class'
+                            && !has_capability('mod/videoassessment:grade', $this->va->context)
+                        )
                     ) {
                         continue;
                     }
@@ -185,7 +197,9 @@ class print_page {
                     $grades = $this->va->get_grade_items($gradingarea, $userid);
                     foreach ($grades as $gradeitem) {
                         // Format the comment to convert @@PLUGINFILE@@ placeholders to actual URLs.
-                        $commentformat = isset($gradeitem->submissioncommentformat) ? $gradeitem->submissioncommentformat : FORMAT_HTML;
+                        $commentformat = isset($gradeitem->submissioncommentformat)
+                            ? $gradeitem->submissioncommentformat
+                            : FORMAT_HTML;
                         // First rewrite @@PLUGINFILE@@ placeholders to actual URLs.
                         // Use gradeid (from videoassessment_grades table) not gradeitem->id (from grade_items table).
                         $gradeid = isset($gradeitem->gradeid) ? $gradeitem->gradeid : $gradeitem->id;

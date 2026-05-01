@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable no-useless-escape */
 /**
  * Bulk upload JavaScript module for Videoassessment
  *
@@ -21,10 +22,10 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/log'], function ($, log) {
+define(['jquery', 'core/log'], function($, log) {
 
     const PROGRESS_INTERVAL = 1000;
-    const conf = { parallels: 2 };
+    const conf = {parallels: 2};
     const str = {
         error: "Error",
         queued: "Queued",
@@ -115,7 +116,9 @@ define(['jquery', 'core/log'], function ($, log) {
     }
 
     class Status {
-        constructor(cell) { this.cell = cell; }
+        constructor(cell) {
+ this.cell = cell;
+}
         set(status) {
             clear(this.cell);
             this.cell.appendChild(text(str[status]));
@@ -132,7 +135,7 @@ define(['jquery', 'core/log'], function ($, log) {
         constructor(cell) {
             const table = document.createElement("table");
             const row = table.insertRow(-1);
-            this.scales = Array.from({ length: 50 }, () => row.insertCell(-1));
+            this.scales = Array.from({length: 50}, () => row.insertCell(-1));
             cell.appendChild(table);
         }
         set(value) {
@@ -144,8 +147,12 @@ define(['jquery', 'core/log'], function ($, log) {
     }
 
     const bulkupload = {
-        setConfig(name, value) { conf[name] = value; },
-        setString(name, value) { str[name] = value; },
+        setConfig(name, value) {
+ conf[name] = value;
+},
+        setString(name, value) {
+ str[name] = value;
+},
 
         init(cmid) {
             if (!window.File || !window.XMLHttpRequest || !window.FormData) {
@@ -176,9 +183,11 @@ define(['jquery', 'core/log'], function ($, log) {
                     this.status = status;
                     this.progress = progress;
                 }
-                isCode(code) { return /^[A-Za-z0-9\-\._]+$/.test(code); }
+                isCode(code) {
+ return /^[A-Za-z0-9\-\._]+$/.test(code);
+}
                 refresh(code) {
-                    ajax("post", "ajax.php", { cmid, code }, (result, status) => {
+                    ajax("post", "ajax.php", {cmid, code}, (result, status) => {
                         if (status !== 200 || !/^\d+$/.test(result)) {
                             this.status.set(Status.ERROR);
                             stopped();
@@ -195,7 +204,7 @@ define(['jquery', 'core/log'], function ($, log) {
                     });
                 }
                 start() {
-                    ajax("post", "ajax.php", { cmid, file: this.file }, (result, status) => {
+                    ajax("post", "ajax.php", {cmid, file: this.file}, (result, status) => {
                         if (status !== 200 || !this.isCode(result)) {
                             this.status.set(Status.ERROR);
                             stopped();

@@ -45,9 +45,6 @@ class mod_videoassessment_mod_form extends moodleform_mod {
     /** @var int Default number of peers for assessment */
     const DEFAULT_USED_PEERS = 1;
 
-    /** @var object|null Video assessment instance data */
-    protected $_videoassessmentinstance = null;
-
     /**
      * Define the form elements for video assessment configuration.
      *
@@ -144,7 +141,12 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->setType('peerassignments', PARAM_RAW);
 
         // Error placeholder for peer assignment validation.
-        $mform->addElement('static', 'peerassignmenterror', '', '<div id="peerassignment-error" class="text-danger" style="display:none;"></div>');
+        $mform->addElement(
+            'static',
+            'peerassignmenterror',
+            '',
+            '<div id="peerassignment-error" class="text-danger" style="display:none;"></div>'
+        );
 
         $mform->addElement('html', '</div>');
 
@@ -570,7 +572,8 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         ];
         for ($level = 1; $level <= 6; $level++) {
             $bonusscoregroup = [];
-            $bonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . ' ' . get_string('difference', 'videoassessment') . ':');
+            $diffsuffix = ' ' . get_string('difference', 'videoassessment') . ':';
+            $bonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . $diffsuffix);
             $bonusscoregroup[] = $mform->createElement('select', 'bonus' . $level, '', $scaleopts);
             $bonusscoregroup[] = $mform->createElement('static', '', '', get_string('offairnessbonus', 'videoassessment'));
             $mform->addGroup($bonusscoregroup, 'bonusscoregroup' . $level, '', [' '], false);
@@ -591,7 +594,8 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Self Bonus Scale groups (6 levels).
         for ($level = 1; $level <= 6; $level++) {
             $selfbonusscoregroup = [];
-            $selfbonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . ' ' . get_string('difference', 'videoassessment') . ':');
+            $diffsuffix = ' ' . get_string('difference', 'videoassessment') . ':';
+            $selfbonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . $diffsuffix);
             $selfbonusscoregroup[] = $mform->createElement('select', 'selfbonus' . $level, '', $scaleopts);
             $selfbonusscoregroup[] = $mform->createElement('static', '', '', get_string('offairnessbonus', 'videoassessment'));
             $mform->addGroup($selfbonusscoregroup, 'selfbonusscoregroup' . $level, '', [' '], false);

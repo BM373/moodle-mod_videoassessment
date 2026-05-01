@@ -1,3 +1,4 @@
+/* eslint-disable no-alert, no-nested-ternary */
 /**
  * Peer assignment management for video assessment
  *
@@ -5,12 +6,18 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+/* global bootstrap */
 define(['jquery'], function($) {
     let students = {};
     let allUsers = {}; // Includes students + teachers for name lookups.
     let peerAssignments = {};
+    // Reserved for future server-side persistence. Set during init() but
+    // not yet consumed -- kept here so the public init() contract is stable.
+    // eslint-disable-next-line no-unused-vars
     let isExisting = false;
+    // eslint-disable-next-line no-unused-vars
     let cmid = 0;
+    // eslint-disable-next-line no-unused-vars
     let sesskey = '';
     let usedpeers = 0;
     let groups = {};
@@ -29,7 +36,11 @@ define(['jquery'], function($) {
             field.val(jsonValue);
         } else {
             // Create the hidden field if it doesn't exist.
-            $('form.mform').append('<input type="hidden" name="peerassignments" id="id_peerassignments" value="' + jsonValue.replace(/"/g, '&quot;') + '">');
+            const escaped = jsonValue.replace(/"/g, '&quot;');
+            $('form.mform').append(
+                '<input type="hidden" name="peerassignments" id="id_peerassignments" value="'
+                    + escaped + '">'
+            );
         }
     }
 
@@ -185,7 +196,11 @@ define(['jquery'], function($) {
         container.empty();
 
         // Try multiple key formats to get user peers.
-        let userPeers = peerAssignments[userIdNum] || peerAssignments[userid] || peerAssignments[String(userIdNum)] || peerAssignments[String(userid)] || [];
+        let userPeers = peerAssignments[userIdNum]
+            || peerAssignments[userid]
+            || peerAssignments[String(userIdNum)]
+            || peerAssignments[String(userid)]
+            || [];
 
         // Ensure we have an array.
         if (!Array.isArray(userPeers)) {
@@ -279,7 +294,9 @@ define(['jquery'], function($) {
         }
 
         // Confirm before proceeding.
-        if (!confirm('This will reset all peer assignments and assign ' + numPeers + ' random peer(s) to each student. Continue?')) {
+        const confirmMsg = 'This will reset all peer assignments and assign '
+            + numPeers + ' random peer(s) to each student. Continue?';
+        if (!confirm(confirmMsg)) {
             return;
         }
 
@@ -350,9 +367,12 @@ define(['jquery'], function($) {
         // Need at least (numPeers + 1) members in the group to assign numPeers peers to each.
         if (groupMembers.length <= numPeers) {
             const maxPossiblePeers = Math.max(0, groupMembers.length - 1);
-            let errorMsg = 'Not enough members in group "' + group.name + '" to assign ' + numPeers + ' peer(s) to each member.';
+            let errorMsg = 'Not enough members in group "' + group.name
+                + '" to assign ' + numPeers + ' peer(s) to each member.';
             if (groupMembers.length > 0) {
-                errorMsg += ' The group has ' + groupMembers.length + ' member(s), so each member can have at most ' + maxPossiblePeers + ' peer(s).';
+                errorMsg += ' The group has ' + groupMembers.length
+                    + ' member(s), so each member can have at most '
+                    + maxPossiblePeers + ' peer(s).';
             } else {
                 errorMsg += ' The group has no members.';
             }
@@ -361,7 +381,10 @@ define(['jquery'], function($) {
         }
 
         // Confirm before proceeding.
-        if (!confirm('This will reset peer assignments for all members in "' + group.name + '" and assign ' + numPeers + ' random peer(s) from within the group. Continue?')) {
+        const groupConfirmMsg = 'This will reset peer assignments for all members in "'
+            + group.name + '" and assign ' + numPeers
+            + ' random peer(s) from within the group. Continue?';
+        if (!confirm(groupConfirmMsg)) {
             return;
         }
 

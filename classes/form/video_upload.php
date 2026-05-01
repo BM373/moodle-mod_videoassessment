@@ -106,12 +106,11 @@ class video_upload extends \moodleform {
             $mform->addHelpButton('upload', 'uploadfile', 'videoassessment');
 
             if ($mobile) {
-                $mform->addElement(
-                    "html",
-                    "<div class='mdl-align upload-progress' style='display:none'><i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/><h3>" .
-                    get_string('uploadingvideonotice', 'videoassessment') .
-                    "</h3></div><br/>",
-                );
+                $spinner = "<div class='mdl-align upload-progress' style='display:none'>"
+                    . "<i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/>"
+                    . "<h3>" . get_string('uploadingvideonotice', 'videoassessment') . "</h3>"
+                    . "</div><br/>";
+                $mform->addElement('html', $spinner);
             }
             $maxbytes = $COURSE->maxbytes;
             if ($CFG->version < va::MOODLE_VERSION_23) {
@@ -152,19 +151,19 @@ class video_upload extends \moodleform {
         if ($allowvideorecord) {
             $mform->addElement('radio', 'upload', get_string('recordnewvideo', 'videoassessment'), '', 2);
             $mform->addHelpButton('upload', 'recordnewvideo', 'videoassessment');
-            $mform->addElement(
-                'html',
-                '<div id="recordrtc" class="recordrtc"><div id="record-content-div"></div>
-                    <span id="btn-start-recording" class="btn btn-secondary">' . get_string('startrecoding', 'videoassessment') . '</span>
-                    <span id="btn-pause-recording" class="btn btn-secondary"style="display: none; font-size: 15px;">' . get_string('pause', 'videoassessment') . '</span>
-                    </span></div>'
-            );
-            $mform->addElement(
-                "html",
-                "<div class='mdl-align upload-progress' style='display:none'><i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/><h3>" .
-                get_string('uploadingvideonotice', 'videoassessment') .
-                "</h3></div><br/>"
-            );
+            $startlabel = get_string('startrecoding', 'videoassessment');
+            $pauselabel = get_string('pause', 'videoassessment');
+            $recorderhtml = '<div id="recordrtc" class="recordrtc"><div id="record-content-div"></div>'
+                . '<span id="btn-start-recording" class="btn btn-secondary">' . $startlabel . '</span>'
+                . '<span id="btn-pause-recording" class="btn btn-secondary"'
+                . ' style="display: none; font-size: 15px;">' . $pauselabel . '</span>'
+                . '</span></div>';
+            $mform->addElement('html', $recorderhtml);
+            $spinner = "<div class='mdl-align upload-progress' style='display:none'>"
+                . "<i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/>"
+                . "<h3>" . get_string('uploadingvideonotice', 'videoassessment') . "</h3>"
+                . "</div><br/>";
+            $mform->addElement('html', $spinner);
 
             $PAGE->requires->js('/mod/videoassessment/RecordRTC.js');
             $PAGE->requires->js('/mod/videoassessment/DetectRTC.js');
@@ -177,13 +176,22 @@ class video_upload extends \moodleform {
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initUploadTypeChange');
         $buttonarray = [];
         if ($mobile) {
-            $PAGE->requires->js_call_amd('mod_videoassessment/videoassessment', 'init_mobile_upload_progress_bar', []);
+            $PAGE->requires->js_call_amd(
+                'mod_videoassessment/videoassessment',
+                'init_mobile_upload_progress_bar',
+                []
+            );
             $btn = "submit";
         } else {
             $btn = "submit";
         }
         $buttonarray[] = &$mform->createElement($btn, 'submitbutton', get_string('upload'));
-        $buttonarray[] = &$mform->createElement('button', 'cancelbutton', get_string('cancel'), ['onclick' => 'javascript :history.back(-1)']);
+        $buttonarray[] = &$mform->createElement(
+            'button',
+            'cancelbutton',
+            get_string('cancel'),
+            ['onclick' => 'javascript :history.back(-1)']
+        );
         $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
         $mform->closeHeaderBefore('buttonar');
     }

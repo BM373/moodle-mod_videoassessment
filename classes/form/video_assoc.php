@@ -28,15 +28,6 @@ namespace mod_videoassessment\form;
  */
 class video_assoc extends \moodleform {
     /**
-     * Internal form name identifier.
-     *
-     * Used to identify this specific form instance.
-     *
-     * @var string
-     */
-    private $_name = 'assocform';
-
-    /**
      * Define the form structure and elements.
      *
      * Creates hidden form fields for video association data including

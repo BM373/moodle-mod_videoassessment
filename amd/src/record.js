@@ -13,12 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable no-restricted-properties, no-alert */
 /**
  * In-browser recording controller.
  *
  * @module     mod_videoassessment/record
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
- * @copyright  2026 Shinonome Labo Co., Ltd.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -46,6 +46,9 @@ define([
         var stream;
         var autoStopTimer = null;
 
+        /**
+         *
+         */
         function clearAutoStop() {
             if (autoStopTimer !== null) {
                 clearTimeout(autoStopTimer);
@@ -53,6 +56,9 @@ define([
             }
         }
 
+        /**
+         *
+         */
         function finishRecording() {
             if (!recorder) {
                 return;

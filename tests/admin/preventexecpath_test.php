@@ -18,7 +18,7 @@
  * Smoke test that the locked-executable language strings exist.
  *
  * @package    mod_videoassessment
- * @copyright  2026 Shinonome Labo Co., Ltd.
+ * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

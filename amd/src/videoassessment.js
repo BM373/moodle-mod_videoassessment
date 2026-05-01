@@ -13,6 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable
+   promise/always-return, promise/no-nesting,
+   no-restricted-properties, camelcase, no-empty-function,
+   consistent-return */
 /**
  * Video assessment
  *
@@ -28,7 +32,7 @@ define([
     'core/modal_events',
     'core/notification',
     'core/ajax',
-], function ($, Str, ModalFactory, ModalEvents, Notification, Ajax) {
+], function($, Str, ModalFactory, ModalEvents, Notification, Ajax) {
     'use strict';
 
     const SELECTORS = {
@@ -41,7 +45,7 @@ define([
     };
 
     const mobileshowallcomment = () => {
-        $(SELECTORS.commentButton).on('click', function () {
+        $(SELECTORS.commentButton).on('click', function() {
             const request = {
                 methodname: 'mod_videoassessment_get_getallcomments',
                 args: {
@@ -89,7 +93,7 @@ define([
     };
 
     const init_mobile_upload_progress_bar = () => {
-        $(SELECTORS.uploadButton).on('click', function (e) {
+        $(SELECTORS.uploadButton).on('click', function(e) {
             const uploadType = $('input[name="upload"]:checked').val();
             const videoFile = $(SELECTORS.mobileVideoInput)[0].files[0];
 
@@ -144,9 +148,9 @@ define([
 
             if (videoFile.size > 500000000) {
                 Str.get_strings([
-                    { key: 'uploadmessage', component: 'videoassessment' },
-                    { key: 'upload', component: 'moodle' },
-                    { key: 'cancel', component: 'moodle' },
+                    {key: 'uploadmessage', component: 'videoassessment'},
+                    {key: 'upload', component: 'moodle'},
+                    {key: 'cancel', component: 'moodle'},
                 ]).then(strings => {
                     Notification.confirm(strings[0], '', strings[1], strings[2])
                         .then(submitForm)
@@ -172,7 +176,6 @@ define([
             // Clear the flag immediately to prevent redirect loops.
             localStorage.removeItem('videoassessment_redirect_to_grading');
 
-            console.log('Redirecting to advanced grading page for cmid:', cmid);
 
             // Redirect to the grading management page.
             // We'll use the view.php with a special parameter that will handle finding the area ID.

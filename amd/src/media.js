@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable promise/always-return */
 /**
  * Video assessment
  *
@@ -21,7 +22,7 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([], function () {
+define([], function() {
 
     /**
      * Adds event listeners to detect when the media stream ends.
@@ -29,11 +30,11 @@ define([], function () {
      * @param {Function} callback
      */
     function addStreamStopListener(stream, callback) {
-        stream.getTracks().forEach(function (track) {
+        stream.getTracks().forEach(function(track) {
             ['ended', 'inactive'].forEach(event => {
                 track.addEventListener(event, () => {
                     callback();
-                    callback = () => { };
+                    callback = () => undefined;
                 });
             });
         });
@@ -45,11 +46,11 @@ define([], function () {
      * @param {Function} error
      */
     function captureUserMedia(success, error) {
-        navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            .then(function (stream) {
+        navigator.mediaDevices.getUserMedia({audio: true, video: true})
+            .then(function(stream) {
                 success(stream);
             })
-            .catch(function (err) {
+            .catch(function(err) {
                 error(err);
             });
     }

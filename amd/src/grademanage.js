@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable camelcase */
 /**
  * Video assessment
  *
@@ -20,11 +21,11 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery'], function ($) {
+define(['jquery'], function($) {
     return {
-        init_grademanage: function () {
+        init_grademanage: function() {
             var hasgrades = new Array();
-            $('.check-has-grade input').each(function () {
+            $('.check-has-grade input').each(function() {
                 if (this.value) {
                     hasgrades.push($(this).attr('text'));
                     if ($('.check-has-grade').hasClass(this.name)) {
@@ -32,7 +33,7 @@ define(['jquery'], function ($) {
                         if (href && href.indexOf('document-edit') > -1) {
                             $('.actions .action:first-child')
                                 .attr('href', '#')
-                                .on('click', function (e) {
+                                .on('click', function(e) {
                                     e.preventDefault();
                                 })
                                 .attr('disabled', 'true');
@@ -41,12 +42,12 @@ define(['jquery'], function ($) {
                 }
             });
 
-            $('.type_custom .item_with_icon a').each(function () {
+            $('.type_custom .item_with_icon a').each(function() {
                 var areaid = $(this).attr('href').split("?areaid=").pop();
                 if ($.inArray(areaid, hasgrades) !== -1) {
                     $(this)
                         .attr('href', '#')
-                        .on('click', function (e) {
+                        .on('click', function(e) {
                             e.preventDefault();
                         })
                         .attr('disabled', 'true');
@@ -61,7 +62,7 @@ define(['jquery'], function ($) {
             $('#fitem_id_gradecat').next().find('.col-md-3').append(classhelpbtn);
 
             $('#id_quickSetupButton').removeClass('btn-secondary').addClass('btn-primary');
-            $('#id_quickSetupButton').on('click', function (e) {
+            $('#id_quickSetupButton').on('click', function(e) {
                 e.preventDefault();
                 M.core_formchangechecker.reset_form_dirty_state();
                 var quickSetupform = $('#id_quickSetupButton').closest('.mform');

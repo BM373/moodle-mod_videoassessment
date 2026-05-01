@@ -21,7 +21,7 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery'], function ($) {
+define(['jquery'], function($) {
 
     /**
      * Initializes the behavior of the training selector.
@@ -42,7 +42,7 @@ define(['jquery'], function ($) {
                 desc.hide();
             }
 
-            training.on('change', function () {
+            training.on('change', function() {
                 if ($(this).val() == 1) {
                     video.show();
                     point.show();
@@ -64,7 +64,7 @@ define(['jquery'], function ($) {
      */
     function initQuickSetupPeerChange() {
         const peerAssess = $('#id_peerassess');
-        peerAssess.on('change', function () {
+        peerAssess.on('change', function() {
             if ($(this).val() > 0) {
                 $('#id_numberofpeers').find('option[value="1"]').prop('selected', true);
             }
@@ -96,7 +96,7 @@ define(['jquery'], function ($) {
                     fields.forEach(f => $(f).hide());
                 }
 
-                toggle.on('change', function () {
+                toggle.on('change', function() {
                     if ($(this).val() == 1) {
                         fields.forEach(f => $(f).show());
                     } else {
@@ -149,7 +149,7 @@ define(['jquery'], function ($) {
             $('#fgroup_id_recordradios').hide();
         }
 
-        $('.col-md-3').each(function () {
+        $('.col-md-3').each(function() {
             if ($(this).children().length == 0) {
                 $(this).remove();
             }
@@ -211,7 +211,7 @@ define(['jquery'], function ($) {
      */
     function initNotificationFormChange() {
         const toggleGroup = (btnClass, groupId) => {
-            $(document).on('click', btnClass, function (e) {
+            $(document).on('click', btnClass, function(e) {
                 e.preventDefault();
                 const btn = $(this);
                 if (btn.hasClass('expanded')) {
@@ -276,7 +276,9 @@ define(['jquery'], function ($) {
          * When Peer % changes from 0 to > 0, set Number of Peer Assessors to 2 (if it was 0).
          */
         const syncFromPeerRating = () => {
-            if (isSyncing) return;
+            if (isSyncing) {
+ return;
+}
             isSyncing = true;
 
             const peerRatingVal = parseInt(peerRating.val()) || 0;
@@ -299,7 +301,9 @@ define(['jquery'], function ($) {
          * When Number of Peer Assessors changes from 0 to > 0, set Peer % to 10 (if it was 0).
          */
         const syncFromUsedPeers = () => {
-            if (isSyncing) return;
+            if (isSyncing) {
+ return;
+}
             isSyncing = true;
 
             const peerRatingVal = parseInt(peerRating.val()) || 0;
@@ -342,8 +346,6 @@ define(['jquery'], function ($) {
         // Find the grading method select (it's the first advancedgradingmethod_ field).
         const gradingMethodSelect = $('select[name^="advancedgradingmethod_"]').first();
         const rubricButton = $('#id_submitbutton_rubric');
-        const redirectField = $('input[name="redirect_to_rubric"]');
-        const submitButton2 = $('#id_submitbutton2'); // Save and display button
 
         if (!rubricButton.length) {
             return;
@@ -447,22 +449,18 @@ define(['jquery'], function ($) {
                 // Clear the flag immediately.
                 sessionStorage.removeItem('videoassessment_check_grading_redirect');
 
-                console.log('Checking for grading redirect via AJAX...');
-
                 // Call the AJAX endpoint to check if redirect is needed.
                 $.ajax({
                     url: M.cfg.wwwroot + '/mod/videoassessment/check_grading_redirect.php',
                     method: 'GET',
                     dataType: 'json',
                     success: function(response) {
-                        console.log('Grading redirect response:', response);
                         if (response.redirect && response.url) {
-                            console.log('Redirecting to:', response.url);
                             window.location.replace(response.url);
                         }
                     },
-                    error: function(xhr, status, error) {
-                        console.error('Error checking grading redirect:', error);
+                    error: function() {
+                        // Silently ignore errors; redirect check is best-effort.
                     }
                 });
             } else {

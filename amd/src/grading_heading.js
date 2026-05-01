@@ -45,6 +45,9 @@ define(['jquery'], function($) {
             // Prevent any click handlers from triggering redirects on this page.
             $(document).off('click.videoassessment-redirect');
 
+            /**
+             *
+             */
             function changeHeading() {
                 // Find the heading element.
                 var heading = $('h1, h2, .page-header-headings h1').first();

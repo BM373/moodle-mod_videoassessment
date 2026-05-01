@@ -76,7 +76,13 @@ class assign_class extends \moodleform {
             self::SORT_NAME => get_string('sortname', 'videoassessment'),
             self::SORT_MANUALLY => get_string('sortmanually', 'videoassessment'),
         ];
-        $mform->addElement('select', 'sortby', get_string('sortby', 'videoassessment'), $sortoptions, ['id' => 'sortby', 'data-load' => 0]);
+        $mform->addElement(
+            'select',
+            'sortby',
+            get_string('sortby', 'videoassessment'),
+            $sortoptions,
+            ['id' => 'sortby', 'data-load' => 0]
+        );
         $mform->setType('sortby', PARAM_INT);
         $mform->setDefault('sortby', $this->_customdata->sortby);
 

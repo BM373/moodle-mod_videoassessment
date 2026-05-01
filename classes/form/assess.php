@@ -122,7 +122,8 @@ class assess extends \moodleform {
 
         $user = $DB->get_record('user', ['id' => optional_param('userid', 0, PARAM_INT)]);
 
-        $mform->addElement('header', 'Grades', $user->firstname . ' ' . $user->lastname . $OUTPUT->user_picture($user, ['size' => 100]));
+        $userpic = $OUTPUT->user_picture($user, ['size' => 100]);
+        $mform->addElement('header', 'Grades', $user->firstname . ' ' . $user->lastname . $userpic);
 
         $grademenu = make_grades_menu($va->va->grade);
         $gradinginstances = $this->use_advanced_grading();
@@ -225,9 +226,10 @@ class assess extends \moodleform {
                     } else {
                         $options[''] = get_string('nooutcome', 'grades');
                         $attributes = ['id' => 'menuoutcome_' . $n ];
-                        $mform->addElement('select', 'outcome_' . $n . '[' . $data->userid . ']', $outcome->name . ':', $options, $attributes);
-                        $mform->setType('outcome_' . $n . '[' . $data->userid . ']', PARAM_INT);
-                        $mform->setDefault('outcome_' . $n . '[' . $data->userid . ']', $outcome->grades[$data->submission->userid]->grade);
+                        $outcomekey = 'outcome_' . $n . '[' . $data->userid . ']';
+                        $mform->addElement('select', $outcomekey, $outcome->name . ':', $options, $attributes);
+                        $mform->setType($outcomekey, PARAM_INT);
+                        $mform->setDefault($outcomekey, $outcome->grades[$data->submission->userid]->grade);
                     }
                 }
             }
@@ -499,11 +501,14 @@ class assess extends \moodleform {
         if (!empty($this->_customdata->submission->id)) {
             $itemid = $this->_customdata->submission->id;
         } else {
-            $itemid = null; // SHIN-VAM-12: itemid is intentionally null for new submissions; the file area key is rebound when the rubric is saved (see classes/va.php).
+            // The itemid is intentionally null for new submissions; the file
+            // area key is rebound when the rubric is saved (see va.php).
+            $itemid = null;
         }
 
         if ($this->use_advanced_grading() && !isset($data->advancedgrading)) {
-            $data->advancedgrading = null; // XXX
+            // Initialise to null so the rubric controller can populate it.
+            $data->advancedgrading = null;
         }
 
         $gradinginstance = $this->use_advanced_grading();

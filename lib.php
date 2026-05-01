@@ -27,8 +27,6 @@
 
 use mod_videoassessment\va;
 
-defined('MOODLE_INTERNAL') || die();
-
 // Event types.
 define('VIDEOASSESS_EVENT_TYPE_DUE', 'due');
 define('VIDEOASSESS_EVENT_TYPE_GRADINGDUE', 'gradingdue');
@@ -57,7 +55,12 @@ function videoassessment_add_instance($va, $form) {
     }
 
     if (isset($va->isquickSetup) && $va->isquickSetup == 1) {
-        if ($va->isselfassesstype == 1 || $va->ispeerassesstype == 1 || $va->isteacherassesstype == 1 || $va->isclassassesstype == 1) {
+        if (
+            $va->isselfassesstype == 1
+            || $va->ispeerassesstype == 1
+            || $va->isteacherassesstype == 1
+            || $va->isclassassesstype == 1
+        ) {
             if ($va->isselfassesstype == 1) {
                 $va->ratingself = $va->selfassess;
             } else {
@@ -253,7 +256,12 @@ function videoassessment_update_instance($va, $form) {
     $va->id = $va->instance;
     $cm = get_coursemodule_from_instance('videoassessment', $va->id, 0, false, MUST_EXIST);
     if (isset($va->isquickSetup) && $va->isquickSetup == 1) {
-        if ($va->isselfassesstype == 1 || $va->ispeerassesstype == 1 || $va->isteacherassesstype == 1 || $va->isclassassesstype == 1) {
+        if (
+            $va->isselfassesstype == 1
+            || $va->ispeerassesstype == 1
+            || $va->isteacherassesstype == 1
+            || $va->isclassassesstype == 1
+        ) {
             if ($va->isselfassesstype == 1) {
                 $va->ratingself = $va->selfassess;
             } else {
@@ -828,11 +836,11 @@ function videoassessment_get_areaname_by_id($id) {
  * @return boolean True if intro should be shown, false otherwise
  */
 function videoassessment_show_intro($va) {
-    // showdescription is a standard Moodle activity-form field but the
-    // videoassessment table never declared a column for it (legacy
-    // schema). Treat both properties as 0 when missing so this function
-    // does not emit "undefined property" notices on every fixture
-    // load.
+    // The showdescription field is a standard Moodle activity-form field
+    // but the videoassessment table never declared a column for it
+    // (legacy schema). Treat both properties as 0 when missing so this
+    // function does not emit "undefined property" notices on every
+    // fixture load.
     $showdescription = $va->showdescription ?? 0;
     $allowfrom = $va->allowsubmissionsfromdate ?? 0;
     if (
@@ -1461,7 +1469,8 @@ function videoassessment_get_assoc(stored_file $file) {
 
     if (count($parts) >= 2) {
         $userid = (int)$parts[0];
-        $timing = $parts[1]; // 'Before' or 'after'.
+        // Path segment uses literal "before" or "after".
+        $timing = $parts[1];
 
         if ($userid > 0 && in_array($timing, ['before', 'after'])) {
             return [$userid, $timing];

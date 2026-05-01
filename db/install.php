@@ -148,7 +148,11 @@ function create_default_rubric_template() {
                 'NEWID2' => ['score' => 5, 'definition' => 'Can hear a little', 'definitionformat' => FORMAT_MOODLE],
                 'NEWID3' => ['score' => 10, 'definition' => 'Good voice', 'definitionformat' => FORMAT_MOODLE],
                 'NEWID4' => ['score' => 15, 'definition' => 'Very good voice with stress', 'definitionformat' => FORMAT_MOODLE],
-                'NEWID5' => ['score' => 20, 'definition' => 'Excellent voice with stress, intonation', 'definitionformat' => FORMAT_MOODLE],
+                'NEWID5' => [
+                    'score' => 20,
+                    'definition' => 'Excellent voice with stress, intonation',
+                    'definitionformat' => FORMAT_MOODLE,
+                ],
             ],
         ];
 
@@ -173,10 +177,26 @@ function create_default_rubric_template() {
             'descriptionformat' => FORMAT_MOODLE,
             'levels' => [
                 'NEWID1' => ['score' => 0, 'definition' => 'No structure', 'definitionformat' => FORMAT_MOODLE],
-                'NEWID2' => ['score' => 5, 'definition' => 'Missing an introduction or conclusion', 'definitionformat' => FORMAT_MOODLE],
-                'NEWID3' => ['score' => 10, 'definition' => 'Missing transition words', 'definitionformat' => FORMAT_MOODLE],
-                'NEWID4' => ['score' => 15, 'definition' => 'Good introduction, transitions, conclusion', 'definitionformat' => FORMAT_MOODLE],
-                'NEWID5' => ['score' => 20, 'definition' => 'Very strong introduction, transitions, conclusion', 'definitionformat' => FORMAT_MOODLE],
+                'NEWID2' => [
+                    'score' => 5,
+                    'definition' => 'Missing an introduction or conclusion',
+                    'definitionformat' => FORMAT_MOODLE,
+                ],
+                'NEWID3' => [
+                    'score' => 10,
+                    'definition' => 'Missing transition words',
+                    'definitionformat' => FORMAT_MOODLE,
+                ],
+                'NEWID4' => [
+                    'score' => 15,
+                    'definition' => 'Good introduction, transitions, conclusion',
+                    'definitionformat' => FORMAT_MOODLE,
+                ],
+                'NEWID5' => [
+                    'score' => 20,
+                    'definition' => 'Very strong introduction, transitions, conclusion',
+                    'definitionformat' => FORMAT_MOODLE,
+                ],
             ],
         ];
 

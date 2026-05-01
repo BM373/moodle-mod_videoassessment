@@ -28,4 +28,25 @@
         <license>Jonas von Andrian</license>
         <licenseversion></licenseversion>
     </library>
+    <library>
+        <location>getHTMLMediaElement.css</location>
+        <name>getHTMLMediaElement - https://github.com/muaz-khan/RecordRTC</name>
+        <version>1.0.0</version>
+        <license>Muaz Khan</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>amd/src/getHTMLMediaElement.js</location>
+        <name>getHTMLMediaElement.js - https://github.com/muaz-khan/RecordRTC</name>
+        <version>1.0.0</version>
+        <license>Muaz Khan</license>
+        <licenseversion></licenseversion>
+    </library>
+    <library>
+        <location>amd/build/getHTMLMediaElement.min.js</location>
+        <name>getHTMLMediaElement.min.js - https://github.com/muaz-khan/RecordRTC</name>
+        <version>1.0.0</version>
+        <license>Muaz Khan</license>
+        <licenseversion></licenseversion>
+    </library>
 </libraries>

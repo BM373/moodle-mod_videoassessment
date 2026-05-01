@@ -13,6 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// Third-party file (RecordRTC ecosystem). Style is preserved verbatim;
+// Moodle CI excludes it via thirdpartylibs.xml.
+/* eslint-disable */
+
 /**
  * Video assessment
  *
@@ -21,14 +25,14 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([], function () {
+define([], function() {
     /**
-    * Creates a media element with controls.
-    */
+     * Creates a media element with controls.
+     */
     function myMediaElement() {
         this.value = "Media Element";
     }
-    myMediaElement.prototype.getHTMLMediaElement = function (mediaElement, config) {
+    myMediaElement.prototype.getHTMLMediaElement = function(mediaElement, config) {
         config = config || {};
         const nodeName = mediaElement.nodeName && mediaElement.nodeName.toLowerCase();
         if (!nodeName || (nodeName !== 'audio' && nodeName !== 'video')) {
@@ -57,12 +61,12 @@ define([], function () {
         mediaElement.controls = false;
 
         var buttons = config.buttons || ['mute-audio', 'mute-video', 'full-screen', 'volume-slider', 'stop'];
-        buttons.has = function (element) {
+        buttons.has = function(element) {
             return buttons.indexOf(element) !== -1;
         };
 
         config.toggle = config.toggle || [];
-        config.toggle.has = function (element) {
+        config.toggle.has = function(element) {
             return config.toggle.indexOf(element) !== -1;
         };
 
@@ -78,7 +82,7 @@ define([], function () {
             muteAudio.className = 'control ' + (config.toggle.has('mute-audio') ? 'unmute-audio selected' : 'mute-audio');
             mediaControls.appendChild(muteAudio);
 
-            muteAudio.onclick = function () {
+            muteAudio.onclick = function() {
                 if (muteAudio.className.indexOf('unmute-audio') != -1) {
                     muteAudio.className = muteAudio.className.replace(
                         'unmute-audio selected',
@@ -86,7 +90,9 @@ define([], function () {
                     );
                     mediaElement.muted = false;
                     mediaElement.volume = 1;
-                    if (config.onUnMuted) { config.onUnMuted('audio'); }
+                    if (config.onUnMuted) {
+ config.onUnMuted('audio');
+}
                 } else {
                     muteAudio.className = muteAudio.className.replace(
                         'mute-audio',
@@ -94,7 +100,9 @@ define([], function () {
                     );
                     mediaElement.muted = true;
                     mediaElement.volume = 0;
-                    if (config.onMuted) { config.onMuted('audio'); }
+                    if (config.onMuted) {
+ config.onMuted('audio');
+}
                 }
             };
         }
@@ -104,19 +112,23 @@ define([], function () {
             muteVideo.className = 'control ' + (config.toggle.has('mute-video') ? 'unmute-video selected' : 'mute-video');
             mediaControls.appendChild(muteVideo);
 
-            muteVideo.onclick = function () {
+            muteVideo.onclick = function() {
                 if (muteVideo.className.indexOf('unmute-video') != -1) {
                     muteVideo.className = muteVideo.className.replace('unmute-video selected', 'mute-video');
                     mediaElement.muted = false;
                     mediaElement.volume = 1;
                     mediaElement.play();
-                    if (config.onUnMuted) { config.onUnMuted('video'); }
+                    if (config.onUnMuted) {
+ config.onUnMuted('video');
+}
                 } else {
                     muteVideo.className = muteVideo.className.replace('mute-video', 'unmute-video selected');
                     mediaElement.muted = true;
                     mediaElement.volume = 0;
                     mediaElement.pause();
-                    if (config.onMuted) { config.onMuted('video'); }
+                    if (config.onMuted) {
+ config.onMuted('video');
+}
                 }
             };
         }
@@ -126,8 +138,10 @@ define([], function () {
             takeSnapshot.className = 'control take-snapshot';
             mediaControls.appendChild(takeSnapshot);
 
-            takeSnapshot.onclick = function () {
-                if (config.onTakeSnapshot) { config.onTakeSnapshot(); }
+            takeSnapshot.onclick = function() {
+                if (config.onTakeSnapshot) {
+ config.onTakeSnapshot();
+}
             };
         }
 
@@ -136,14 +150,16 @@ define([], function () {
             stop.className = 'control stop';
             mediaControls.appendChild(stop);
 
-            stop.onclick = function () {
+            stop.onclick = function() {
                 mediaElementContainer.style.opacity = 0;
-                setTimeout(function () {
+                setTimeout(function() {
                     if (mediaElementContainer.parentNode) {
                         mediaElementContainer.parentNode.removeChild(mediaElementContainer);
                     }
                 }, 800);
-                if (config.onStopped) { config.onStopped(); }
+                if (config.onStopped) {
+ config.onStopped();
+}
             };
         }
 
@@ -156,13 +172,17 @@ define([], function () {
             recordAudio.className = 'control ' + (config.toggle.has('record-audio') ? recAudSelc : 'record-audio');
             volumeControl.appendChild(recordAudio);
 
-            recordAudio.onclick = function () {
+            recordAudio.onclick = function() {
                 if (recordAudio.className.indexOf('stop-recording-audio') != -1) {
                     recordAudio.className = recordAudio.className.replace(recAudSelc, 'record-audio');
-                    if (config.onRecordingStopped) { config.onRecordingStopped('audio'); }
+                    if (config.onRecordingStopped) {
+ config.onRecordingStopped('audio');
+}
                 } else {
                     recordAudio.className = recordAudio.className.replace('record-audio', recAudSelc);
-                    if (config.onRecordingStarted) { config.onRecordingStarted('audio'); }
+                    if (config.onRecordingStarted) {
+ config.onRecordingStarted('audio');
+}
                 }
             };
         }
@@ -173,13 +193,17 @@ define([], function () {
             recordVideo.className = 'control ' + (config.toggle.has('record-video') ? recVidSelc : 'record-video');
             volumeControl.appendChild(recordVideo);
 
-            recordVideo.onclick = function () {
+            recordVideo.onclick = function() {
                 if (recordVideo.className.indexOf('stop-recording-video') != -1) {
                     recordVideo.className = recordVideo.className.replace(recVidSelc, 'record-video');
-                    if (config.onRecordingStopped) { config.onRecordingStopped('video'); }
+                    if (config.onRecordingStopped) {
+ config.onRecordingStopped('video');
+}
                 } else {
                     recordVideo.className = recordVideo.className.replace('record-video', recVidSelc);
-                    if (config.onRecordingStarted) { config.onRecordingStarted('video'); }
+                    if (config.onRecordingStarted) {
+ config.onRecordingStarted('video');
+}
                 }
             };
         }
@@ -194,7 +218,7 @@ define([], function () {
             slider.min = 0;
             slider.max = 100;
             slider.value = 100;
-            slider.onchange = function () {
+            slider.onchange = function() {
                 mediaElement.volume = '.' + slider.value.toString().substr(0, 1);
             };
             volumeSlider.appendChild(slider);
@@ -206,9 +230,11 @@ define([], function () {
 
             if (!slider && !recordAudio && !recordVideo && zoom) {
                 mediaControls.insertBefore(zoom, mediaControls.firstChild);
-            } else { volumeControl.appendChild(zoom); }
+            } else {
+ volumeControl.appendChild(zoom);
+}
 
-            zoom.onclick = function () {
+            zoom.onclick = function() {
                 if (zoom.className.indexOf('zoom-out') != -1) {
                     zoom.className = zoom.className.replace('zoom-out selected', 'zoom-in');
                     exitFullScreen();
@@ -222,7 +248,7 @@ define([], function () {
              * Set full screen of media.
              * @param {HTMLElement} element - Media container element
              */
-            const launchFullscreen = function (element) {
+            const launchFullscreen = function(element) {
                 if (element.requestFullscreen) {
                     element.requestFullscreen();
                 } else if (element.mozRequestFullScreen) {
@@ -235,7 +261,7 @@ define([], function () {
             /**
              * Exit the full screen of media
              */
-            const exitFullScreen = function () {
+            const exitFullScreen = function() {
                 if (document.fullscreen) {
                     document.cancelFullScreen();
                 }
@@ -253,8 +279,10 @@ define([], function () {
              * Change screen state
              * @param {Event} e - Fullscreen change event
              */
-            const screenStateChange = function (e) {
-                if (e.srcElement != mediaElementContainer) { return; }
+            const screenStateChange = function(e) {
+                if (e.srcElement != mediaElementContainer) {
+ return;
+}
 
                 var isFullScreeMode = document.webkitIsFullScreen || document.mozFullScreen || document.fullscreen;
 
@@ -265,12 +293,18 @@ define([], function () {
                     mediaBox.style.height = (isFullScreeMode ? (window.innerHeight - 20) : config.height) + 'px';
                 }
 
-                if (!isFullScreeMode && config.onZoomout) { config.onZoomout(); }
-                if (isFullScreeMode && config.onZoomin) { config.onZoomin(); }
+                if (!isFullScreeMode && config.onZoomout) {
+ config.onZoomout();
+}
+                if (isFullScreeMode && config.onZoomin) {
+ config.onZoomin();
+}
 
                 if (!isFullScreeMode && zoom.className.indexOf('zoom-out') != -1) {
                     zoom.className = zoom.className.replace('zoom-out selected', 'zoom-in');
-                    if (config.onZoomout) { config.onZoomout(); }
+                    if (config.onZoomout) {
+ config.onZoomout();
+}
                 }
                 setTimeout(adjustControls, 1000);
             };
@@ -311,7 +345,9 @@ define([], function () {
 
         mediaBox.appendChild(mediaElement);
 
-        if (!config.width) { config.width = (innerWidth / 2) - 50; }
+        if (!config.width) {
+ config.width = (innerWidth / 2) - 50;
+}
 
         mediaElementContainer.style.width = config.width + 'px';
 
@@ -333,7 +369,9 @@ define([], function () {
                 slider.style.width = (mediaElementContainer.clientWidth / 3) + 'px';
                 volumeControl.style.marginLeft = (mediaElementContainer.clientWidth / 3 - 30) + 'px';
 
-                if (zoom) { zoom.style['border-top-right-radius'] = '5px'; }
+                if (zoom) {
+ zoom.style['border-top-right-radius'] = '5px';
+}
             } else {
                 volumeControl.style.marginLeft = (mediaElementContainer.clientWidth - volumeControl.clientWidth - 2) + 'px';
             }
@@ -343,24 +381,26 @@ define([], function () {
             if (times < 10) {
                 times++;
                 setTimeout(adjustControls, 1000);
-            } else { times = 0; }
+            } else {
+ times = 0;
+}
         }
 
         if (config.showOnMouseEnter || typeof config.showOnMouseEnter === 'undefined') {
-            mediaElementContainer.onmouseenter = mediaElementContainer.onmousedown = function () {
+            mediaElementContainer.onmouseenter = mediaElementContainer.onmousedown = function() {
                 adjustControls();
                 mediaControls.style.opacity = 1;
                 volumeControl.style.opacity = 1;
             };
 
-            mediaElementContainer.onmouseleave = function () {
+            mediaElementContainer.onmouseleave = function() {
                 mediaControls.style.opacity = 0;
                 volumeControl.style.opacity = 0;
             };
         } else {
-            setTimeout(function () {
+            setTimeout(function() {
                 adjustControls();
-                setTimeout(function () {
+                setTimeout(function() {
                     mediaControls.style.opacity = 1;
                     volumeControl.style.opacity = 1;
                 }, 300);
@@ -369,7 +409,7 @@ define([], function () {
 
         adjustControls();
 
-        mediaElementContainer.toggle = function (clasName) {
+        mediaElementContainer.toggle = function(clasName) {
             if (typeof clasName != 'string') {
                 for (var i = 0; i < clasName.length; i++) {
                     mediaElementContainer.toggle(clasName[i]);
@@ -377,13 +417,23 @@ define([], function () {
                 return;
             }
 
-            if (clasName == 'mute-audio' && muteAudio) { muteAudio.onclick(); }
-            if (clasName == 'mute-video' && muteVideo) { muteVideo.onclick(); }
+            if (clasName == 'mute-audio' && muteAudio) {
+ muteAudio.onclick();
+}
+            if (clasName == 'mute-video' && muteVideo) {
+ muteVideo.onclick();
+}
 
-            if (clasName == 'record-audio' && recordAudio) { recordAudio.onclick(); }
-            if (clasName == 'record-video' && recordVideo) { recordVideo.onclick(); }
+            if (clasName == 'record-audio' && recordAudio) {
+ recordAudio.onclick();
+}
+            if (clasName == 'record-video' && recordVideo) {
+ recordVideo.onclick();
+}
 
-            if (clasName == 'stop' && stop) { stop.onclick(); }
+            if (clasName == 'stop' && stop) {
+ stop.onclick();
+}
 
             return this;
         };
@@ -393,7 +443,7 @@ define([], function () {
         return mediaElementContainer;
     };
 
-    myMediaElement.prototype.getAudioElement = function (mediaElement, config) {
+    myMediaElement.prototype.getAudioElement = function(mediaElement, config) {
         config = config || {};
 
         const nodeName = mediaElement.nodeName && mediaElement.nodeName.toLowerCase();
@@ -410,7 +460,7 @@ define([], function () {
         }
 
         config.toggle = config.toggle || [];
-        config.toggle.has = function (element) {
+        config.toggle.has = function(element) {
             return config.toggle.indexOf(element) !== -1;
         };
 
@@ -430,15 +480,19 @@ define([], function () {
 
         muteAudio.style['border-top-left-radius'] = '5px';
 
-        muteAudio.onclick = function () {
+        muteAudio.onclick = function() {
             if (muteAudio.className.indexOf('unmute-audio') != -1) {
                 muteAudio.className = muteAudio.className.replace('unmute-audio selected', 'mute-audio');
                 mediaElement.muted = false;
-                if (config.onUnMuted) { config.onUnMuted('audio'); }
+                if (config.onUnMuted) {
+ config.onUnMuted('audio');
+}
             } else {
                 muteAudio.className = muteAudio.className.replace('mute-audio', 'unmute-audio selected');
                 mediaElement.muted = true;
-                if (config.onMuted) { config.onMuted('audio'); }
+                if (config.onMuted) {
+ config.onMuted('audio');
+}
             }
         };
 
@@ -448,13 +502,17 @@ define([], function () {
             recordAudio.className = 'control ' + (config.toggle.has('record-audio') ? recordingClass : 'record-audio');
             mediaControls.appendChild(recordAudio);
 
-            recordAudio.onclick = function () {
+            recordAudio.onclick = function() {
                 if (recordAudio.className.indexOf('stop-recording-audio') != -1) {
                     recordAudio.className = recordAudio.className.replace(recordingClass, 'record-audio');
-                    if (config.onRecordingStopped) { config.onRecordingStopped('audio'); }
+                    if (config.onRecordingStopped) {
+ config.onRecordingStopped('audio');
+}
                 } else {
                     recordAudio.className = recordAudio.className.replace('record-audio', recordingClass);
-                    if (config.onRecordingStarted) { config.onRecordingStarted('audio'); }
+                    if (config.onRecordingStarted) {
+ config.onRecordingStarted('audio');
+}
                 }
             };
         }
@@ -476,7 +534,7 @@ define([], function () {
         slider.min = 0;
         slider.max = 100;
         slider.value = 100;
-        slider.onchange = function () {
+        slider.onchange = function() {
             mediaElement.volume = '.' + slider.value.toString().substr(0, 1);
         };
         volumeSlider.appendChild(slider);
@@ -485,14 +543,16 @@ define([], function () {
         stop.className = 'control stop';
         mediaControls.appendChild(stop);
 
-        stop.onclick = function () {
+        stop.onclick = function() {
             mediaElementContainer.style.opacity = 0;
-            setTimeout(function () {
+            setTimeout(function() {
                 if (mediaElementContainer.parentNode) {
                     mediaElementContainer.parentNode.removeChild(mediaElementContainer);
                 }
             }, 800);
-            if (config.onStopped) { config.onStopped(); }
+            if (config.onStopped) {
+ config.onStopped();
+}
         };
 
         stop.style['border-top-right-radius'] = '5px';
@@ -534,22 +594,24 @@ define([], function () {
             if (times < 10) {
                 times++;
                 setTimeout(adjustControls, 1000);
-            } else { times = 0; }
+            } else {
+ times = 0;
+}
         }
 
         if (config.showOnMouseEnter || typeof config.showOnMouseEnter === 'undefined') {
-            mediaElementContainer.onmouseenter = mediaElementContainer.onmousedown = function () {
+            mediaElementContainer.onmouseenter = mediaElementContainer.onmousedown = function() {
                 adjustControls();
                 mediaControls.style.opacity = 1;
             };
 
-            mediaElementContainer.onmouseleave = function () {
+            mediaElementContainer.onmouseleave = function() {
                 mediaControls.style.opacity = 0;
             };
         } else {
-            setTimeout(function () {
+            setTimeout(function() {
                 adjustControls();
-                setTimeout(function () {
+                setTimeout(function() {
                     mediaControls.style.opacity = 1;
                 }, 300);
             }, 700);
@@ -557,7 +619,7 @@ define([], function () {
 
         adjustControls();
 
-        mediaElementContainer.toggle = function (clasName) {
+        mediaElementContainer.toggle = function(clasName) {
             if (typeof clasName != 'string') {
                 for (var i = 0; i < clasName.length; i++) {
                     mediaElementContainer.toggle(clasName[i]);
@@ -565,9 +627,15 @@ define([], function () {
                 return;
             }
 
-            if (clasName == 'mute-audio' && muteAudio) { muteAudio.onclick(); }
-            if (clasName == 'record-audio' && recordAudio) { recordAudio.onclick(); }
-            if (clasName == 'stop' && stop) { stop.onclick(); }
+            if (clasName == 'mute-audio' && muteAudio) {
+ muteAudio.onclick();
+}
+            if (clasName == 'record-audio' && recordAudio) {
+ recordAudio.onclick();
+}
+            if (clasName == 'stop' && stop) {
+ stop.onclick();
+}
 
             return this;
         };
