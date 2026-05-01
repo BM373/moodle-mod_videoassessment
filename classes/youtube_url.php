@@ -35,7 +35,6 @@ namespace mod_videoassessment;
  * by smartphones in landscape-recording mode.
  */
 final class youtube_url {
-
     /** @var string Regex matching an 11-character YouTube video id. */
     private const VIDEO_ID = '[A-Za-z0-9_-]{11}';
 
@@ -51,13 +50,13 @@ final class youtube_url {
             return null;
         }
         $patterns = [
-            // /shorts/ID  - YouTube Shorts (with or without "www.").
+            // YouTube Shorts URLs (with or without "www.").
             '~^https?://(?:www\.|m\.)?youtube\.com/shorts/(' . self::VIDEO_ID . ')(?:[?&].*)?$~',
-            // /embed/ID  - canonical embed URLs (covers youtube-nocookie too).
+            // Canonical embed URLs (also covers youtube-nocookie).
             '~^https?://(?:www\.|m\.)?youtube(?:-nocookie)?\.com/embed/(' . self::VIDEO_ID . ')(?:[?&].*)?$~',
-            // /watch?v=ID - standard watch URLs (with or without other params).
+            // Standard watch URLs (with or without other query parameters).
             '~^https?://(?:www\.|m\.)?youtube\.com/watch\?(?:[^#]*&)?v=(' . self::VIDEO_ID . ')(?:[&#].*)?$~',
-            // youtu.be/ID  - short form.
+            // Short youtu.be form.
             '~^https?://youtu\.be/(' . self::VIDEO_ID . ')(?:[?&].*)?$~',
         ];
         foreach ($patterns as $pattern) {

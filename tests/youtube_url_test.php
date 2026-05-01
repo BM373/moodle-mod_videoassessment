@@ -44,7 +44,6 @@ namespace mod_videoassessment;
  *   honours the privacy-enhanced (no-cookie) host when requested.
  */
 final class youtube_url_test extends \basic_testcase {
-
     /**
      * Data provider with URLs and the video id they must yield.
      *
