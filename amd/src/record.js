@@ -14,11 +14,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Video assessment
+ * In-browser recording controller.
  *
- * @package
  * @module     mod_videoassessment/record
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
+ * @copyright  2026 Shinonome Labo Co., Ltd.
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,26 +26,51 @@
 define([
     'mod_videoassessment/media',
     'mod_videoassessment/uploader'
-], function (media, uploader) {
+], function(media, uploader) {
 
     /**
-     * Initializes the recording UI and logic.
+     * Recording length cap, kept in sync with
+     * \mod_videoassessment\recording::max_length_seconds in PHP. Item #3
+     * of the 2026-04 fix programme. Browser-side enforcement so that
+     * MediaRecorder always stops on time even if the learner walks away.
+     */
+    var MAX_LENGTH_MS = 120 * 1000;
+
+    /**
+     * Initialise the recording UI and logic.
      */
     function init() {
-        const btnStart = document.querySelector('#btn-start-recording');
-        const btnPause = document.querySelector('#btn-pause-recording');
-        let recorder, stream;
+        var btnStart = document.querySelector('#btn-start-recording');
+        var btnPause = document.querySelector('#btn-pause-recording');
+        var recorder;
+        var stream;
+        var autoStopTimer = null;
 
-        btnStart.addEventListener('click', function () {
+        function clearAutoStop() {
+            if (autoStopTimer !== null) {
+                clearTimeout(autoStopTimer);
+                autoStopTimer = null;
+            }
+        }
+
+        function finishRecording() {
+            if (!recorder) {
+                return;
+            }
+            clearAutoStop();
+            recorder.stopRecording(function() {
+                var blob = recorder.getBlob();
+                uploader.upload(blob, recorder.mimeType);
+            });
+        }
+
+        btnStart.addEventListener('click', function() {
             if (recorder && recorder.getState() === 'recording') {
-                recorder.stopRecording(() => {
-                    const blob = recorder.getBlob();
-                    uploader.upload(blob, recorder.mimeType);
-                });
+                finishRecording();
                 return;
             }
 
-            media.captureUserMedia((userStream) => {
+            media.captureUserMedia(function(userStream) {
                 stream = userStream;
                 recorder = new RecordRTC(stream, {
                     type: 'video',
@@ -56,13 +81,21 @@ define([
                 recorder.startRecording();
                 btnPause.style.display = '';
                 btnStart.textContent = M.str.videoassessment.stoprecording;
-            }, (err) => {
-                alert(M.str.videoassessment.errorcapturingmedia + ' ' + err.message);
+
+                // Item #3 of the 2026-04 fix programme: enforce a 2-minute
+                // recording cap so MediaRecorder cannot accumulate
+                // unbounded blobs that fail to upload.
+                clearAutoStop();
+                autoStopTimer = window.setTimeout(finishRecording, MAX_LENGTH_MS);
+            }, function(err) {
+                window.alert(M.str.videoassessment.errorcapturingmedia + ' ' + err.message);
             });
         });
 
-        btnPause.addEventListener('click', function () {
-            if (!recorder) { return; }
+        btnPause.addEventListener('click', function() {
+            if (!recorder) {
+                return;
+            }
             if (btnPause.textContent === M.str.videoassessment.pause) {
                 recorder.pauseRecording();
                 btnPause.textContent = M.str.videoassessment.resumerecording;

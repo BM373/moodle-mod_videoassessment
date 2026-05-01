@@ -21,6 +21,16 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#3** Cap in-browser recording at 2 minutes and surface the limit on
+  the radio label. The new `\mod_videoassessment\recording` helper is
+  the single source of truth for the duration cap (120 seconds, 2
+  minutes); `amd/src/record.js` reads the same constant via a hard-
+  coded mirror, starts a `setTimeout` when recording begins, and calls
+  `finishRecording()` automatically when the cap is reached. The
+  English `recordnewvideo` label gains a `(max. length 2 minutes)`
+  suffix; the Japanese label is updated to「新しい動画を録画(最大録画時間: 2分)」.
+  `tests/recording_test.php` pins both the cap value and the label
+  contract.
 - **#2** Replace the single site-level `videoassessment_preventvideouploads`
   toggle with three independent allow-flags that mirror the
   per-activity "Video submissions" group:
