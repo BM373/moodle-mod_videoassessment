@@ -27,6 +27,14 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+// This file intentionally defines two thin admin_setting_configtext_*
+// subclasses inline (one for the FFmpeg commands, one for MP4Box). The
+// PSR1.Classes.ClassDeclaration.MultipleClasses sniff would otherwise
+// flag this as a violation; in Moodle settings.php, however, inline
+// admin_setting_* classes are the documented convention, so the rule is
+// suppressed for this file only.
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
+
 if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('generalsettings', new lang_string('generalsettings', 'admin'), ''));
 
