@@ -33,6 +33,7 @@ $string['addpeer'] = 'ピアを追加...';
 $string['addpeergroup'] = 'ピアグループを追加';
 $string['addprefixtolabel'] = 'ラベル名にプレフィックスを追加';
 $string['addsuffixtolabel'] = 'ラベル名にサフィックスを追加';
+$string['admin_settings_executable_locked'] = 'この実行可能ファイルパスはサイト管理者によりロックされており($CFG->preventexecpath = true)、本フォームから変更できません。';
 $string['advancedgradingmethodsgroup'] = '評価方法';
 $string['advancedgradingmethodsgroup_help'] = 'ビデオアセスメントでは、「評価方法」のデフォルト設定を変更しないでください。すべての設定でルーブリックを使用します。これはパフォーマンス評価の最良の方法だからです。設定を変更すると、ビデオアセスメントシステムが動作しなくなる可能性があります。';
 $string['after'] = '後';

@@ -71,10 +71,19 @@ if ($ADMIN->fulltree) {
             /**
              * Validate an FFmpeg command via the hardened command validator.
              *
+             * Item #8 of the 2026-04 fix programme: honour the
+             * `$CFG->preventexecpath` admin lockout. When that flag is
+             * truthy, refuse any change of this setting from the Web UI
+             * even if the new value would otherwise pass the validator.
+             *
              * @param string $data The ffmpeg command to validate.
              * @return string|true True if validation passes; error string if it fails.
              */
             public function validate($data) {
+                global $CFG;
+                if (!empty($CFG->preventexecpath)) {
+                    return get_string('admin_settings_executable_locked', 'mod_videoassessment');
+                }
                 return \mod_videoassessment\admin\command_validator::validate_ffmpeg((string)$data);
             }
         }
@@ -90,10 +99,18 @@ if ($ADMIN->fulltree) {
             /**
              * Validate an MP4Box command via the hardened command validator.
              *
+             * Item #8 of the 2026-04 fix programme: honour the
+             * `$CFG->preventexecpath` admin lockout (see the FFmpeg
+             * sibling class for the rationale).
+             *
              * @param string $data The MP4Box command to validate.
              * @return string|true True if validation passes; error string if it fails.
              */
             public function validate($data) {
+                global $CFG;
+                if (!empty($CFG->preventexecpath)) {
+                    return get_string('admin_settings_executable_locked', 'mod_videoassessment');
+                }
                 return \mod_videoassessment\admin\command_validator::validate_mp4box((string)$data);
             }
         }

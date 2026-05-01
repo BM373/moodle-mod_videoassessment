@@ -21,6 +21,21 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#8** Honour `$CFG->preventexecpath` on the FFmpeg / MP4Box admin
+  settings, in the spirit of upstream PR #58 by Adam Jenkins. Both
+  `admin_setting_configtext_ffmpegcommand::validate()` and
+  `admin_setting_configtext_mp4boxcommand::validate()` now refuse any
+  change from the Web UI when the global flag is set, returning a
+  localised "this executable path is locked" message
+  (`admin_settings_executable_locked`, en + ja). The renaming of
+  setting keys to the `videoassessment/X` style proposed in the same
+  upstream PR is intentionally deferred (it would require a
+  `db/upgrade.php` migration of every site's existing config). The
+  install-time FFmpeg auto-detection from upstream PR #57 (Hipjea /
+  fondation-unit) is also tracked for a follow-up: the security
+  surface it touches is already hardened by the
+  `mod_videoassessment\admin\command_validator` introduced in #9.
+  Smoke test in `tests/admin/preventexecpath_test.php`.
 - **#12** Add a "Finish making rubric → Go to assess" navigation
   button on the rubric edit screen. The page is owned by Moodle core
   (`/grade/grading/form/rubric/edit.php`), so the button is injected

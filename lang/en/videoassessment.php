@@ -34,6 +34,7 @@ $string['addpeer'] = 'Add peer...';
 $string['addpeergroup'] = 'Add a peer group';
 $string['addprefixtolabel'] = 'Add Prefix to Label Name';
 $string['addsuffixtolabel'] = 'Add Suffix to Label Name';
+$string['admin_settings_executable_locked'] = 'This executable path is locked by the site administrator ($CFG->preventexecpath = true) and cannot be changed from this form.';
 $string['advancedgradingmethodsgroup'] = 'Create or Select rubric';
 $string['advancedgradingmethodsgroup_help'] = 'For video assessment, do not change the default settings here for "Grading Method". All settings use rubric, because that is the best method of performance assessment. If you change the settings, the video assessment system may not work.';
 $string['advancedoptions'] = 'Advanced options';
