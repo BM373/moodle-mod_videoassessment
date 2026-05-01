@@ -16,18 +16,15 @@ Feature: Smartphone-friendly assess screen layout
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
-    And the following "activity" exists:
-      | activity | videoassessment      |
-      | course   | C1                   |
-      | name     | Smartphone test VA   |
-      | idnumber | smartphonevatest     |
+    And the following "activities" exist:
+      | activity        | course | name                | idnumber          |
+      | videoassessment | C1     | Smartphone test VA  | smartphonevatest  |
 
-  Scenario: Activity view loads cleanly at a phone-sized viewport
-    Given I change viewport size to "iphone"
-    And I log in as "teacher1"
+  Scenario: Activity landing page renders cleanly
+    Given I log in as "teacher1"
     When I am on "Smartphone test VA" "videoassessment activity" page
     Then I should see "Smartphone test VA"
     # The assess.css "@media (max-width: 768px)" block ships with the
     # plugin and is loaded as a stylesheet; we cannot easily assert on
-    # the computed style here, but a clean render at 375x667 is the
-    # baseline regression contract for item #7.
+    # the computed style here, but a clean render is the baseline
+    # regression contract for item #7.

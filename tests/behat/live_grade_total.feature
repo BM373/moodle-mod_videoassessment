@@ -15,13 +15,11 @@ Feature: Live "current grade in gradebook" indicator
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
-    And the following "activity" exists:
-      | activity | videoassessment    |
-      | course   | C1                 |
-      | name     | Live grade test VA |
-      | idnumber | livegradevatest    |
+    And the following "activities" exist:
+      | activity        | course | name                | idnumber          |
+      | videoassessment | C1     | Live grade test VA  | livegradevatest   |
 
-  Scenario: AMD module is registered when the assess action is requested
+  Scenario: Activity landing page is reachable for the teacher
     Given I log in as "teacher1"
     When I am on "Live grade test VA" "videoassessment activity" page
     Then I should see "Live grade test VA"

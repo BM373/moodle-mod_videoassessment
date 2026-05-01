@@ -15,11 +15,9 @@ Feature: Finish-making-rubric navigation button
     And the following "course enrolments" exist:
       | user     | course | role           |
       | teacher1 | C1     | editingteacher |
-    And the following "activity" exists:
-      | activity | videoassessment   |
-      | course   | C1                |
-      | name     | Rubric nav test   |
-      | idnumber | rubricnavtest     |
+    And the following "activities" exist:
+      | activity        | course | name             | idnumber       |
+      | videoassessment | C1     | Rubric nav test  | rubricnavtest  |
 
   Scenario: Activity view does not show the button (only the rubric editor does)
     Given I log in as "teacher1"
