@@ -192,9 +192,9 @@ class grade_table {
             $aag = has_capability('moodle/site:accessallgroups', $context);
 
             if ($groupmode == VISIBLEGROUPS || $aag) {
-                $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // any group in grouping
+                $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // Any group in grouping.
             } else {
-                $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // only assigned groups
+                $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // Only assigned groups.
             }
 
             $groupid = groups_get_activity_group($cm, true, $allowedgroups);
@@ -327,9 +327,9 @@ class grade_table {
         $aag = has_capability('moodle/site:accessallgroups', $context);
 
         if ($groupmode == VISIBLEGROUPS || $aag) {
-            $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // any group in grouping
+            $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // Any group in grouping.
         } else {
-            $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // only assigned groups
+            $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // Only assigned groups.
         }
 
         $groupid = groups_get_activity_group($cm, true, $allowedgroups);
@@ -434,9 +434,9 @@ class grade_table {
             $aag = has_capability('moodle/site:accessallgroups', $context);
 
             if ($groupmode == VISIBLEGROUPS || $aag) {
-                $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // any group in grouping
+                $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // Any group in grouping.
             } else {
-                $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // only assigned groups
+                $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // Only assigned groups.
             }
 
             $groupid = groups_get_activity_group($cm, true, $allowedgroups);

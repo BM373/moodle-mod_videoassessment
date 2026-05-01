@@ -1454,7 +1454,7 @@ function videoassessment_get_assoc(stored_file $file) {
 
     if (count($parts) >= 2) {
         $userid = (int)$parts[0];
-        $timing = $parts[1]; // 'before' or 'after'
+        $timing = $parts[1]; // 'Before' or 'after'.
 
         if ($userid > 0 && in_array($timing, ['before', 'after'])) {
             return [$userid, $timing];

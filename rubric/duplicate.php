@@ -40,8 +40,8 @@ $course = $DB->get_record('course', ['id' => $cm->course]);
 $context = \context_module::instance($cm->id);
 require_capability('mod/videoassessment:grade', $context);
 $areas = []; // Array of area IDs for class, peer, and self in the grading_areas table.
-$definitionids = []; // Array of defination IDs in grading_definitions table
-$criteriaids = []; // Array of criteria IDs in gradingform_rubric_criteria table
+$definitionids = []; // Array of defination IDs in grading_definitions table.
+$criteriaids = []; // Array of criteria IDs in gradingform_rubric_criteria table.
 
 // Get data from videoassessment table.
 $currentvideoassessment = $DB->get_record('videoassessment', ['id' => $cm->instance], 'training');
@@ -150,7 +150,7 @@ if ($data = $dform->get_data()) {
     } catch (Exception $e) {
         $transaction->rollback($e);
     }
-} else { // Default page
+} else { // Default page.
     echo $OUTPUT->header();
     echo $OUTPUT->heading(get_string('duplicaterubric', 'videoassessment'));
     echo '<h3>' . $gradingdefinitionteacher->name . '<span class="status ready"> ' . get_string('readyforuse', 'videoassessment') . '</span></h3>';

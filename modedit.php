@@ -34,9 +34,9 @@ require_once($CFG->libdir . '/plagiarismlib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/classes/va.php');
 
-$add    = optional_param('add', '', PARAM_ALPHA);     // module name
+$add    = optional_param('add', '', PARAM_ALPHA); // Module name.
 $update = optional_param('update', 0, PARAM_INT);
-$return = optional_param('return', 0, PARAM_BOOL);    // return to course/view.php if false or mod/modname/view.php if true
+$return = optional_param('return', 0, PARAM_BOOL); // Return to course/view.php if false or mod/modname/view.php if true.
 $type   = optional_param('type', '', PARAM_ALPHANUM); // TODO: hopefully will be removed in 2.0
 $sectionreturn = optional_param('sr', null, PARAM_INT);
 
@@ -97,7 +97,7 @@ if (!empty($add)) {
     $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
     // Require_login.
-    require_login($course, false, $cm); // needed to setup proper $COURSE
+    require_login($course, false, $cm); // Needed to setup proper $COURSE.
 
     [$cm, $context, $module, $data, $cw] = get_moduleinfo_data($cm, $course);
     $data->return = $return;

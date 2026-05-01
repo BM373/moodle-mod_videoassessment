@@ -2466,7 +2466,7 @@ class va {
         $PAGE->requires->js_call_amd('mod_videoassessment/publish', 'mobilepublishvideo', []);
 
         if ($CFG->version < self::MOODLE_VERSION_23) {
-            require_once($CFG->dirroot . '/mod/resource/locallib.php'); // resource_set_mainfile
+            require_once($CFG->dirroot . '/mod/resource/locallib.php'); // Resource_set_mainfile.
         }
 
         $this->teacher_only();

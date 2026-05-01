@@ -73,7 +73,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(false, get_string('description', 'videoassessment'));
 
-        // 1. AVAILABILITY
+        // 1. AVAILABILITY.
         $mform->addElement('header', 'availability', get_string('availability', 'assign'));
         $mform->setExpanded('availability', false);
 
@@ -94,7 +94,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'gradingduedate', $name, ['optional' => true]);
         $mform->addHelpButton('gradingduedate', 'gradingduedate', 'assign');
 
-        // 2. ASSESSORS AND WEIGHTINGS (Default open)
+        // 2. ASSESSORS AND WEIGHTINGS (Default open).
         $mform->addElement('header', 'ratings', get_string('assessorsandweightings', 'videoassessment'));
         $mform->addHelpButton('ratings', 'ratings', 'videoassessment');
         $mform->setExpanded('ratings', true);
@@ -151,7 +151,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Initialize JavaScript for peer assessors visibility.
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initPeerAssessorsVisibility');
 
-        // 3. GRADING (with Whole Class Grading dropdown)
+        // 3. GRADING (with Whole Class Grading dropdown).
         $this->standard_grading_coursemodule_elements_to_grading('grading');
 
         // Whole Class Grading - dropdown (Open/Close), default = Close.
@@ -169,7 +169,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->setType('class', PARAM_INT);
         $mform->setDefault('class', 0);
 
-        // 4. VIDEO SUBMISSIONS
+        // 4. VIDEO SUBMISSIONS.
         $mform->addElement('header', 'videosubmissions', get_string('videosubmissions', 'videoassessment'));
         $mform->setExpanded('videosubmissions', false);
 
@@ -269,13 +269,13 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             ');
         }
 
-        // 5. NOTIFICATIONS
+        // 5. NOTIFICATIONS.
         $this->add_notifications();
 
-        // 6. ADVANCED OPTIONS
+        // 6. ADVANCED OPTIONS.
         $this->add_advanced_options($cm);
 
-        // Standard Moodle sections
+        // Standard Moodle sections.
         $this->standard_coursemodule_elements();
 
         // Custom action buttons with "Save and create rubric" option.
@@ -496,7 +496,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->addElement('header', 'advancedoptions', get_string('advancedoptions', 'videoassessment'));
         $mform->setExpanded('advancedoptions', false);
 
-        // Training Pre-test
+        // Training Pre-test.
         $mform->addElement('selectyesno', 'training', get_string('trainingpretest', 'videoassessment'));
             $mform->setDefault('training', 0);
             $mform->addHelpButton('training', 'trainingpretest', 'videoassessment');
@@ -540,7 +540,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Initialize JavaScript for training pretest visibility toggle.
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initTrainingChange');
 
-        // Peer Fairness Bonus
+        // Peer Fairness Bonus.
         $mform->addElement('selectyesno', 'fairnessbonus', get_string('peerfairnessbonus', 'videoassessment'));
         $mform->setDefault('fairnessbonus', 0);
         $mform->addHelpButton('fairnessbonus', 'peerfairnessbonus', 'videoassessment');
@@ -578,7 +578,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             $mform->setDefault('bonus' . $level, max(0, 100 - (($level - 1) * 20)));
         }
 
-        // Self Fairness Bonus
+        // Self Fairness Bonus.
         $mform->addElement('selectyesno', 'selffairnessbonus', get_string('selffairnessbonus', 'videoassessment'));
         $mform->setDefault('selffairnessbonus', 0);
         $mform->addHelpButton('selffairnessbonus', 'selffairnessbonus', 'videoassessment');
@@ -602,7 +602,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Initialize JavaScript for fairness bonus visibility toggle.
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initFairnessBonusChange');
 
-        // Automatic File Deletion at Course End Date
+        // Automatic File Deletion at Course End Date.
         $mform->addElement('selectyesno', 'autodeletefiles', get_string('autodeletefiles', 'videoassessment'));
         $mform->setDefault('autodeletefiles', 1);
         $mform->addHelpButton('autodeletefiles', 'autodeletefiles', 'videoassessment');

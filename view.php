@@ -222,7 +222,7 @@ if (!empty($redirecttograding)) {
     // 4. Preference has a valid timestamp.
     $shouldredirect = false;
     if ($isfrommodedit && $preftimestamp > 0) {
-        $recent = (time() - $preftimestamp) <= 0.5; // 0.5 second window - extremely strict
+        $recent = (time() - $preftimestamp) <= 0.5; // 0.5 Second window - extremely strict.
         $matchesactivity = ($vaid == $cm->instance);
 
         if ($recent && $matchesactivity) {

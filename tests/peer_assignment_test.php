@@ -62,7 +62,7 @@ final class peer_assignment_test extends \basic_testcase {
      */
     public function test_assignments_are_evenly_distributed(): void {
         $va = $this->make_stub_va();
-        $userids = range(1001, 1010); // 10 users.
+        $userids = range(1001, 1010); // 10 Users.
         $numpeers = 3;
 
         $mappings = $va->get_random_peers_for_users($userids, $numpeers);
@@ -84,7 +84,7 @@ final class peer_assignment_test extends \basic_testcase {
             }
         }
 
-        $expected = $numpeers; // 10 users * 3 peers / 10 = 3 per user.
+        $expected = $numpeers; // 10 Users * 3 peers / 10 = 3 per user.
         foreach ($chosen as $uid => $count) {
             $this->assertGreaterThanOrEqual(
                 $expected - 1,

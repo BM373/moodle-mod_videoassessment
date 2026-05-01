@@ -37,8 +37,8 @@ class course_module_viewed extends \core\event\course_module_viewed {
      * @return void
      */
     protected function init() {
-        $this->data['objecttable'] = 'videoassessment'; // Your plugin's main table name
-        $this->data['crud'] = 'r'; // r = read, c = create, u = update, d = delete
+        $this->data['objecttable'] = 'videoassessment'; // Your plugin's main table name.
+        $this->data['crud'] = 'r'; // R = read, c = create, u = update, d = delete.
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 }

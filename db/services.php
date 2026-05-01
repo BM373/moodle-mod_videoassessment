@@ -24,20 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// The keys mirror the documented Moodle web service descriptor schema.
+// See https://docs.moodle.org/dev/Web_service_API_functions for details
+// on every field.
 $services = [
-    'videoassessment_pluginservice' => [                      // the name of the web service
+    'videoassessment_pluginservice' => [
         'functions' => [
             'mod_videoassessment_get_getallcomments',
             'mod_videoassessment_get_coursesbycategory',
             'mod_videoassessment_get_sectionsbycourse',
             'mod_videoassessment_assignclass_sort_group',
         ],
-        'requiredcapability' => '', // if set, the web service user need this capability to access
-                                                    // Any function of this service. For example: 'some/capability:specified'.
-        'restrictedusers' => 0, // if enabled, the Moodle administrator must link some user to this service
-                                                    // Into the administration.
-        'enabled' => 1, // if enabled, the service can be reachable on a default installation
-        'shortname' => 'videoassessment_service', // the short name used to refer to this service from elsewhere including when fetching a token
+        'requiredcapability' => '',
+        'restrictedusers' => 0,
+        'enabled' => 1,
+        'shortname' => 'videoassessment_service',
     ],
 ];
 

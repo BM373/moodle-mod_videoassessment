@@ -110,13 +110,13 @@ class page_manage_grades extends page {
                         $form = \html_writer::start_tag('form', [
                             'method' => 'post',
                             'action' => $deleteurl,
-                            'class' => 'deletegradeform', // optional for JS
+                            'class' => 'deletegradeform', // Optional for JS.
                             'style' => 'display:inline',
                         ]);
                         $form .= \html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
                         $form .= \html_writer::tag('button', $iconhtml, [
                             'type' => 'submit',
-                            'class' => 'deletegrade', // this class triggers confirmation
+                            'class' => 'deletegrade', // This class triggers confirmation.
                             'style' => 'all: unset; cursor: pointer;',
                             'title' => get_string('delete'),
                         ]);
