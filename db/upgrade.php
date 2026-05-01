@@ -1121,5 +1121,26 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2026050100, 'videoassessment');
     }
 
+    if ($oldversion < 2026050200) {
+        // Issue #2: derive the three independent allow-* site settings
+        // from the legacy `preventvideouploads` toggle so existing sites
+        // keep their current effective behaviour. preventvideouploads = 1
+        // meant "no uploads / recording", which maps to the new flags
+        // allowvideouploads = 0 and allowvideorecording = 0; external
+        // links were never restricted by the legacy toggle and stay
+        // allowed.
+        $legacy = (int)get_config('videoassessment', 'preventvideouploads');
+        if (get_config('videoassessment', 'allowexternallinks') === false) {
+            set_config('allowexternallinks', 1, 'videoassessment');
+        }
+        if (get_config('videoassessment', 'allowvideouploads') === false) {
+            set_config('allowvideouploads', $legacy ? 0 : 1, 'videoassessment');
+        }
+        if (get_config('videoassessment', 'allowvideorecording') === false) {
+            set_config('allowvideorecording', $legacy ? 0 : 1, 'videoassessment');
+        }
+        upgrade_mod_savepoint(true, 2026050200, 'videoassessment');
+    }
+
     return true;
 }

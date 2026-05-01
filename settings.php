@@ -142,17 +142,42 @@ if ($ADMIN->fulltree) {
     );
 
     // File uploads section.
+    // Item #2 of the 2026-04 fix programme: replace the single
+    // `preventvideouploads` toggle with three independent allow-* flags
+    // that mirror the activity-level "Video submissions" group, so that
+    // site administrators can enable / disable each input channel
+    // (external video links, file uploads, in-browser recording)
+    // separately. The legacy `preventvideouploads` setting is kept for
+    // one release as a fallback for sites that haven't run the upgrade
+    // yet -- see db/upgrade.php for the migration that derives the new
+    // flags from the old value.
     $settings->add(new admin_setting_heading(
-        'fileuploads',
-        new lang_string('fileuploads', 'videoassessment'),
+        'fileuploadlinks',
+        new lang_string('fileuploadlinks', 'videoassessment'),
         ''
     ));
     $settings->add(
         new admin_setting_configcheckbox(
-            'videoassessment/preventvideouploads',
-            new lang_string('preventvideouploads', 'videoassessment'),
-            new lang_string('preventvideouploads_help', 'videoassessment'),
-            0
+            'videoassessment/allowexternallinks',
+            new lang_string('allowexternallinks', 'videoassessment'),
+            new lang_string('allowexternallinks_help', 'videoassessment'),
+            1
+        )
+    );
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'videoassessment/allowvideouploads',
+            new lang_string('allowvideouploads', 'videoassessment'),
+            new lang_string('allowvideouploads_help', 'videoassessment'),
+            1
+        )
+    );
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'videoassessment/allowvideorecording',
+            new lang_string('allowvideorecording', 'videoassessment'),
+            new lang_string('allowvideorecording_help', 'videoassessment'),
+            1
         )
     );
 }

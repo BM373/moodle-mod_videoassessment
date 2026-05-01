@@ -21,6 +21,21 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#2** Replace the single site-level `videoassessment_preventvideouploads`
+  toggle with three independent allow-flags that mirror the
+  per-activity "Video submissions" group:
+  - `allowexternallinks` (default ON) - controls the YouTube / Vimeo /
+    esup-portail / generic external link channel.
+  - `allowvideouploads` (default ON) - controls direct file uploads.
+  - `allowvideorecording` (default ON) - controls in-browser recording.
+  `mod_form.php` reads each flag and locks the matching activity
+  checkbox when the corresponding site flag is OFF. `db/upgrade.php`
+  derives the new flags from the legacy `preventvideouploads` value at
+  the new savepoint `2026050200`, preserving each existing site's
+  effective behaviour without administrator intervention. New language
+  strings (`fileuploadlinks` / `allowexternallinks` / `allowvideouploads`
+  / `allowvideorecording` and their `_help` variants) are added in en
+  and ja in the correct alphabetical position.
 - **#4** YouTube Shorts compatibility. The new
   `\mod_videoassessment\youtube_url` helper extracts the canonical
   11-character video id from any common YouTube URL form (standard

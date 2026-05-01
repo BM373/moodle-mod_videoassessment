@@ -185,29 +185,46 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->setDefault('allowstudentupload', 1);
         $mform->addHelpButton('allowstudentupload', 'allowstudentupload', 'videoassessment');
 
-        // Check if video uploads are prevented globally.
-        $preventvideouploads = get_config('videoassessment', 'preventvideouploads');
+        // Item #2 of the 2026-04 fix programme: read the three site-level
+        // allow-* flags individually so the activity admin can only opt
+        // out of channels that the site allows in the first place. The
+        // legacy `preventvideouploads` setting still acts as a hard kill
+        // switch for backward compatibility (sites that haven't run the
+        // upgrade migration yet).
+        $allowexternallinks  = get_config('videoassessment', 'allowexternallinks');
+        $allowvideouploads   = get_config('videoassessment', 'allowvideouploads');
+        $allowvideorecording = get_config('videoassessment', 'allowvideorecording');
+        // Treat `false` (setting not yet defined on this site) as the new
+        // default of 1, so a Moodle that has not run the migration yet
+        // still behaves as documented.
+        $allowexternallinks  = ($allowexternallinks  === false) ? 1 : (int)$allowexternallinks;
+        $allowvideouploads   = ($allowvideouploads   === false) ? 1 : (int)$allowvideouploads;
+        $allowvideorecording = ($allowvideorecording === false) ? 1 : (int)$allowvideorecording;
+        $preventvideouploads = !$allowvideouploads || !$allowvideorecording;
 
         $mform->addElement('advcheckbox', 'allowyoutube', get_string('allowyoutube', 'videoassessment'));
-        $mform->setDefault('allowyoutube', 1);
         $mform->addHelpButton('allowyoutube', 'allowyoutube', 'videoassessment');
+        if (!$allowexternallinks) {
+            $mform->hardFreeze('allowyoutube');
+            $mform->setDefault('allowyoutube', 0);
+        } else {
+            $mform->setDefault('allowyoutube', 1);
+        }
 
-        // Video upload option - greyed out if prevented globally.
+        // Video upload option - greyed out when uploads are disabled site-wide.
         $mform->addElement('advcheckbox', 'allowvideoupload', get_string('allowvideoupload', 'videoassessment'));
         $mform->addHelpButton('allowvideoupload', 'allowvideoupload', 'videoassessment');
-        if ($preventvideouploads) {
-            // Disable and force unchecked when prevented globally.
+        if (!$allowvideouploads) {
             $mform->hardFreeze('allowvideoupload');
             $mform->setDefault('allowvideoupload', 0);
         } else {
             $mform->setDefault('allowvideoupload', 1);
         }
 
-        // Video record option - greyed out if prevented globally.
+        // Video record option - greyed out when in-browser recording is disabled site-wide.
         $mform->addElement('advcheckbox', 'allowvideorecord', get_string('allowvideorecord', 'videoassessment'));
         $mform->addHelpButton('allowvideorecord', 'allowvideorecord', 'videoassessment');
-        if ($preventvideouploads) {
-            // Disable and force unchecked when prevented globally.
+        if (!$allowvideorecording) {
             $mform->hardFreeze('allowvideorecord');
             $mform->setDefault('allowvideorecord', 0);
         } else {
