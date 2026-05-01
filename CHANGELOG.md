@@ -21,6 +21,17 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#4** YouTube Shorts compatibility. The new
+  `\mod_videoassessment\youtube_url` helper extracts the canonical
+  11-character video id from any common YouTube URL form (standard
+  `?v=`, `youtu.be/`, `/shorts/`, `/embed/`, mobile `m.`, no-cookie),
+  reports `is_shorts()`, and yields the canonical thumbnail and
+  embed URLs (with optional GDPR-friendly `youtube-nocookie.com`
+  host). `va::view_upload_video()` now routes through
+  `youtube_url::extract_id()` instead of the legacy
+  `explode('=', $url)`, so portrait-mode Shorts URLs no longer break
+  when a learner submits one. The change is covered by data-driven
+  tests in `tests/youtube_url_test.php` (12 URL forms exercised).
 - **#1** Generalise the wording of the upload / link UI so it no longer
   implies YouTube exclusivity. The English strings `allowyoutube` (now
   "Allow external video links (e.g. YouTube)"), `uploadingvideo`

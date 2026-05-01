@@ -426,9 +426,25 @@ class va {
                 } else {
                     $url = $data->url;
                 }
-                $urlarr = explode('=', $url);
-                $ytinfo = $this->videoassessment_get_youtube_info($urlarr[1]);
-                $videoid = $upload->youtube_video_data_add("/", $ytinfo['title'], $ytinfo['thumbnail_url'], 'Youtube', $url);
+                // Item #4: parse YouTube / Shorts / youtu.be URLs through
+                // the dedicated helper so that `/shorts/ID` and `youtu.be/ID`
+                // forms are accepted alongside the legacy `?v=ID`.
+                $youtubeid = youtube_url::extract_id($url);
+                if ($youtubeid === null) {
+                    // Fall back to the legacy split for non-canonical URLs to
+                    // preserve behaviour for hand-edited inputs that already
+                    // worked before this refactor.
+                    $urlarr = explode('=', $url);
+                    $youtubeid = $urlarr[1] ?? '';
+                }
+                $ytinfo = $this->videoassessment_get_youtube_info($youtubeid);
+                $videoid = $upload->youtube_video_data_add(
+                    '/',
+                    $ytinfo['title'],
+                    $ytinfo['thumbnail_url'],
+                    'Youtube',
+                    $url
+                );
                 if ($this->is_teacher()) {
                     if (empty($data->user) || empty($data->timing)) {
                         $this->view_redirect('videos');
