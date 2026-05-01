@@ -39,10 +39,8 @@ namespace mod_videoassessment;
  * no column name collides with PostgreSQL's reserved keyword list, so the
  * same class of bug cannot resurface silently.
  *
- * @coversNothing
  */
 final class schema_test extends \advanced_testcase {
-
     /**
      * Plugin-owned tables enumerated in db/install.xml.
      *
@@ -105,7 +103,7 @@ final class schema_test extends \advanced_testcase {
      *
      * @dataProvider plugin_table_provider
      * @param string $tablename Plugin table to inspect.
-     * @covers \mod_videoassessment
+     * @coversNothing
      */
     public function test_no_postgresql_reserved_column_names(string $tablename): void {
         $this->resetAfterTest();
