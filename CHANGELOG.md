@@ -21,6 +21,16 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#13** Live "current grade in gradebook" display on the assess
+  screen. The `\mod_videoassessment\rubric_total` calculator computes
+  `total / max / percentage` from a snapshot of selected rubric levels
+  (covered by `tests/rubric_total_test.php`); the new
+  `mod_videoassessment/live_grade_total` AMD module mirrors the same
+  math client-side and refreshes a `[data-vassmt-live-grade]`
+  indicator next to the saved score every time a rubric cell is
+  clicked. `va::view_assess()` requires the new module, and
+  `classes/form/assess.php` injects the indicator span into the
+  `Current grade in gradebook:` cell.
 - **#3** Cap in-browser recording at 2 minutes and surface the limit on
   the radio label. The new `\mod_videoassessment\recording` helper is
   the single source of truth for the duration cap (120 seconds, 2

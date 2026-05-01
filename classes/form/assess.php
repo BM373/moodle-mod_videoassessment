@@ -236,11 +236,29 @@ class assess extends \moodleform {
             if (isset($grade->grade) && $grade->grade > -1) {
                 $gradestr = $grade->grade . '%';
             }
+            // Item #13 (2026-04 fix programme): expose a live indicator
+            // next to the saved value so the rubric total updates in
+            // real time as the teacher clicks rubric levels. The
+            // `data-vassmt-live-grade` attribute is the hook the
+            // mod_videoassessment/live_grade_total AMD module looks
+            // for; the data-vassmt-rubric-root attribute scopes which
+            // rubric subtree drives this particular display.
+            $rubricrootselector = '#fitem_id_advancedgrading' . $timing . ' .gradingform_rubric';
+            $cellcontent = \html_writer::tag('span', $gradestr, ['class' => 'mark'])
+                . ' ' . \html_writer::tag(
+                    'span',
+                    '-',
+                    [
+                        'class' => 'live-grade-total',
+                        'data-vassmt-live-grade' => 1,
+                        'data-vassmt-rubric-root' => $rubricrootselector,
+                    ]
+                );
             $mform->addElement(
                 'static',
                 'finalgrade' . $timing,
                 va::str('currentgrade') . ':',
-                \html_writer::tag('span', $gradestr, ['class' => 'mark'])
+                $cellcontent
             );
             $mform->setType('finalgrade' . $timing, PARAM_INT);
 

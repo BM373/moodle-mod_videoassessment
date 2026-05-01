@@ -1520,6 +1520,8 @@ class va {
 
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'mainInit', [$this->cm->id]);
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'assessInit');
+        // Item #13 (2026-04 fix programme): live rubric total display.
+        $PAGE->requires->js_call_amd('mod_videoassessment/live_grade_total', 'init');
 
         // Add inline script with immediate functionality for remark textarea hide/show.
         $PAGE->requires->js_amd_inline("
