@@ -1298,19 +1298,10 @@ class mod_videoassessment_mod_form extends moodleform_mod {
     public function get_data() {
         $data = parent::get_data();
 
-        // DEBUG: Dump form data to see what's being submitted.
         if ($data) {
-            error_log('=== VIDEOASSESSMENT FORM get_data() DEBUG ===');
-            error_log('gradepass in data: ' . var_export(property_exists($data, 'gradepass') ? $data->gradepass : 'NOT SET', true));
-            error_log('$_POST[gradepass]: ' . var_export(isset($_POST['gradepass']) ? $_POST['gradepass'] : 'NOT SET', true));
-            error_log('Full data object keys: ' . implode(', ', array_keys((array)$data)));
             if (property_exists($data, 'gradepass')) {
-                error_log('gradepass type: ' . gettype($data->gradepass));
-                error_log('gradepass value: ' . var_export($data->gradepass, true));
             }
-            error_log('=== END DEBUG ===');
         } else {
-            error_log('=== VIDEOASSESSMENT FORM get_data() DEBUG: data is NULL ===');
         }
 
         if ($data) {
@@ -1338,10 +1329,6 @@ class mod_videoassessment_mod_form extends moodleform_mod {
                 $data->gradepass = 0;
             }
 
-            // DEBUG: Log after processing.
-            error_log('=== AFTER PROCESSING ===');
-            error_log('gradepass final value: ' . var_export($data->gradepass, true));
-            error_log('gradepass final type: ' . gettype($data->gradepass));
 
             if (!empty($this->current->_advancedgradingdata['areas'])) {
                 // Get all area names.

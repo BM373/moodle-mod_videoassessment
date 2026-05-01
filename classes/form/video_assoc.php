@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment\form;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for video association management in the videoassessment module.
  *

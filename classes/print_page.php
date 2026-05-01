@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Print page controller for video assessment reports.
  *

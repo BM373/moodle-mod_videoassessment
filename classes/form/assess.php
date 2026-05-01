@@ -17,8 +17,6 @@
 namespace mod_videoassessment\form;
 use mod_videoassessment\va;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Moodle form for advanced grading within the Video Assessment module.
  *

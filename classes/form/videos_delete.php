@@ -19,8 +19,6 @@ namespace mod_videoassessment\form;
 use mod_videoassessment\va;
 use mod_videoassessment\video;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for deleting videos from the videoassessment module.
  *

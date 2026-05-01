@@ -18,8 +18,6 @@ namespace mod_videoassessment\form;
 
 use mod_videoassessment\va;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for sorting videos for the videoassessment module.
  *

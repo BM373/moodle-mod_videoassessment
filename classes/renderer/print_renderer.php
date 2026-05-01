@@ -21,8 +21,6 @@ use renderable;
 use mod_videoassessment\va;
 use mod_videoassessment\rubric;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Print renderer for video assessment module.
  *

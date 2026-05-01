@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event triggered when a Video Assessment activity is viewed.
  *

@@ -27,8 +27,6 @@ use html_table_row;
 use html_table_cell;
 use html_writer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Main renderer for video assessment module.
  *

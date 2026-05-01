@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Scheduled task for automatic file deletion at course end date.
  *

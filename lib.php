@@ -98,11 +98,6 @@ function videoassessment_add_instance($va, $form) {
     // Moodle core processes gradepass AFTER add_instance in edit_module_post_actions(),
     // so we need to ensure it's set in $va (which is $moduleinfo) so Moodle core can read it.
 
-    // DEBUG: Log what we receive in add_instance.
-    error_log('=== VIDEOASSESSMENT add_instance() DEBUG ===');
-    error_log('$va->gradepass (initial): ' . var_export(property_exists($va, 'gradepass') ? $va->gradepass : 'NOT SET', true));
-    error_log('$_POST[gradepass]: ' . var_export(isset($_POST['gradepass']) ? $_POST['gradepass'] : 'NOT SET', true));
-    error_log('$va object keys: ' . implode(', ', array_keys((array)$va)));
 
     // ALWAYS initialize to 0 - this ensures the field is never null.
     $gradepassvalue = 0.0;
@@ -112,14 +107,11 @@ function videoassessment_add_instance($va, $form) {
     // Note: Empty text fields may not be in $_POST, or may be empty string.
     if (isset($_POST['gradepass'])) {
         $postvalue = trim((string)$_POST['gradepass']);
-        error_log('POST gradepass value (trimmed): ' . var_export($postvalue, true));
         if ($postvalue !== '') {
             // Unformat_float is available from lib/moodlelib.php (always loaded).
             $unformatted = unformat_float($postvalue);
-            error_log('unformat_float result: ' . var_export($unformatted, true));
             if ($unformatted !== false && $unformatted !== null) {
                 $gradepassvalue = (float)$unformatted;
-                error_log('Set gradepassvalue from POST: ' . $gradepassvalue);
             }
         }
         // If POST has gradepass but it's empty, keep default of 0.
@@ -129,8 +121,6 @@ function videoassessment_add_instance($va, $form) {
     // Our form's get_data() ensures gradepass is always set (defaults to 0 if empty).
     if (property_exists($va, 'gradepass')) {
         $val = $va->gradepass;
-        error_log('$va->gradepass value: ' . var_export($val, true));
-        error_log('$va->gradepass type: ' . gettype($val));
         // Check if value is numeric (including 0).
         if ($val !== '' && $val !== null && is_numeric($val)) {
             $floatval = (float)$val;
@@ -138,7 +128,6 @@ function videoassessment_add_instance($va, $form) {
             // But if POST had a non-zero value, prefer that.
             if (!isset($_POST['gradepass']) || $_POST['gradepass'] === '' || $gradepassvalue == 0) {
                 $gradepassvalue = $floatval;
-                error_log('Set gradepassvalue from $va: ' . $gradepassvalue);
             }
         }
     }
@@ -146,7 +135,6 @@ function videoassessment_add_instance($va, $form) {
     // If we still don't have a value (shouldn't happen, but be safe), ensure it's 0.
     if ($gradepassvalue === null || !is_numeric($gradepassvalue)) {
         $gradepassvalue = 0.0;
-        error_log('Forced gradepassvalue to 0.0 (was null or not numeric)');
     }
 
     // Ensure value is valid (non-negative).
@@ -157,7 +145,6 @@ function videoassessment_add_instance($va, $form) {
     // Convert to float to ensure it's numeric - ALWAYS do this.
     $gradepassvalue = (float)$gradepassvalue;
 
-    error_log('Final gradepassvalue before setting: ' . $gradepassvalue);
 
     // CRITICAL: ALWAYS set gradepass in $va ($moduleinfo) so Moodle core can read it in edit_module_post_actions()
     // Moodle core checks: if (isset($moduleinfo->{$gradepassfieldname})) where fieldname is 'gradepass' for itemnumber 0
@@ -184,21 +171,13 @@ function videoassessment_add_instance($va, $form) {
     $va->gradepass = (float)$va->gradepass;
     $va->gradepass_videoassessment = (float)$va->gradepass_videoassessment;
 
-    error_log('Before DB insert - $va->gradepass: ' . var_export($va->gradepass, true));
-    error_log('Before DB insert - $va->gradepass_videoassessment: ' . var_export($va->gradepass_videoassessment, true));
-    error_log('=== END add_instance() DEBUG ===');
 
     $va->id = $DB->insert_record('videoassessment', $va);
 
-    // DEBUG: Check what was actually inserted (only if fields exist).
     if ($va->id) {
         try {
             $inserted = $DB->get_record('videoassessment', ['id' => $va->id], 'id, gradepass, gradepass_videoassessment');
-            error_log('=== AFTER DB INSERT ===');
-            error_log('Inserted record - gradepass: ' . var_export($inserted->gradepass ?? 'NULL', true));
-            error_log('Inserted record - gradepass_videoassessment: ' . var_export($inserted->gradepass_videoassessment ?? 'NULL', true));
         } catch (Exception $e) {
-            error_log('Could not read gradepass fields (they may not exist yet - run upgrade): ' . $e->getMessage());
         }
     }
     videoassessment_update_calendar($va);

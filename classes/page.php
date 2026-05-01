@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Abstract base class for video assessment page controllers.
  *

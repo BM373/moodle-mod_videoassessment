@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The mod_videoassessment viewed event class.
  *

@@ -24,8 +24,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  *
  * @param string $identifier

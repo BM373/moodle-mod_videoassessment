@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Video object representing a video submission in video assessment.
  *

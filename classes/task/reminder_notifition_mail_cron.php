@@ -18,8 +18,6 @@ namespace mod_videoassessment\task;
 
 use core\check\result;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Scheduled task for sending reminder notification emails.
  *

@@ -21,8 +21,6 @@ namespace mod_videoassessment\grades;
 use core_grades\local\gradeitem\itemnumber_mapping;
 use core_grades\local\gradeitem\advancedgrading_mapping as advanced_mapping;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Grade item mappings for the activity.
  *

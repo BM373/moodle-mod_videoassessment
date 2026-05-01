@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Utility class for video assessment helper functions.
  *

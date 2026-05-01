@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Table export utility for video assessment data.
  *
