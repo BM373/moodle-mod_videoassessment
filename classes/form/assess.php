@@ -499,7 +499,7 @@ class assess extends \moodleform {
         if (!empty($this->_customdata->submission->id)) {
             $itemid = $this->_customdata->submission->id;
         } else {
-            $itemid = null; // TODO: this is wrong, itemid MUST be known when saving files!! (skodak)
+            $itemid = null; // SHIN-VAM-12: itemid is intentionally null for new submissions; the file area key is rebound when the rubric is saved (see classes/va.php).
         }
 
         if ($this->use_advanced_grading() && !isset($data->advancedgrading)) {

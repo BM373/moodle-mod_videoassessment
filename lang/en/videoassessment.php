@@ -556,21 +556,3 @@ $string['within'] = 'within';
 $string['xfeedback'] = '{$a} feedback';
 $string['xunassignedstudents'] = '{$a} unassigned students';
 $string['yes'] = 'Yes';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* privacy:metadata */

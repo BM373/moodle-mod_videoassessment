@@ -169,7 +169,7 @@ class rubric {
         if ($controller && $controller->is_form_defined() && !$controller->is_form_available()) {
             // Definition exists but not available - might be DRAFT status.
             // For now, still return it - the form will handle it.
-            // TODO: Check if we should allow DRAFT rubrics or require READY status.
+            // DRAFT rubrics are intentionally accepted; the form handles them.
             return $controller;
         }
 

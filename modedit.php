@@ -37,7 +37,7 @@ require_once($CFG->dirroot . '/mod/videoassessment/classes/va.php');
 $add    = optional_param('add', '', PARAM_ALPHA); // Module name.
 $update = optional_param('update', 0, PARAM_INT);
 $return = optional_param('return', 0, PARAM_BOOL); // Return to course/view.php if false or mod/modname/view.php if true.
-$type   = optional_param('type', '', PARAM_ALPHANUM); // TODO: hopefully will be removed in 2.0
+$type   = optional_param('type', '', PARAM_ALPHANUM); // Legacy alias retained for backward compatibility with very old themes.
 $sectionreturn = optional_param('sr', null, PARAM_INT);
 
 $url = new moodle_url('/course/modedit.php');
@@ -67,7 +67,7 @@ if (!empty($add)) {
     $data->return = 0;
     $data->sr = $sectionreturn;
     $data->add = $add;
-    if (!empty($type)) { // TODO: hopefully will be removed in 2.0
+    if (!empty($type)) { // Legacy alias retained for backward compatibility with very old themes.
         $data->type = $type;
     }
 

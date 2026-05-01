@@ -81,6 +81,7 @@ final class command_validator_test extends \basic_testcase {
                 '/usr/local/bin/ffmpeg -i {INPUT} {OUTPUT} > /etc/cron.daily/wat',
             ],
             'backtick subshell' => [
+                // phpcs:ignore moodle.Strings.ForbiddenStrings.Found
                 '/usr/local/bin/ffmpeg `id` -i {INPUT} {OUTPUT}',
             ],
             'dollar-paren subshell' => [
