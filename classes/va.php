@@ -2735,6 +2735,12 @@ class va {
             if (!isset($grades->gradebeforeclass)) {
                 $grades->gradebeforeclass = -1;
             }
+            // Same defensive default for gradebeforetraining; without it
+            // is_user_graded() emits an undefined-property notice on
+            // freshly-created rows.
+            if (!isset($grades->gradebeforetraining)) {
+                $grades->gradebeforetraining = -1;
+            }
             return $grades;
         }
 
@@ -2748,6 +2754,7 @@ class va {
             'gradebeforeself' => -1,
             'gradebeforepeer' => -1,
             'gradebeforeclass' => -1,
+            'gradebeforetraining' => -1,
             'gradeafterteacher' => -1,
             'gradeafterself' => -1,
             'gradeafterpeer' => -1,

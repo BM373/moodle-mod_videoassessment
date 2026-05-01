@@ -68,17 +68,21 @@ final class va_test extends \advanced_testcase {
 
     /**
      * Constructing va() with a cm pointing to a non-existent activity
-     * must raise `videoassessmentnotfound`.
+     * must raise `videoassessmentnotfound`. Build a real cm + context
+     * pair, then delete the activity row before constructing so the
+     * constructor's DB lookup fails.
      *
      * @covers \mod_videoassessment\va::__construct
      */
     public function test_constructor_throws_for_missing_instance(): void {
         $this->resetAfterTest();
+        global $DB;
+        ['cm' => $cm, 'course' => $course, 'instance' => $instance] = $this->build_va();
+        $context = \context_module::instance($cm->id);
+        // Drop the row so the constructor's get_record() returns false.
+        $DB->delete_records('videoassessment', ['id' => $instance->id]);
+
         $this->expectException(\moodle_exception::class);
-        $course = $this->getDataGenerator()->create_course();
-        $cm = (object) ['id' => 999, 'instance' => 999999, 'course' => $course->id];
-        $context = \context_course::instance($course->id);
-        // The constructor expects context_module; cast for the test.
         new va($context, $cm, $course);
     }
 
@@ -278,9 +282,9 @@ final class va_test extends \advanced_testcase {
     }
 
     /**
-     * After persisting a peer row, `get_peers()` returns the peer id
-     * keyed by the user id (or whatever shape the function returns —
-     * the contract here is "non-empty result").
+     * After persisting a peer row (`userid=u1`, `peerid=u2`), the peer
+     * `u2` is responsible for grading `u1`, so `get_peers(u2)` returns
+     * `[u1]` — i.e., "users this peer assesses".
      *
      * @covers \mod_videoassessment\va::get_peers
      */
@@ -296,8 +300,9 @@ final class va_test extends \advanced_testcase {
             'userid' => $u1->id,
             'peerid' => $u2->id,
         ]);
-        $peers = $vaobj->get_peers($u1->id);
-        $this->assertNotEmpty($peers);
+        // The get_peers($peerid) call returns the userids that $peerid assesses.
+        $peers = $vaobj->get_peers($u2->id);
+        $this->assertSame([$u1->id], array_values($peers));
     }
 
     /**
