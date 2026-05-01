@@ -165,7 +165,7 @@ class renderer extends plugin_renderer_base {
         global $CFG;
 
         if ($CFG->release < 2012062500) {
-            // Moodle 2.2
+            // Moodle 2.2.
             require_once($CFG->dirroot . '/filter/mediaplugin/filter.php');
         }
 
@@ -207,7 +207,7 @@ class renderer extends plugin_renderer_base {
             return $html;
         }
         // Other browsers use FlowPlayer.
-        // (Since QuickTime is not widely used on Windows, FlowPlayer is also used for .mp4 files.)
+        // (Since QuickTime is not widely used on Windows, FlowPlayer is also used for .mp4 files.).
 
         // Since the .mp4 extension doesn't match the FLV filter,
         // we replace it with the dummy .flv extension to pass through the filter,
@@ -252,7 +252,7 @@ class renderer extends plugin_renderer_base {
             $cutoffdate = $va->cutoffdate;
             if ($duedate > 0) {
                 if ($va->allowsubmissionsfromdate) {
-                    // allowsubmissionsfrom date.
+                    // Allowsubmissionsfrom date.
                     $cell1content = get_string('allowsubmissionsfromdate', 'assign');
                     $cell2content = userdate($va->allowsubmissionsfromdate);
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);

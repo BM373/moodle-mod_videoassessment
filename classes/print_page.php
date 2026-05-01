@@ -172,7 +172,7 @@ class print_page {
                     $o .= \html_writer::end_tag('div');
                 }
 
-                // adtis
+                // Adtis.
                 $o .= $OUTPUT->heading("General Comments");
                 $o .= \html_writer::start_tag('div', ['class' => 'card  card-body']);
                 foreach ($this->va->gradertypes as $gradertype) {

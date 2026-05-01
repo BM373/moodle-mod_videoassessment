@@ -70,7 +70,7 @@ if (
 
         $file = $files[$key];
         // Videos already linked will be skipped.
-        // (Do not modify the associations within this page; they must be removed on the list page.)
+        // (Do not modify the associations within this page; they must be removed on the list page.).
         if (!([$olduserid, $oldtiming] = videoassessment_get_assoc($file))) {
             // Users who already have videos associated with them can skip.
             $context = context_module::instance($cm->id);

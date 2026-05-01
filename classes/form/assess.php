@@ -289,7 +289,7 @@ class assess extends \moodleform {
                     $editoroptions
                 );
                 $mform->setType($fieldname, PARAM_RAW);
-                // file_prepare_standard_editor creates 'text_editor' property, not fieldname_editor.
+                // File_prepare_standard_editor creates 'text_editor' property, not fieldname_editor.
                 $mform->setDefault($fieldname, $editorvalue->text_editor);
             } else {
                 // New feedback - no file area needed yet.
@@ -337,7 +337,7 @@ class assess extends \moodleform {
      * @return array Array of validation errors
      */
     public function validation($data, $files) {
-        // Allow plugin videoassessment types to do any extra validation after the form has been submitted
+        // Allow plugin videoassessment types to do any extra validation after the form has been submitted.
         $errors = parent::validation($data, $files);
         $cdata = $this->_customdata;
         /* @var $va \mod_videoassessment\va */
@@ -509,10 +509,10 @@ class assess extends \moodleform {
             $formgradertype = $this->_customdata->va->get_grader_type($data->userid);
         }
 
-        // Use the grading instances that were already set up in the form definition
+        // Use the grading instances that were already set up in the form definition.
         $gradinginstances = $this->use_advanced_grading();
 
-        // Only process timings that actually exist in the form (fix for first assessment grade issue)
+        // Only process timings that actually exist in the form (fix for first assessment grade issue).
         foreach ($this->_customdata->va->timings as $timing) {
             if (!empty($gradinginstances) && is_object($gradinginstances) && !empty($gradinginstances->$timing)) {
                 $gradingarea = $timing . $this->_customdata->va->get_grader_type($data->userid, $gradertype);

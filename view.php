@@ -209,14 +209,14 @@ if (!empty($redirect_to_grading)) {
     // 1. Coming from modedit.php (activity creation/editing)
     // 2. Preference was set very recently (within 0.5 seconds - extremely strict)
     // 3. Preference ID matches current activity instance
-    // 4. Preference has a valid timestamp
+    // 4. Preference has a valid timestamp.
     $should_redirect = false;
     if ($isfrommodedit && $preftimestamp > 0) {
         $recent = (time() - $preftimestamp) <= 0.5; // 0.5 second window - extremely strict
         $matchesactivity = ($vaid == $cm->instance);
 
         if ($recent && $matchesactivity) {
-            // Double-check: verify the activity exists and matches
+            // Double-check: verify the activity exists and matches.
             $va = $DB->get_record('videoassessment', ['id' => $vaid]);
             if ($va && $va->id == $cm->instance) {
                 $should_redirect = true;

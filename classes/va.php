@@ -1505,12 +1505,12 @@ class va {
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'mainInit', [$this->cm->id]);
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'assessInit');
 
-        // Add inline script with immediate functionality for remark textarea hide/show
+        // Add inline script with immediate functionality for remark textarea hide/show.
         $PAGE->requires->js_amd_inline("
             require(['jquery'], function(\$) {
                 console.log('[VideoAssessment] Inline script loaded');
                 
-                // Mobile detection function
+                // Mobile detection function.
                 function isMobile() {
                     var width = window.innerWidth;
                     var height = window.innerHeight;
@@ -1521,12 +1521,12 @@ class va {
                     return width <= 768 && isPortrait;
                 }
                 
-                // Get video container
+                // Get video container.
                 function getVideoContainer() {
                     return \$('.assess-form-videos, .path-mod-videoassessment .assess-form-videos');
                 }
                 
-                // Hide/show video functions with animation
+                // Hide/show video functions with animation.
                 function hideVideo() {
                     if (isMobile()) {
                         var \$container = getVideoContainer();
@@ -1551,11 +1551,11 @@ class va {
                 function setupRemarkHandlers() {
                     console.log('[VideoAssessment] Setting up remark handlers...');
                     
-                    // Find remark textareas
+                    // Find remark textareas.
                     var \$remarkTextareas = \$('.remark textarea, td.remark textarea, .criterion .remark textarea, .gradingform_rubric .remark textarea');
                     console.log('[VideoAssessment] Found remark textareas:', \$remarkTextareas.length);
                     
-                    // Handle focus/blur
+                    // Handle focus/blur.
                     \$remarkTextareas.off('focus.videoassessment-remark blur.videoassessment-remark')
                         .on('focus.videoassessment-remark', function() {
                             console.log('[VideoAssessment] Remark textarea focused!');
@@ -1571,7 +1571,7 @@ class va {
                             }, 150);
                         });
                     
-                    // Catch-all click handler
+                    // Catch-all click handler.
                     \$(document).off('click.videoassessment-remark-all').on('click.videoassessment-remark-all', function(e) {
                         var \$target = \$(e.target);
                         var isRemark = \$target.closest('.remark').length > 0 || 
@@ -1586,7 +1586,7 @@ class va {
                     });
                 }
                 
-                // Setup immediately and after delays
+                // Setup immediately and after delays.
                 setTimeout(setupRemarkHandlers, 100);
                 setTimeout(setupRemarkHandlers, 500);
                 setTimeout(setupRemarkHandlers, 1500);
@@ -1738,7 +1738,7 @@ class va {
                 // Use the correct raterid for get_or_create_instance based on gradertype.
                 $rateridforinstance = ($gradertype == 'self') ? $user->id : $USER->id;
 
-                // If instanceid is 0, try to get existing instance first to load saved data
+                // If instanceid is 0, try to get existing instance first to load saved data.
                 if ($instanceid == 0 && $itemid) {
                     $existinginstance = $controller->get_current_instance($rateridforinstance, $itemid);
                     if ($existinginstance) {
@@ -1914,7 +1914,7 @@ class va {
 
             $this->aggregate_grades($user->id);
 
-            // adtis
+            // Adtis.
             $ismailsent = 0;
             $videoassessment = $DB->get_record('videoassessment', ['id' => $this->va->id]);
             if ($videoassessment->teachercommentnotification == 1 && $grade->isnotifystudent == 1) {
@@ -1958,7 +1958,7 @@ class va {
                     }
                     if ($videoassessment->ismobilequickmail == 1) {
                         // NOTE: The Quickmail JPN block is optional.
-                        // Only attempt to use its user table if the quickmailjpn plugin is installed
+                        // Only attempt to use its user table if the quickmailjpn plugin is installed.
                         $dbman = $DB->get_manager();
                         if ($dbman->table_exists('block_quickmailjpn_users')) {
                             $quickmail = $DB->get_record('block_quickmailjpn_users', ['userid' => $user->id]);
@@ -2247,7 +2247,7 @@ class va {
                     foreach ($gradeitems as $gradeitem) {
                         $tmp = $controller->render_grade($PAGE, $gradeitem->id, $gradinginfo, '', false);
                         if ($gradertype == 'teacher' && $hideteacher->$timing) {
-                            // hide teacher grade and comment
+                            // Hide teacher grade and comment.
                             $tmp = preg_replace('@class="(level[^"]+?)\s*checked"@', 'class="$1"', $tmp);
                             $tmp = preg_replace('@<td class="remark">(.*?)</td>@us', '<td class="remark"></td>', $tmp);
                         }
@@ -2281,7 +2281,7 @@ class va {
                 $o .= \html_writer::end_tag('div');
             }
 
-            // adtis
+            // Adtis.
             $o .= $OUTPUT->heading("General Comments");
             $o .= \html_writer::start_tag('div', ['class' => 'card  card-body']);
             foreach ($this->gradertypes as $gradertype) {
@@ -2788,7 +2788,7 @@ class va {
             $rawgrade = 0;
         }
 
-        // Adtis
+        // Adtis.
         $va = $DB->get_record("videoassessment", ["id" => $this->instance]);
         if ($va->fairnessbonus == 1 && (optional_param('gradertype', null, PARAM_TEXT) == 'peer' || optional_param('gradertype', null, PARAM_TEXT) == 'teacher')) {
             if ($gradeteacher > $gradepeer) {
@@ -3030,7 +3030,7 @@ class va {
                 // Find the first peer that:
                 // 1. Is not the user themselves
                 // 2. Hasn't been assigned to this user yet
-                // 3. This user hasn't been assigned to that peer yet (optional, but better distribution)
+                // 3. This user hasn't been assigned to that peer yet (optional, but better distribution).
                 $assigned = false;
                 foreach ($potentialpeers as $peerid) {
                     if (!in_array($peerid, $peers[$userid])) {

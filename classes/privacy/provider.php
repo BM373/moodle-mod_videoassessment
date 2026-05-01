@@ -47,7 +47,7 @@ class provider implements
      * @return collection Updated metadata collection.
      */
     public static function get_metadata(collection $collection): collection {
-        // Some description about the table data
+        // Some description about the table data.
         $collection->add_database_table('videoassessment', [
             'course' => 'privacy:metadata:videoassessment:course',
             'name' => 'privacy:metadata:videoassessment:name',
@@ -137,13 +137,13 @@ class provider implements
             'userid4' => $userid,
         ];
 
-        // Check if user has any data
+        // Check if user has any data.
         $aggregationcount = $DB->count_records('videoassessment_aggregation', ['userid' => $userid]);
         $peerscount = $DB->count_records('videoassessment_peers', ['userid' => $userid]);
         $sortcount = $DB->count_records('videoassessment_sort_order', ['userid' => $userid]);
         $gradeitemscount = $DB->count_records('videoassessment_grade_items', ['gradeduser' => $userid]);
 
-        // Only proceed if user has data
+        // Only proceed if user has data.
         if ($aggregationcount == 0 && $peerscount == 0 && $sortcount == 0 && $gradeitemscount == 0) {
             return $contextlist;
         }
@@ -187,7 +187,7 @@ class provider implements
             'modulename' => 'videoassessment',
         ];
 
-        // videoassessment_aggregation authors.
+        // Videoassessment_aggregation authors.
         $sql = "SELECT va.userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
@@ -196,7 +196,7 @@ class provider implements
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
-        // videoassessment_peers authors.
+        // Videoassessment_peers authors.
         $sql = "SELECT va.userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
@@ -205,7 +205,7 @@ class provider implements
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
-        // videoassessment_sort_order authors.
+        // Videoassessment_sort_order authors.
         $sql = "SELECT va.userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
@@ -214,7 +214,7 @@ class provider implements
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
 
-        // videoassessment_grade_items gradeduser
+        // Videoassessment_grade_items gradeduser.
         $sql = "SELECT gi.gradeduser as userid
                   FROM {course_modules} cm
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
@@ -249,7 +249,7 @@ class provider implements
 
             $videoassessmentid = $cm->instance;
 
-            // Export aggregation data
+            // Export aggregation data.
             $aggregations = $DB->get_records('videoassessment_aggregation', [
                 'videoassessment' => $videoassessmentid,
                 'userid' => $user->id,
@@ -262,7 +262,7 @@ class provider implements
                 ], (object) ['aggregations' => array_values($aggregations)]);
             }
 
-            // Export peers data
+            // Export peers data.
             $peers = $DB->get_records('videoassessment_peers', [
                 'videoassessment' => $videoassessmentid,
                 'userid' => $user->id,
@@ -275,7 +275,7 @@ class provider implements
                 ], (object) ['peers' => array_values($peers)]);
             }
 
-            // Export sort order data
+            // Export sort order data.
             $sortorders = $DB->get_records('videoassessment_sort_order', ['userid' => $user->id]);
 
             if ($sortorders) {
@@ -285,7 +285,7 @@ class provider implements
                 ], (object) ['sort_orders' => array_values($sortorders)]);
             }
 
-            // Export grade items data
+            // Export grade items data.
             $gradeitems = $DB->get_records('videoassessment_grade_items', [
                 'videoassessment' => $videoassessmentid,
                 'gradeduser' => $user->id,
@@ -298,7 +298,7 @@ class provider implements
                 ], (object) ['grade_items' => array_values($gradeitems)]);
             }
 
-            // Export grade items data
+            // Export grade items data.
             $videoassocs = $DB->get_records('videoassessment_video_assocs', [
                 'videoassessment' => $videoassessmentid,
                 'associationid' => $user->id,

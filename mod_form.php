@@ -75,7 +75,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // 1. AVAILABILITY
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('header', 'availability', get_string('availability', 'assign'));
         $mform->setExpanded('availability', false);
 
@@ -98,7 +98,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // 2. ASSESSORS AND WEIGHTINGS (Default open)
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('header', 'ratings', get_string('assessorsandweightings', 'videoassessment'));
         $mform->addHelpButton('ratings', 'ratings', 'videoassessment');
         $mform->setExpanded('ratings', true);
@@ -157,7 +157,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // 3. GRADING (with Whole Class Grading dropdown)
-        // =====================================================================
+        // =====================================================================.
         $this->standard_grading_coursemodule_elements_to_grading('grading');
 
         // Whole Class Grading - dropdown (Open/Close), default = Close.
@@ -177,7 +177,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // 4. VIDEO SUBMISSIONS
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('header', 'videosubmissions', get_string('videosubmissions', 'videoassessment'));
         $mform->setExpanded('videosubmissions', false);
 
@@ -238,13 +238,13 @@ class mod_videoassessment_mod_form extends moodleform_mod {
                 </style>
                 <script>
                     document.addEventListener("DOMContentLoaded", function() {
-                        // Find and grey out the form items
+                        // Find and grey out the form items.
                         var uploadItem = document.getElementById("fitem_id_allowvideoupload");
                         var recordItem = document.getElementById("fitem_id_allowvideorecord");
                         if (uploadItem) uploadItem.style.opacity = "0.5";
                         if (recordItem) recordItem.style.opacity = "0.5";
 
-                        // Also try by input name
+                        // Also try by input name.
                         var uploadInput = document.querySelector("input[name=\'allowvideoupload\']");
                         var recordInput = document.querySelector("input[name=\'allowvideorecord\']");
                         if (uploadInput) {
@@ -262,17 +262,17 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // 5. NOTIFICATIONS
-        // =====================================================================
+        // =====================================================================.
         $this->add_notifications();
 
         // =====================================================================
         // 6. ADVANCED OPTIONS
-        // =====================================================================
+        // =====================================================================.
         $this->add_advanced_options($cm);
 
         // =====================================================================
         // Standard Moodle sections
-        // =====================================================================
+        // =====================================================================.
         $this->standard_coursemodule_elements();
 
         // Custom action buttons with "Save and create rubric" option.
@@ -495,7 +495,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // Training Pre-test
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('selectyesno', 'training', get_string('trainingpretest', 'videoassessment'));
             $mform->setDefault('training', 0);
             $mform->addHelpButton('training', 'trainingpretest', 'videoassessment');
@@ -541,7 +541,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // Peer Fairness Bonus
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('selectyesno', 'fairnessbonus', get_string('peerfairnessbonus', 'videoassessment'));
         $mform->setDefault('fairnessbonus', 0);
         $mform->addHelpButton('fairnessbonus', 'peerfairnessbonus', 'videoassessment');
@@ -581,7 +581,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // Self Fairness Bonus
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('selectyesno', 'selffairnessbonus', get_string('selffairnessbonus', 'videoassessment'));
         $mform->setDefault('selffairnessbonus', 0);
         $mform->addHelpButton('selffairnessbonus', 'selffairnessbonus', 'videoassessment');
@@ -607,7 +607,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         // =====================================================================
         // Automatic File Deletion at Course End Date
-        // =====================================================================
+        // =====================================================================.
         $mform->addElement('selectyesno', 'autodeletefiles', get_string('autodeletefiles', 'videoassessment'));
         $mform->setDefault('autodeletefiles', 1);
         $mform->addHelpButton('autodeletefiles', 'autodeletefiles', 'videoassessment');
@@ -1298,7 +1298,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
     public function get_data() {
         $data = parent::get_data();
 
-        // DEBUG: Dump form data to see what's being submitted
+        // DEBUG: Dump form data to see what's being submitted.
         if ($data) {
             error_log('=== VIDEOASSESSMENT FORM get_data() DEBUG ===');
             error_log('gradepass in data: ' . var_export(property_exists($data, 'gradepass') ? $data->gradepass : 'NOT SET', true));
@@ -1318,27 +1318,27 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             // but we need to ensure it's properly set (default to 0 if empty).
             // For itemnumber 0 (which maps to 'grading'), the field name is just 'gradepass'.
             // Always ensure gradepass is set and is numeric (never null or empty string)
-            // Parent processes 'gradepass' with unformat_float(), but we need to ensure it's always set
+            // Parent processes 'gradepass' with unformat_float(), but we need to ensure it's always set.
             if (property_exists($data, 'gradepass')) {
-                // Parent already processed it with unformat_float(), but ensure it's not empty/null
+                // Parent already processed it with unformat_float(), but ensure it's not empty/null.
                 if ($data->gradepass === '' || $data->gradepass === null) {
                     $data->gradepass = 0;
                 } else {
-                    // Ensure it's a numeric value
+                    // Ensure it's a numeric value.
                     $data->gradepass = (float)$data->gradepass;
                 }
             } else {
-                // Field doesn't exist in data (form field was empty/not submitted), set default to 0
+                // Field doesn't exist in data (form field was empty/not submitted), set default to 0.
                 $data->gradepass = 0;
             }
 
-            // Final safety check - ensure it's always numeric, never null
+            // Final safety check - ensure it's always numeric, never null.
             $data->gradepass = (float)$data->gradepass;
             if ($data->gradepass < 0) {
                 $data->gradepass = 0;
             }
 
-            // DEBUG: Log after processing
+            // DEBUG: Log after processing.
             error_log('=== AFTER PROCESSING ===');
             error_log('gradepass final value: ' . var_export($data->gradepass, true));
             error_log('gradepass final type: ' . gettype($data->gradepass));

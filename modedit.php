@@ -96,7 +96,7 @@ if (!empty($add)) {
     // Check the course exists.
     $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
-    // require_login
+    // Require_login.
     require_login($course, false, $cm); // needed to setup proper $COURSE
 
     [$cm, $context, $module, $data, $cw] = get_moduleinfo_data($cm, $course);

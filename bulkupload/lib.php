@@ -557,7 +557,7 @@ class videoassessment_bulkupload {
                 }
                 break;
             case '.flv':
-                // flv does not support 48k samples/sec
+                // Flv does not support 48k samples/sec.
                 if (strpos($command, '-ar') === false) {
                     $command = str_replace('{OUTPUT}', '-ar 44100 {OUTPUT}', $command);
                 }
@@ -579,13 +579,13 @@ class videoassessment_bulkupload {
         if (preg_match('/Duration: (\d+):(\d+):(\d+\.\d+),/', $log, $match)) {
              [, $h, $m, $s] = $match;
             $duration = $h * 60 * 60 + $m * 60 + $s;
-            // ffmpeg 0.8.2
+            // Ffmpeg 0.8.2.
             if (preg_match_all('/ time=(\d+):(\d+):(\d+\.\d+) /', $log, $matches, PREG_SET_ORDER)) {
                  [, $h, $m, $s] = end($matches);
                 $time = $h * 60 * 60 + $m * 60 + $s;
                 return $time / $duration;
             }
-            // ffmpeg latest
+            // Ffmpeg latest.
             if (preg_match_all('/ time=(\d+\.\d+) /', $log, $matches, PREG_SET_ORDER)) {
                  [, $time] = end($matches);
                 return $time / $duration;

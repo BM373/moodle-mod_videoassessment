@@ -33,9 +33,9 @@ $services = [
             'mod_videoassessment_assignclass_sort_group',
         ],
         'requiredcapability' => '', // if set, the web service user need this capability to access
-                                                    // any function of this service. For example: 'some/capability:specified'
+                                                    // Any function of this service. For example: 'some/capability:specified'.
         'restrictedusers' => 0, // if enabled, the Moodle administrator must link some user to this service
-                                                    // into the administration
+                                                    // Into the administration.
         'enabled' => 1, // if enabled, the service can be reachable on a default installation
         'shortname' => 'videoassessment_service', // the short name used to refer to this service from elsewhere including when fetching a token
     ],

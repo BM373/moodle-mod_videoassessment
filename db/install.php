@@ -110,7 +110,7 @@ function create_default_rubric_template() {
         $criteria = [];
         $sortorder = 1;
 
-        // Criterion 1: Interesting, engaging content
+        // Criterion 1: Interesting, engaging content.
         $criteria['NEWID1'] = [
             'sortorder' => $sortorder++,
             'description' => 'Interesting, engaging content',
@@ -124,7 +124,7 @@ function create_default_rubric_template() {
             ],
         ];
 
-        // Criterion 2: Good body language, facial expression, eye contact
+        // Criterion 2: Good body language, facial expression, eye contact.
         $criteria['NEWID2'] = [
             'sortorder' => $sortorder++,
             'description' => 'Good body language, facial expression, eye contact',
@@ -138,7 +138,7 @@ function create_default_rubric_template() {
             ],
         ];
 
-        // Criterion 3: Clear voice with stress/intonation
+        // Criterion 3: Clear voice with stress/intonation.
         $criteria['NEWID3'] = [
             'sortorder' => $sortorder++,
             'description' => 'Clear voice with stress/intonation',
@@ -152,7 +152,7 @@ function create_default_rubric_template() {
             ],
         ];
 
-        // Criterion 4: Easy-to-understand language
+        // Criterion 4: Easy-to-understand language.
         $criteria['NEWID4'] = [
             'sortorder' => $sortorder++,
             'description' => 'Easy-to-understand language',
@@ -166,7 +166,7 @@ function create_default_rubric_template() {
             ],
         ];
 
-        // Criterion 5: Strong introduction, transitions, conclusions
+        // Criterion 5: Strong introduction, transitions, conclusions.
         $criteria['NEWID5'] = [
             'sortorder' => $sortorder++,
             'description' => 'Strong introduction, transitions, conclusions',
@@ -223,7 +223,7 @@ function create_default_rubric_template() {
 function xmldb_videoassessment_install() {
     global $OUTPUT, $CFG, $DB, $USER;
 
-    // Check ffmpeg
+    // Check ffmpeg.
     $cmdline = '/usr/local/bin/ffmpeg -version';
     ignore_user_abort(true);
     set_time_limit(0);
