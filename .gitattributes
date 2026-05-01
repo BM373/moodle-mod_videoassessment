@@ -1,0 +1,10 @@
+# Enforce LF line endings on text files in the repository.
+# Binary file types are auto-detected by Git.
+* text=auto eol=lf
+
+# Third-party libraries: keep their original line endings to avoid
+# diffing noise on next vendor sync.
+font/font-awesome/** -text
+DetectRTC.js -text
+RecordRTC.js -text
+jquery-sortable.js -text
