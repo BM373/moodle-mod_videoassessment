@@ -197,9 +197,15 @@ class print_page {
                             'submissioncomment',
                             $gradeid
                         );
-                        // Then format the text.
+                        // Then format the text. noclean is required so
+                        // the HTML5 <video>/<source> tags produced by
+                        // the recordrtc Atto/Tiny plugin survive the
+                        // purifier pass; mirrors the same fix in
+                        // view.php (item #6 of the 2026-04 fix
+                        // programme).
                         $formattedcomment = format_text($commenttext, $commentformat, [
                             'context' => $this->va->context,
+                            'noclean' => true,
                         ]);
                         $comment = '<label class="submissioncomment">' . $formattedcomment . '</label>';
                         if ($gradertype == "peer") {

@@ -144,9 +144,19 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
                         'submissioncomment',
                         $gradeid
                     );
-                    // Then format the text.
+                    // Then format the text. noclean is required so the
+                    // HTML5 <video>/<source> tags produced by the
+                    // recordrtc Atto/Tiny plugin survive the purifier
+                    // pass; the source has already been sanitised by
+                    // format_text() at the editor save site (see
+                    // classes/form/assess.php where editoroptions also
+                    // sets noclean => true). Item #6 of the 2026-04 fix
+                    // programme - without this flag, the cleaner stripped
+                    // <video>/<source>, leaving teacher-recorded
+                    // feedback unplayable when the student opened it.
                     $formattedcomment = format_text($commenttext, $commentformat, [
                         'context' => $context,
+                        'noclean' => true,
                     ]);
                     $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
                     if ($gradertype == "peer") {

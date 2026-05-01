@@ -21,6 +21,18 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#6** Videos recorded inside the teacher's "Feedback Box" editor are
+  preserved through the display pipeline. Both `view.php`'s
+  `getallcomments` AJAX branch and `classes/print_page.php`'s comment
+  rendering now pass `noclean => true` to `format_text()` so the HTML5
+  `<video>` / `<source>` markup produced by Moodle's recordrtc
+  Atto/Tiny plugin survives the purifier pass. Without this flag the
+  cleaner stripped the media tags, leaving teacher feedback visible
+  but unplayable. The contract is pinned by
+  `tests/feedback_video_display_test.php`, which feeds an
+  `@@PLUGINFILE@@` placeholder through the rewrite + format pipeline
+  and asserts that the resulting HTML still contains both `<video>`
+  and `<source>` tags pointing at `/mod_videoassessment/submissioncomment/`.
 - **#13** Live "current grade in gradebook" display on the assess
   screen. The `\mod_videoassessment\rubric_total` calculator computes
   `total / max / percentage` from a snapshot of selected rubric levels
