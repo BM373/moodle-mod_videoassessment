@@ -21,6 +21,18 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#7** Smartphone UX hardening for the assess screen. SGU's
+  recordings showed two concrete iOS problems: the floating video
+  container slid under the Home indicator, and tapping a per-criterion
+  `.remark textarea` (or the final feedback editor) pushed the focused
+  field behind the on-screen keyboard. Two new rules in `assess.css`:
+  (a) the floating / sticky video container now reserves the iOS
+  safe-area insets via `padding: env(safe-area-inset-*, 0)`, and
+  (b) every focusable feedback field has a `scroll-margin-top` /
+  `scroll-margin-bottom` of `35vh`, so the browser's implicit
+  `scrollIntoView()` on focus keeps the field above the keyboard.
+  The contract is pinned by `tests/mobile_ui_test.php` (three
+  data-driven assertions on the CSS file content).
 - **#8** Honour `$CFG->preventexecpath` on the FFmpeg / MP4Box admin
   settings, in the spirit of upstream PR #58 by Adam Jenkins. Both
   `admin_setting_configtext_ffmpegcommand::validate()` and
