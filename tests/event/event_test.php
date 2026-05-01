@@ -92,6 +92,7 @@ final class event_test extends \advanced_testcase {
         ['vaid' => $vaid, 'context' => $context] = $this->build_fixture();
         $event = peer_review_submitted::create([
             'context' => $context,
+            'objectid' => 1001,
             'relateduserid' => 7,
             'other' => ['videoassessmentid' => $vaid, 'timing' => 'before'],
         ]);
@@ -115,6 +116,7 @@ final class event_test extends \advanced_testcase {
         ['vaid' => $vaid, 'context' => $context] = $this->build_fixture();
         $event = grade_assigned::create([
             'context' => $context,
+            'objectid' => 1002,
             'relateduserid' => 7,
             'other' => ['videoassessmentid' => $vaid, 'gradertype' => 'teacher', 'timing' => 'before'],
         ]);
@@ -137,6 +139,7 @@ final class event_test extends \advanced_testcase {
         ['vaid' => $vaid, 'context' => $context] = $this->build_fixture();
         $event = report_viewed::create([
             'context' => $context,
+            'objectid' => $vaid,
             'relateduserid' => 7,
             'other' => ['videoassessmentid' => $vaid],
         ]);
