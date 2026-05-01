@@ -22,9 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__.'/../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
-require_once(__DIR__.'/lib.php');
+require_once(__DIR__ . '/lib.php');
 try {
     $cmid = required_param('cmid', PARAM_INT);
     $file = required_param('file', PARAM_FILE);
@@ -38,7 +38,6 @@ try {
 
     $bulkupload = new videoassessment_bulkupload($cmid);
     $bulkupload->convert($file);
-
 } catch (Exception $ex) {
     header('HTTP/1.1 403 Forbidden');
     debugging($ex->__toString());

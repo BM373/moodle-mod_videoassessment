@@ -24,25 +24,25 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$services = array(
-    'videoassessment_pluginservice' => array(                      // the name of the web service
-        'functions' => array (
+$services = [
+    'videoassessment_pluginservice' => [                      // the name of the web service
+        'functions' => [
             'mod_videoassessment_get_getallcomments',
             'mod_videoassessment_get_coursesbycategory',
             'mod_videoassessment_get_sectionsbycourse',
             'mod_videoassessment_assignclass_sort_group',
-        ),
-        'requiredcapability' => '',                // if set, the web service user need this capability to access
+        ],
+        'requiredcapability' => '', // if set, the web service user need this capability to access
                                                     // any function of this service. For example: 'some/capability:specified'
-        'restrictedusers' => 0,                      // if enabled, the Moodle administrator must link some user to this service
+        'restrictedusers' => 0, // if enabled, the Moodle administrator must link some user to this service
                                                     // into the administration
-        'enabled' => 1,                               // if enabled, the service can be reachable on a default installation
+        'enabled' => 1, // if enabled, the service can be reachable on a default installation
         'shortname' => 'videoassessment_service', // the short name used to refer to this service from elsewhere including when fetching a token
-    ),
-);
+    ],
+];
 
-$functions = array(
-    'mod_videoassessment_get_getallcomments' => array(
+$functions = [
+    'mod_videoassessment_get_getallcomments' => [
         'classname'     => 'mod_videoassessment_external',
         'methodname'    => 'get_getallcomments',
         'classpath'     => 'mod/videoassessment/externallib.php',
@@ -50,9 +50,9 @@ $functions = array(
         'type'          => 'read',
         'ajax'          => true,
         'capabilities'  => 'mod/videoassessment:viewcomments',
-        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    ),
-    'mod_videoassessment_get_coursesbycategory' => array(
+        'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+    'mod_videoassessment_get_coursesbycategory' => [
         'classname'     => 'mod_videoassessment_external',
         'methodname'    => 'get_coursesbycategory',
         'classpath'     => 'mod/videoassessment/externallib.php',
@@ -60,9 +60,9 @@ $functions = array(
         'type'          => 'read',
         'ajax'          => true,
         'capabilities'  => 'mod/videoassessment:fetchcourses',
-        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    ),
-    'mod_videoassessment_get_sectionsbycourse' => array(
+        'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+    'mod_videoassessment_get_sectionsbycourse' => [
         'classname'     => 'mod_videoassessment_external',
         'methodname'    => 'get_sectionsbycourse',
         'classpath'     => 'mod/videoassessment/externallib.php',
@@ -70,9 +70,9 @@ $functions = array(
         'type'          => 'read',
         'ajax'          => true,
         'capabilities'  => 'mod/videoassessment:fetchsections',
-        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    ),
-    'mod_videoassessment_assignclass_sort_group' => array(
+        'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+    'mod_videoassessment_assignclass_sort_group' => [
         'classname'     => 'mod_videoassessment_external',
         'methodname'    => 'assignclass_sort_group',
         'classpath'     => 'mod/videoassessment/externallib.php',
@@ -80,6 +80,6 @@ $functions = array(
         'type'          => 'write',
         'ajax'          => true,
         'capabilities'  => 'mod/videoassessment:managesorting',
-        'services'      => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    ),
-);
+        'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+];

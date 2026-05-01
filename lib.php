@@ -46,7 +46,7 @@ define('VIDEOASSESS_EVENT_TYPE_GRADINGDUE', 'gradingdue');
  */
 function videoassessment_add_instance($va, $form) {
     global $DB, $CFG;
-    
+
     // Initialize gradepass fields immediately to ensure they're always set
     // Default to 0 if not already set
     if (!isset($va->gradepass) || $va->gradepass === null) {
@@ -55,7 +55,7 @@ function videoassessment_add_instance($va, $form) {
     if (!isset($va->gradepass_videoassessment) || $va->gradepass_videoassessment === null) {
         $va->gradepass_videoassessment = 0.0;
     }
-    
+
     if (isset($va->isquickSetup) && $va->isquickSetup == 1) {
         if ($va->isselfassesstype == 1 || $va->ispeerassesstype == 1 || $va->isteacherassesstype == 1 || $va->isclassassesstype == 1) {
             if ($va->isselfassesstype == 1) {
@@ -97,16 +97,16 @@ function videoassessment_add_instance($va, $form) {
     // Our form's get_data() ensures gradepass is always set (defaults to 0 if empty).
     // Moodle core processes gradepass AFTER add_instance in edit_module_post_actions(),
     // so we need to ensure it's set in $va (which is $moduleinfo) so Moodle core can read it.
-    
+
     // DEBUG: Log what we receive in add_instance
     error_log('=== VIDEOASSESSMENT add_instance() DEBUG ===');
     error_log('$va->gradepass (initial): ' . var_export(property_exists($va, 'gradepass') ? $va->gradepass : 'NOT SET', true));
     error_log('$_POST[gradepass]: ' . var_export(isset($_POST['gradepass']) ? $_POST['gradepass'] : 'NOT SET', true));
     error_log('$va object keys: ' . implode(', ', array_keys((array)$va)));
-    
+
     // ALWAYS initialize to 0 - this ensures the field is never null
     $gradepassvalue = 0.0;
-    
+
     // Priority 1: Check $_POST directly first (most reliable - raw form submission)
     // This ensures we get the actual value the user entered, before any form processing
     // Note: Empty text fields may not be in $_POST, or may be empty string
@@ -124,7 +124,7 @@ function videoassessment_add_instance($va, $form) {
         }
         // If POST has gradepass but it's empty, keep default of 0
     }
-    
+
     // Priority 2: Check $va object (form's get_data() processed value)
     // Our form's get_data() ensures gradepass is always set (defaults to 0 if empty)
     if (property_exists($va, 'gradepass')) {
@@ -142,36 +142,36 @@ function videoassessment_add_instance($va, $form) {
             }
         }
     }
-    
+
     // If we still don't have a value (shouldn't happen, but be safe), ensure it's 0
     if ($gradepassvalue === null || !is_numeric($gradepassvalue)) {
         $gradepassvalue = 0.0;
         error_log('Forced gradepassvalue to 0.0 (was null or not numeric)');
     }
-    
+
     // Ensure value is valid (non-negative)
     if ($gradepassvalue < 0) {
         $gradepassvalue = 0.0;
     }
-    
+
     // Convert to float to ensure it's numeric - ALWAYS do this
     $gradepassvalue = (float)$gradepassvalue;
-    
+
     error_log('Final gradepassvalue before setting: ' . $gradepassvalue);
-    
+
     // CRITICAL: ALWAYS set gradepass in $va ($moduleinfo) so Moodle core can read it in edit_module_post_actions()
     // Moodle core checks: if (isset($moduleinfo->{$gradepassfieldname})) where fieldname is 'gradepass' for itemnumber 0
     // We MUST set this so Moodle core can process it - ALWAYS set it, even if 0
     $va->gradepass = $gradepassvalue;
-    
+
     // Also ALWAYS set the database field for our module table - this ensures it's saved to DB
     $va->gradepass_videoassessment = $gradepassvalue;
-    
+
     // FINAL CHECK before database insert: Ensure both fields are ALWAYS set and numeric
     // This is a last resort to guarantee the values are set before DB insert
     $va->gradepass = (float)$gradepassvalue;
     $va->gradepass_videoassessment = (float)$gradepassvalue;
-    
+
     // Double-check: if somehow they're still null, force them to 0
     if (!isset($va->gradepass) || $va->gradepass === null) {
         $va->gradepass = 0.0;
@@ -179,17 +179,17 @@ function videoassessment_add_instance($va, $form) {
     if (!isset($va->gradepass_videoassessment) || $va->gradepass_videoassessment === null) {
         $va->gradepass_videoassessment = 0.0;
     }
-    
+
     // Ensure they're numeric (cast to float, then to int for database INTEGER field)
     $va->gradepass = (float)$va->gradepass;
     $va->gradepass_videoassessment = (float)$va->gradepass_videoassessment;
-    
+
     error_log('Before DB insert - $va->gradepass: ' . var_export($va->gradepass, true));
     error_log('Before DB insert - $va->gradepass_videoassessment: ' . var_export($va->gradepass_videoassessment, true));
     error_log('=== END add_instance() DEBUG ===');
-    
+
     $va->id = $DB->insert_record('videoassessment', $va);
-    
+
     // DEBUG: Check what was actually inserted (only if fields exist)
     if ($va->id) {
         try {
@@ -213,7 +213,7 @@ function videoassessment_add_instance($va, $form) {
     // Do NOT check for submitbutton_rubric as that might be set incorrectly.
     // Only rely on the redirect_to_rubric hidden field which is set by JavaScript when the rubric button is clicked.
     $rubricbuttonclicked = false;
-    
+
     // Check $_POST first (most reliable for form submissions).
     if (!empty($_POST['redirect_to_rubric']) && ($_POST['redirect_to_rubric'] == '1' || $_POST['redirect_to_rubric'] == 1)) {
         $rubricbuttonclicked = true;
@@ -221,7 +221,7 @@ function videoassessment_add_instance($va, $form) {
         $rubricbuttonclicked = true;
     }
     // Explicitly DO NOT check for submitbutton_rubric to avoid false positives.
-    
+
     // IMPORTANT: If rubric button was NOT clicked, clear advanced grading method fields
     // to prevent Moodle core from redirecting to grading management page.
     // Moodle core redirects when advanced grading method is set but no form exists.
@@ -240,7 +240,7 @@ function videoassessment_add_instance($va, $form) {
             }
         }
     }
-    
+
     if ($rubricbuttonclicked) {
         // Use user preference with timestamp to avoid "session mutated after closed" error.
         // Store timestamp to ensure redirect only happens if preference is recent.
@@ -324,10 +324,10 @@ function videoassessment_update_instance($va, $form) {
             // For itemnumber 0 (which maps to 'grading'), the field name is just 'gradepass'.
             // Moodle core processes gradepass AFTER update_instance in edit_module_post_actions(),
             // so we need to ensure it's set in $va (which is $moduleinfo) so Moodle core can read it.
-            
+
             $gradepassvalue = null;
             $gradepassfound = false;
-            
+
             // Priority 1: Check $_POST directly (most reliable source for form submissions)
             if (isset($_POST['gradepass']) && $_POST['gradepass'] !== '' && $_POST['gradepass'] !== null) {
                 // unformat_float is available from lib/moodlelib.php (always loaded)
@@ -337,13 +337,13 @@ function videoassessment_update_instance($va, $form) {
                     $gradepassfound = true;
                 }
             }
-            
+
             // Priority 2: Check $va object (processed form data from form->get_data())
             if (!$gradepassfound && property_exists($va, 'gradepass') && $va->gradepass !== '' && $va->gradepass !== null && (is_numeric($va->gradepass) || $va->gradepass === 0 || $va->gradepass === '0')) {
                 $gradepassvalue = (float)$va->gradepass;
                 $gradepassfound = true;
             }
-            
+
             // Priority 3: Check form object if available
             if (!$gradepassfound && $form && method_exists($form, 'get_data')) {
                 $formdata = $form->get_data();
@@ -352,7 +352,7 @@ function videoassessment_update_instance($va, $form) {
                     $gradepassfound = true;
                 }
             }
-            
+
             // Set gradepass from form data if provided, otherwise keep existing value or default to 0.
             if ($gradepassfound && $gradepassvalue !== null) {
                 // Convert to float and ensure it's a valid number.
@@ -384,7 +384,6 @@ function videoassessment_update_instance($va, $form) {
                 }
             }
         }
-        
 
         // Note: advancedgradingmethod_* fields are processed by Moodle core's edit_module_post_actions()
         // which calls set_active_method() on the grading manager. We should not clear these fields.
@@ -392,11 +391,11 @@ function videoassessment_update_instance($va, $form) {
         require_once($CFG->dirroot . '/grade/grading/lib.php');
         $gradingman = get_grading_manager($cm->context, 'mod_videoassessment');
         $areas = $gradingman->get_available_areas();
-        
+
         foreach ($areas as $areaname => $areatitle) {
             $formfield = 'advancedgradingmethod_' . $areaname;
             $gradingman->set_area($areaname);
-            
+
             // If method is not set but a rubric definition exists, set it to 'rubric'.
             if (empty($va->$formfield)) {
                 $controller = $gradingman->get_controller('rubric');
@@ -439,16 +438,18 @@ function videoassessment_update_instance($va, $form) {
         $va->numberofpeers = $va->usedpeers;
     }
 
-    $oldva = $DB->get_record('videoassessment', array('id' => $va->id));
+    $oldva = $DB->get_record('videoassessment', ['id' => $va->id]);
 
     $DB->update_record('videoassessment', $va);
     videoassessment_update_calendar($va);
-    if ($oldva->ratingteacher != $va->ratingteacher
+    if (
+        $oldva->ratingteacher != $va->ratingteacher
         || $oldva->ratingself != $va->ratingself
-        || $oldva->ratingpeer != $va->ratingpeer) {
+        || $oldva->ratingpeer != $va->ratingpeer
+    ) {
         require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 
-        $course = $DB->get_record('course', array('id' => $va->course), '*', MUST_EXIST);
+        $course = $DB->get_record('course', ['id' => $va->course], '*', MUST_EXIST);
         $vaobj = new mod_videoassessment\va(context_module::instance($cm->id), $cm, $course);
         $vaobj->regrade();
     }
@@ -463,7 +464,7 @@ function videoassessment_update_instance($va, $form) {
     // Do NOT check for submitbutton_rubric as that might be set incorrectly.
     // Only rely on the redirect_to_rubric hidden field which is set by JavaScript when the rubric button is clicked.
     $rubricbuttonclicked = false;
-    
+
     // Check $_POST first (most reliable for form submissions).
     if (!empty($_POST['redirect_to_rubric']) && ($_POST['redirect_to_rubric'] == '1' || $_POST['redirect_to_rubric'] == 1)) {
         $rubricbuttonclicked = true;
@@ -471,7 +472,7 @@ function videoassessment_update_instance($va, $form) {
         $rubricbuttonclicked = true;
     }
     // Explicitly DO NOT check for submitbutton_rubric to avoid false positives.
-    
+
     // IMPORTANT: If rubric button was NOT clicked, clear advanced grading method fields
     // to prevent Moodle core from redirecting to grading management page.
     // Moodle core redirects when advanced grading method is set but no form exists.
@@ -490,7 +491,7 @@ function videoassessment_update_instance($va, $form) {
             }
         }
     }
-    
+
     if ($rubricbuttonclicked) {
         // Use user preference with timestamp to avoid "session mutated after closed" error.
         // Store timestamp to ensure redirect only happens if preference is recent.
@@ -557,13 +558,13 @@ function videoassessment_save_peer_assignments($videoassessmentid, $peerassignme
 function videoassessment_delete_instance($id) {
     global $DB;
 
-    $DB->delete_records('videoassessment', array('id' => $id));
-    $DB->delete_records('videoassessment_aggregation', array('videoassessment' => $id));
-    $DB->delete_records('videoassessment_grades', array('videoassessment' => $id));
-    $DB->delete_records('videoassessment_grade_items', array('videoassessment' => $id));
-    $DB->delete_records('videoassessment_peers', array('videoassessment' => $id));
-    $DB->delete_records('videoassessment_videos', array('videoassessment' => $id));
-    $DB->delete_records('videoassessment_video_assocs', array('videoassessment' => $id));
+    $DB->delete_records('videoassessment', ['id' => $id]);
+    $DB->delete_records('videoassessment_aggregation', ['videoassessment' => $id]);
+    $DB->delete_records('videoassessment_grades', ['videoassessment' => $id]);
+    $DB->delete_records('videoassessment_grade_items', ['videoassessment' => $id]);
+    $DB->delete_records('videoassessment_peers', ['videoassessment' => $id]);
+    $DB->delete_records('videoassessment_videos', ['videoassessment' => $id]);
+    $DB->delete_records('videoassessment_video_assocs', ['videoassessment' => $id]);
 
     return true;
 }
@@ -578,7 +579,7 @@ function videoassessment_delete_instance($id) {
  * @return boolean|null True if supported, false if not, null if unknown
  */
 function videoassessment_supports($feature) {
-    switch ($feature){
+    switch ($feature) {
         case FEATURE_GROUPS:
             return true;
         case FEATURE_GROUPINGS:
@@ -621,13 +622,13 @@ function videoassessment_supports($feature) {
  * @return array Associative array of grading area keys and names
  */
 function videoassessment_grading_areas_list() {
-    return array(
+    return [
         'beforeteacher' => get_string('teacher', 'videoassessment'),
         'beforetraining' => get_string('trainingpretest', 'videoassessment'),
         'beforeself' => get_string('self', 'videoassessment'),
         'beforepeer' => get_string('peer', 'videoassessment'),
         'beforeclass' => get_string('class', 'videoassessment'),
-    );
+    ];
 }
 
 /**
@@ -659,7 +660,7 @@ function mod_videoassessment_pluginfile($course, $cm, $context, $filearea, $args
         $filename = array_pop($args);
         // URL decode the filename in case it contains encoded characters (e.g., %20 for space).
         $filename = urldecode($filename);
-        
+
         // Build filepath from remaining args (subdirectories).
         $filepath = '/';
         if (!empty($args)) {
@@ -667,10 +668,10 @@ function mod_videoassessment_pluginfile($course, $cm, $context, $filearea, $args
         }
 
         $fs = get_file_storage();
-        
+
         // First try to get the file with the constructed filepath.
         $file = $fs->get_file($context->id, 'mod_videoassessment', $filearea, $itemid, $filepath, $filename);
-        
+
         // If not found, search all files in this itemid for a matching filename.
         // This handles cases where files are stored in subdirectories or filepath doesn't match exactly.
         if (!$file || $file->is_directory()) {
@@ -694,7 +695,7 @@ function mod_videoassessment_pluginfile($course, $cm, $context, $filearea, $args
                 }
             }
         }
-        
+
         if (!$file || $file->is_directory()) {
             send_file_not_found();
         }
@@ -759,8 +760,10 @@ function videoassessment_convert_video($event, $va) {
 
                 $upload->convert($tmpname);
 
-                $DB->execute("UPDATE {videoassessment} SET trainingvideoid = ?, trainingvideo = 0 WHERE id = ?",
-                    array($videoid, $va->id));
+                $DB->execute(
+                    "UPDATE {videoassessment} SET trainingvideoid = ?, trainingvideo = 0 WHERE id = ?",
+                    [$videoid, $va->id]
+                );
             }
         }
     }
@@ -778,11 +781,11 @@ function videoassessment_convert_video($event, $va) {
 function videoassessment_check_has_grade($videoassessment) {
     global $DB;
 
-    $hasgrade = array();
+    $hasgrade = [];
     $gradetypes = videoassessment_grading_areas_list();
     foreach ($gradetypes as $key => $gradetype) {
         $sql = 'SELECT * from {videoassessment_grade_items} WHERE videoassessment=? AND type like ?';
-        $params = array($videoassessment, $key);
+        $params = [$videoassessment, $key];
         $hasgrade[$key] = $DB->record_exists_sql($sql, $params);
     }
 
@@ -801,9 +804,9 @@ function videoassessment_check_has_grade($videoassessment) {
 function videoassessment_get_areas($contextid) {
     global $DB;
 
-    $areas = array();
+    $areas = [];
     $sql = 'SELECT id, areaname FROM {grading_areas} WHERE contextid = ?';
-    $params = array($contextid);
+    $params = [$contextid];
 
     if ($arealists = $DB->get_records_sql($sql, $params)) {
         foreach ($arealists as $area) {
@@ -826,7 +829,7 @@ function videoassessment_get_areas($contextid) {
 function videoassessment_get_areaname_by_id($id) {
     global $DB;
 
-    return $DB->get_field('grading_areas', 'areaname', array('id' => $id));
+    return $DB->get_field('grading_areas', 'areaname', ['id' => $id]);
 }
 
 /**
@@ -839,8 +842,10 @@ function videoassessment_get_areaname_by_id($id) {
  * @return boolean True if intro should be shown, false otherwise
  */
 function videoassessment_show_intro($va) {
-    if ($va->showdescription ||
-        time() > $va->allowsubmissionsfromdate) {
+    if (
+        $va->showdescription ||
+        time() > $va->allowsubmissionsfromdate
+    ) {
         return true;
     }
     return false;
@@ -883,15 +888,15 @@ function videoassessment_update_calendar($va) {
     // to support module events with file areas.
     $intro = strip_pluginfile_content($intro);
     if (videoassessment_show_intro($va)) {
-        $event->description = array(
+        $event->description = [
             'text' => $intro,
             'format' => $instance->introformat,
-        );
+        ];
     } else {
-        $event->description = array(
+        $event->description = [
             'text' => '',
             'format' => $instance->introformat,
-        );
+        ];
     }
 
     $eventtype = VIDEOASSESS_EVENT_TYPE_DUE;
@@ -905,7 +910,7 @@ function videoassessment_update_calendar($va) {
                        AND eventtype = :eventtype
                        AND groupid = 0
                        AND courseid <> 0";
-        $params = array('modulename' => 'videoassessment', 'instance' => $instance->id, 'eventtype' => $eventtype);
+        $params = ['modulename' => 'videoassessment', 'instance' => $instance->id, 'eventtype' => $eventtype];
         $event->id = $DB->get_field_select('event', 'id', $select, $params);
 
         // Now process the event.
@@ -916,8 +921,8 @@ function videoassessment_update_calendar($va) {
             calendar_event::create($event, false);
         }
     } else {
-        $DB->delete_records('event', array('modulename' => 'videoassessment', 'instance' => $instance->id,
-            'eventtype' => $eventtype));
+        $DB->delete_records('event', ['modulename' => 'videoassessment', 'instance' => $instance->id,
+            'eventtype' => $eventtype]);
     }
 
     $eventtype = VIDEOASSESS_EVENT_TYPE_GRADINGDUE;
@@ -926,8 +931,8 @@ function videoassessment_update_calendar($va) {
         $event->eventtype = $eventtype;
         $event->timestart = $instance->gradingduedate;
         $event->timesort = $instance->gradingduedate;
-        $event->id = $DB->get_field('event', 'id', array('modulename' => 'videoassessment',
-            'instance' => $instance->id, 'eventtype' => $event->eventtype));
+        $event->id = $DB->get_field('event', 'id', ['modulename' => 'videoassessment',
+            'instance' => $instance->id, 'eventtype' => $event->eventtype]);
 
         // Now process the event.
         if ($event->id) {
@@ -937,8 +942,8 @@ function videoassessment_update_calendar($va) {
             calendar_event::create($event, false);
         }
     } else {
-        $DB->delete_records('event', array('modulename' => 'videoassessment', 'instance' => $instance->id,
-            'eventtype' => $eventtype));
+        $DB->delete_records('event', ['modulename' => 'videoassessment', 'instance' => $instance->id,
+            'eventtype' => $eventtype]);
     }
 
     return true;
@@ -965,32 +970,34 @@ function videoassessment_update_calendar($va) {
  */
 function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false) {
     global $DB, $CFG, $_SERVER;
-    
+
     require_once($CFG->dirroot . '/grade/grading/lib.php');
     require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
-    
+
     $scriptpath = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '';
     $requesturi = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-    
+
     // Check for deleteform parameter (deletion in progress).
     $deleteform = optional_param('deleteform', null, PARAM_INT);
     if (!empty($deleteform) || strpos($requesturi, 'deleteform=') !== false) {
         return; // Don't auto-duplicate during deletion.
     }
-    
+
     // If forceupdate is true, we're being called after template selection - allow execution.
     // Otherwise, skip auto-duplication if we're on the grading management page during other operations.
     if (!$forceupdate) {
         // Skip auto-duplication if we're on the grading management page.
         // This includes deletion, selection, and any other rubric management operations.
-        if (strpos($scriptpath, '/grade/grading/manage.php') !== false || 
+        if (
+            strpos($scriptpath, '/grade/grading/manage.php') !== false ||
             strpos($requesturi, '/grade/grading/manage.php') !== false ||
             strpos($scriptpath, '/grade/grading/pick.php') !== false ||
-            strpos($requesturi, '/grade/grading/pick.php') !== false) {
+            strpos($requesturi, '/grade/grading/pick.php') !== false
+        ) {
             // We're on a grading management page - skip auto-duplication to avoid interference.
             return;
         }
-        
+
         // Check for other grading management actions that might interfere.
         if (strpos($requesturi, 'action=') !== false) {
             // Check if it's a grading-related action.
@@ -1000,18 +1007,18 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             }
         }
     }
-    
+
     // Get all grading areas for this context.
     $allareas = $DB->get_records('grading_areas', ['contextid' => $contextid, 'component' => 'mod_videoassessment']);
-    
+
     if (empty($allareas)) {
         return; // No grading areas found.
     }
-    
+
     // Find any area that has a rubric definition (prefer teacher, but use any that exists).
     $sourcearea = null;
     $sourcedefinition = null;
-    
+
     // When forceupdate is true (template selection), find the most recently updated rubric.
     // Otherwise, prefer teacher area.
     if ($forceupdate) {
@@ -1031,14 +1038,14 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             $sourcedefinition = $recentdefinition;
         }
     }
-    
+
     // If not found yet, try to find teacher area with rubric.
     if (!$sourcearea) {
         foreach ($allareas as $area) {
             if ($area->areaname == 'beforeteacher') {
                 $definition = $DB->get_record('grading_definitions', [
                     'areaid' => $area->id,
-                    'method' => 'rubric'
+                    'method' => 'rubric',
                 ]);
                 if ($definition && $definition->status == gradingform_controller::DEFINITION_STATUS_READY) {
                     $sourcearea = $area;
@@ -1048,13 +1055,13 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             }
         }
     }
-    
+
     // If no teacher rubric found, check any other area that has a rubric.
     if (!$sourcearea) {
         foreach ($allareas as $area) {
             $definition = $DB->get_record('grading_definitions', [
                 'areaid' => $area->id,
-                'method' => 'rubric'
+                'method' => 'rubric',
             ]);
             if ($definition && $definition->status == gradingform_controller::DEFINITION_STATUS_READY) {
                 $sourcearea = $area;
@@ -1063,49 +1070,49 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             }
         }
     }
-    
+
     if (!$sourcearea || !$sourcedefinition) {
         return; // No rubric found in any area - don't try to duplicate.
     }
-    
+
     // Additional safety check: verify the source definition still exists and has criteria.
     // This prevents issues if the definition was deleted between the check and duplication.
     $criteriaexists = $DB->record_exists('gradingform_rubric_criteria', ['definitionid' => $sourcedefinition->id]);
     if (!$criteriaexists) {
         return; // Source definition has no criteria - don't duplicate.
     }
-    
+
     // Get video assessment instance to check which areas are enabled.
     $context = context::instance_by_id($contextid);
     if ($context->contextlevel != CONTEXT_MODULE) {
         return; // Not a module context.
     }
-    
+
     $cm = get_coursemodule_from_id('videoassessment', $context->instanceid, 0, false, IGNORE_MISSING);
     if (!$cm) {
         return; // Cannot find course module.
     }
-    
+
     $va = $DB->get_record('videoassessment', ['id' => $cm->instance]);
     if (!$va) {
         return;
     }
-    
+
     // Determine which areas need rubrics based on settings.
     $areas_to_duplicate = [];
-    
+
     // When forceupdate is true (template selection), always duplicate to class and teacher areas.
     $forceclassandteacher = false;
     if ($forceupdate) {
         // Check if class or teacher areas are enabled.
         $forceclassandteacher = (!empty($va->ratingclass) || !empty($va->ratingteacher));
     }
-    
+
     foreach ($allareas as $area) {
         if ($area->id == $sourcearea->id) {
             continue; // Skip the source area (wherever the rubric came from).
         }
-        
+
         // Check if this area should have a rubric based on settings.
         $needsrubric = false;
         if ($area->areaname == 'beforeteacher' && !empty($va->ratingteacher)) {
@@ -1117,17 +1124,17 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
         } else if ($area->areaname == 'beforeclass' && !empty($va->ratingclass)) {
             $needsrubric = true;
         }
-        
+
         // When template is selected, always duplicate to class and teacher areas.
         if ($forceclassandteacher && ($area->areaname == 'beforeclass' || $area->areaname == 'beforeteacher')) {
             $needsrubric = true;
         }
-        
+
         if ($needsrubric) {
             // Check if the target area already has a rubric definition.
             $targetdefinition = $DB->get_record('grading_definitions', [
                 'areaid' => $area->id,
-                'method' => 'rubric'
+                'method' => 'rubric',
             ]);
 
             // If forceupdate is true (template selection), always update class and teacher areas.
@@ -1136,13 +1143,17 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             if ($forceupdate && ($area->areaname == 'beforeclass' || $area->areaname == 'beforeteacher')) {
                 // Force update class and teacher areas when template is selected.
                 $shouldupdate = true;
-            } else if ($forceupdate && $sourcearea->areaname == 'beforeteacher' && 
-                ($area->areaname == 'beforeself' || $area->areaname == 'beforepeer')) {
+            } else if (
+                $forceupdate && $sourcearea->areaname == 'beforeteacher' &&
+                ($area->areaname == 'beforeself' || $area->areaname == 'beforepeer')
+            ) {
                 // Force update self and peer areas when teacher template is selected.
                 $shouldupdate = true;
-            } else if ($sourcearea->areaname == 'beforeteacher' && 
+            } else if (
+                $sourcearea->areaname == 'beforeteacher' &&
                        ($area->areaname == 'beforeself' || $area->areaname == 'beforepeer') &&
-                       $targetdefinition && $targetdefinition->status == gradingform_controller::DEFINITION_STATUS_READY) {
+                       $targetdefinition && $targetdefinition->status == gradingform_controller::DEFINITION_STATUS_READY
+            ) {
                 // Check if teacher rubric is newer than self/peer rubric.
                 if ($sourcedefinition->timemodified > $targetdefinition->timemodified) {
                     $shouldupdate = true;
@@ -1150,33 +1161,33 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             } else if (!$targetdefinition || $targetdefinition->status != gradingform_controller::DEFINITION_STATUS_READY) {
                 $shouldupdate = true;
             }
-            
+
             if ($shouldupdate) {
                 $areas_to_duplicate[] = $area;
             }
         }
     }
-    
+
     if (empty($areas_to_duplicate)) {
         return; // All areas already have rubrics.
     }
-    
+
     // Duplicate the rubric to each area that needs it.
     $transaction = $DB->start_delegated_transaction();
-    
+
     try {
         foreach ($areas_to_duplicate as $targetarea) {
             // Set the active method to 'rubric' for this area BEFORE creating the definition.
             // Use context/component/area approach to get the manager.
             $targetmanager = get_grading_manager($context, 'mod_videoassessment', $targetarea->areaname);
             $targetmanager->set_active_method('rubric');
-            
+
             // Check if this area already has a rubric definition - if so, delete it first.
             $existingdefinition = $DB->get_record('grading_definitions', [
                 'areaid' => $targetarea->id,
-                'method' => 'rubric'
+                'method' => 'rubric',
             ]);
-            
+
             if ($existingdefinition) {
                 // Delete existing criteria and levels first.
                 $existingcriteria = $DB->get_records('gradingform_rubric_criteria', ['definitionid' => $existingdefinition->id]);
@@ -1186,16 +1197,16 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
                 $DB->delete_records('gradingform_rubric_criteria', ['definitionid' => $existingdefinition->id]);
                 $DB->delete_records('grading_definitions', ['id' => $existingdefinition->id]);
             }
-            
+
             // Clone the definition from source area.
             $newdefinition = clone $sourcedefinition;
             unset($newdefinition->id);
             $newdefinition->areaid = $targetarea->id;
             $newdefinition->timecreated = time();
             $newdefinition->timemodified = time();
-            
+
             $newdefinitionid = $DB->insert_record('grading_definitions', $newdefinition);
-            
+
             // Copy criteria from source area.
             $criteria = $DB->get_records('gradingform_rubric_criteria', ['definitionid' => $sourcedefinition->id], 'sortorder ASC');
             foreach ($criteria as $criterion) {
@@ -1206,7 +1217,7 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
                 $newcriterion->description = $criterion->description;
                 $newcriterion->descriptionformat = $criterion->descriptionformat;
                 $newcriterionid = $DB->insert_record('gradingform_rubric_criteria', $newcriterion);
-                
+
                 // Copy levels for this criterion.
                 $levels = $DB->get_records('gradingform_rubric_levels', ['criterionid' => $criterion->id], 'score ASC');
                 foreach ($levels as $level) {
@@ -1220,7 +1231,7 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
                 }
             }
         }
-        
+
         $transaction->allow_commit();
     } catch (Exception $e) {
         $transaction->rollback($e);
@@ -1236,32 +1247,33 @@ function videoassessment_extend_settings_navigation($settings, navigation_node $
     }
     $hasgrade = videoassessment_check_has_grade($PAGE->cm->instance);
     $areas = videoassessment_get_areas($PAGE->cm->context->id);
-    
+
     // Auto-duplicate rubric ONLY when template is selected and confirmed.
     // Check if we're on manage.php after template selection (not during deletion or other operations).
     $deleteform = optional_param('deleteform', null, PARAM_INT);
     $shareform = optional_param('shareform', null, PARAM_INT);
     $setmethod = optional_param('setmethod', null, PARAM_ALPHANUMEXT);
-    
+
     // Only run if no management actions are in progress and we're on manage.php.
-    if (empty($deleteform) && empty($shareform) && empty($setmethod) && 
-        strpos($PAGE->url->get_path(), '/grade/grading/manage.php') !== false) {
+    if (
+        empty($deleteform) && empty($shareform) && empty($setmethod) &&
+        strpos($PAGE->url->get_path(), '/grade/grading/manage.php') !== false
+    ) {
         $areaid = optional_param('areaid', null, PARAM_INT);
         if ($areaid) {
             $area = $DB->get_record('grading_areas', ['id' => $areaid]);
 
             // Trigger auto-duplication for any area when a template is selected.
             if ($area && $area->component == 'mod_videoassessment') {
-
                 // Check if definition was just updated (within last 10 seconds) to detect template selection.
                 // This is a narrow window to catch only immediate template selections, not other updates.
                 $definition = $DB->get_record('grading_definitions', [
                     'areaid' => $areaid,
-                    'method' => 'rubric'
+                    'method' => 'rubric',
                 ]);
                 if ($definition) {
                     $recentlyupdated = (time() - $definition->timemodified) < 10;
-                    
+
                     // Only duplicate if definition was very recently updated (likely from template selection).
                     // This prevents interference with deletion or other operations that happen later.
                     if ($recentlyupdated) {
@@ -1290,21 +1302,20 @@ function videoassessment_extend_settings_navigation($settings, navigation_node $
         }
     }
     $checkgradehtml .= "</div>";
-    
+
     // Add to page footer via JavaScript to ensure it's output after DOCTYPE.
     $PAGE->requires->js_amd_inline("
         require(['jquery'], function(\$) {
             \$('body').append(" . json_encode($checkgradehtml) . ");
         });
     ");
-    
+
     $PAGE->requires->jquery();
-    $PAGE->requires->js_call_amd('mod_videoassessment/grademanage', 'init_grademanage', array());
-    
+    $PAGE->requires->js_call_amd('mod_videoassessment/grademanage', 'init_grademanage', []);
+
     // Always check if we're on the grading management page and change heading if needed.
     // This works even if this function is called from other contexts.
     $PAGE->requires->js_call_amd('mod_videoassessment/grading_heading', 'init');
-
 }
 
 /**
@@ -1328,7 +1339,7 @@ function mod_videoassessment_get_fontawesome_icon_map() {
 
 /**
  * Add page requirements for videoassessment module.
- * 
+ *
  * This function is called for course pages and allows us to inject
  * JavaScript that checks for pending grading redirects.
  *
@@ -1337,20 +1348,20 @@ function mod_videoassessment_get_fontawesome_icon_map() {
  */
 function videoassessment_cm_info_view(cm_info $cm) {
     global $PAGE, $CFG;
-    
+
     // Don't add redirect check if we're on a grading page - prevent any redirect logic from running.
     $currentpath = $PAGE->url->get_path();
     if (strpos($currentpath, '/grade/grading/') !== false) {
         // We're on a grading page - don't add any redirect check JavaScript.
         return;
     }
-    
+
     // Check if there's a pending redirect to grading page.
     // This handles the case where "Save and create rubric" was clicked.
     static $redirectChecked = false;
     if (!$redirectChecked) {
         $redirectChecked = true;
-        
+
         // Add inline JavaScript to check sessionStorage and redirect if needed.
         // Uses a unique token to ensure the redirect only happens once.
         $checkUrl = $CFG->wwwroot . '/mod/videoassessment/check_grading_redirect.php';

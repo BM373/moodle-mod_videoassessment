@@ -38,37 +38,37 @@ class backup_videoassessment_activity_structure_step extends backup_activity_str
 
         $userinfo = $this->get_setting_value('userinfo');
 
-        $va = new backup_nested_element('videoassessment', array('id'), array(
+        $va = new backup_nested_element('videoassessment', ['id'], [
                 'name', 'intro', 'introformat', 'maxbytes', 'timedue', 'timeavailable',
                 'grade', 'timemodified', 'ratingteacher', 'ratingself', 'ratingpeer',
                 'usedpeers', 'beforelabel', 'afterlabel', 'delayedteachergrade',
                 'allowstudentupload',
-        ));
-        $va->set_source_table('videoassessment', array('id' => backup::VAR_ACTIVITYID));
+        ]);
+        $va->set_source_table('videoassessment', ['id' => backup::VAR_ACTIVITYID]);
 
         if ($userinfo) {
             $videos = new backup_nested_element('videos');
-            $video = new backup_nested_element('video', array('id'), array(
+            $video = new backup_nested_element('video', ['id'], [
                     'filepath', 'filename', 'thumbnailname', 'originalname', 'timecreated',
-                    'timemodified'));
+                    'timemodified']);
 
             $videoassocs = new backup_nested_element('video_assocs');
-            $videoassoc = new backup_nested_element('video_assoc', array('id'), array(
-                    'videoid', 'associationtype', 'timing', 'associationid', 'timemodified'));
+            $videoassoc = new backup_nested_element('video_assoc', ['id'], [
+                    'videoid', 'associationtype', 'timing', 'associationid', 'timemodified']);
 
             $gradeitems = new backup_nested_element('grade_items');
-            $gradeitem = new backup_nested_element('grade_item', array('id'), array(
-                    'gradeduser', 'type', 'grader', 'usedbypeermarking'));
+            $gradeitem = new backup_nested_element('grade_item', ['id'], [
+                    'gradeduser', 'type', 'grader', 'usedbypeermarking']);
 
             $grades = new backup_nested_element('grades');
-            $grade = new backup_nested_element('grade', array('id'), array(
-                    'gradeitem', 'timemarked', 'grade', 'submissioncomment', 'mailed'));
+            $grade = new backup_nested_element('grade', ['id'], [
+                    'gradeitem', 'timemarked', 'grade', 'submissioncomment', 'mailed']);
 
             $aggregations = new backup_nested_element('aggregations');
-            $aggregation = new backup_nested_element('aggregation', array('id'), array(
+            $aggregation = new backup_nested_element('aggregation', ['id'], [
                     'userid', 'timing', 'timemodified', 'grade', 'gradebefore', 'gradeafter',
                     'gradebeforeteacher', 'gradebeforeself', 'gradebeforepeer', 'gradeafterteacher',
-                    'gradeafterself', 'gradeafterpeer'));
+                    'gradeafterself', 'gradeafterpeer']);
 
             $va->add_child($videos);
             $va->add_child($videoassocs);
@@ -82,11 +82,11 @@ class backup_videoassessment_activity_structure_step extends backup_activity_str
             $grades->add_child($grade);
             $aggregations->add_child($aggregation);
 
-            $video->set_source_table('videoassessment_videos', array('videoassessment' => backup::VAR_PARENTID));
-            $videoassoc->set_source_table('videoassessment_video_assocs', array('videoassessment' => backup::VAR_PARENTID));
-            $gradeitem->set_source_table('videoassessment_grade_items', array('videoassessment' => backup::VAR_PARENTID));
-            $grade->set_source_table('videoassessment_grades', array('videoassessment' => backup::VAR_PARENTID));
-            $aggregation->set_source_table('videoassessment_aggregation', array('videoassessment' => backup::VAR_PARENTID));
+            $video->set_source_table('videoassessment_videos', ['videoassessment' => backup::VAR_PARENTID]);
+            $videoassoc->set_source_table('videoassessment_video_assocs', ['videoassessment' => backup::VAR_PARENTID]);
+            $gradeitem->set_source_table('videoassessment_grade_items', ['videoassessment' => backup::VAR_PARENTID]);
+            $grade->set_source_table('videoassessment_grades', ['videoassessment' => backup::VAR_PARENTID]);
+            $aggregation->set_source_table('videoassessment_aggregation', ['videoassessment' => backup::VAR_PARENTID]);
 
             $va->annotate_files('mod_videoassessment', 'video', null);
         }

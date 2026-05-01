@@ -30,7 +30,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class automatic_file_deletion extends \core\task\scheduled_task {
-
     /**
      * Get the human-readable name of the scheduled task.
      *
@@ -152,4 +151,3 @@ class automatic_file_deletion extends \core\task\scheduled_task {
         }
     }
 }
-

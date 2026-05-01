@@ -47,7 +47,6 @@ class restore_videoassessment_activity_task extends restore_activity_task {
      * @return void
      */
     protected function define_my_settings() {
-
     }
 
     /**
@@ -58,7 +57,7 @@ class restore_videoassessment_activity_task extends restore_activity_task {
      * @return array List of content decoding rules
      */
     public static function define_decode_contents() {
-        $contents = array();
+        $contents = [];
 
         return $contents;
     }
@@ -71,9 +70,8 @@ class restore_videoassessment_activity_task extends restore_activity_task {
      * @return array List of URL decoding rules
      */
     public static function define_decode_rules() {
-        $rules = array();
+        $rules = [];
 
         return $rules;
     }
-
 }

@@ -26,7 +26,7 @@
  */
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/grade/grading/lib.php');
+require_once($CFG->dirroot . '/grade/grading/lib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/rubric/form_duplicate.php');
 
@@ -81,7 +81,7 @@ $PAGE->set_url($url);
 $PAGE->add_body_class('duplicate-page');
 
 // Set default data for duplicate form
-$data = new stdClass;
+$data = new stdClass();
 $data->id = $cmid;
 $data->contextid = $context->id;
 

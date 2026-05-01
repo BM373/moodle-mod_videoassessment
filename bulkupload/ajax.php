@@ -22,9 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__.'/../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
-require_once(__DIR__.'/lib.php');
+require_once(__DIR__ . '/lib.php');
 
 try {
     $cmid = required_param('cmid', PARAM_INT);
@@ -45,7 +45,6 @@ try {
         echo $progress;
         exit;
     }
-
 } catch (Exception $ex) {
     header('HTTP/1.1 403 Forbidden');
     debugging($ex->__toString());

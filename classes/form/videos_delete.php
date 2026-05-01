@@ -55,28 +55,28 @@ class videos_delete extends \moodleform {
         ob_start();
         $table = new \flexible_table('videos-delete');
         $table->set_attribute('class', 'generaltable');
-        $table->define_baseurl(new \moodle_url('/mod/videoassessment/deletevideos.php', array('id' => $va->cm->id)));
-        $columns = array(
+        $table->define_baseurl(new \moodle_url('/mod/videoassessment/deletevideos.php', ['id' => $va->cm->id]));
+        $columns = [
                 'checkbox',
                 'thumbnail',
                 'size',
                 'grade',
-        );
-        $checkall = \html_writer::empty_tag('input', array(
+        ];
+        $checkall = \html_writer::empty_tag('input', [
                 'type' => 'checkbox',
                 'id' => 'all-video-check',
-        ));
-        $headers = array(
+        ]);
+        $headers = [
                 $checkall,
                 va::str('video'),
                 get_string('size'),
                 get_string('grade'),
-        );
+        ];
         $table->define_columns($columns);
         $table->define_headers($headers);
         $table->setup();
 
-        $videorecs = $DB->get_records('videoassessment_videos', array('videoassessment' => $va->instance));
+        $videorecs = $DB->get_records('videoassessment_videos', ['videoassessment' => $va->instance]);
         $o = '';
         foreach ($videorecs as $videorec) {
             $video = new video($va->context, $videorec);
@@ -89,15 +89,15 @@ class videos_delete extends \moodleform {
             $assocs = $va->get_video_associations($videorec->id);
             $gradecell = '';
             foreach ($assocs as $assoc) {
-                if ($user = $DB->get_record('user', array('id' => $assoc->associationid))) {
-                    $gradecell .= $OUTPUT->user_picture($user).' ';
-                    $gradecell .= fullname($user).' ';
+                if ($user = $DB->get_record('user', ['id' => $assoc->associationid])) {
+                    $gradecell .= $OUTPUT->user_picture($user) . ' ';
+                    $gradecell .= fullname($user) . ' ';
                 }
                 $grade = $va->get_aggregated_grades($assoc->associationid);
                 foreach ($va->timings as $timing) {
-                    $prop = 'grade'.$timing;
+                    $prop = 'grade' . $timing;
                     if ($grade->$prop != -1) {
-                        $gradecell .= va::str($timing).': '.$grade->$prop.' ';
+                        $gradecell .= va::str($timing) . ': ' . $grade->$prop . ' ';
 
                         $videorec->grade = max($videorec->grade, $grade->$prop);
                     }
@@ -122,13 +122,18 @@ class videos_delete extends \moodleform {
         });
 
         foreach ($videorecs as $videorec) {
-            $table->add_data(array(
-                    \html_writer::checkbox('videos['.$videorec->id.']', 1, false, '',
-                            array('class' => 'video-check')),
+            $table->add_data([
+                    \html_writer::checkbox(
+                        'videos[' . $videorec->id . ']',
+                        1,
+                        false,
+                        '',
+                        ['class' => 'video-check']
+                    ),
                     $videorec->link,
                     display_size($videorec->filesize),
                     $videorec->gradecell,
-            ));
+            ]);
         }
 
         $table->finish_output();

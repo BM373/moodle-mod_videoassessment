@@ -84,11 +84,11 @@ class videoassessment_bulkupload {
         if (!$this->cm) {
             throw new moodle_exception('invalidcoursemodule');
         }
-        $this->assessment = $DB->get_record('videoassessment', array('id' => $this->cm->instance));
+        $this->assessment = $DB->get_record('videoassessment', ['id' => $this->cm->instance]);
         if (!$this->assessment) {
             throw new moodle_exception('invalidid', 'videoassessment');
         }
-        $this->course = $DB->get_record('course', array('id' => $this->assessment->course));
+        $this->course = $DB->get_record('course', ['id' => $this->assessment->course]);
         if (!$this->course) {
             throw new moodle_exception('coursemisconf', 'videoassessment');
         }
@@ -177,9 +177,11 @@ class videoassessment_bulkupload {
         $base = time();
         $i = 0;
         while (true) {
-            $tmpname = $base.$i.'.'.$ext;
-            if (!file_exists($tmpdir.'/upload/'.$tmpname)
-                && !file_exists($tmpdir.'/convert/'.$tmpname)) {
+            $tmpname = $base . $i . '.' . $ext;
+            if (
+                !file_exists($tmpdir . '/upload/' . $tmpname)
+                && !file_exists($tmpdir . '/convert/' . $tmpname)
+            ) {
                 break;
             }
             $i++;
@@ -201,9 +203,9 @@ class videoassessment_bulkupload {
         global $CFG;
 
         try {
-            $srcpath = $this->get_tempdir().'/upload/'.$name;
+            $srcpath = $this->get_tempdir() . '/upload/' . $name;
             $base = pathinfo($name, PATHINFO_FILENAME);
-            $path = $this->get_tempdir().'/convert/'.$base;
+            $path = $this->get_tempdir() . '/convert/' . $base;
 
             $videoformat = $CFG->videoassessment_videoformat;
             $thumbformat = self::THUMBNAIL_FORMAT;
@@ -211,10 +213,10 @@ class videoassessment_bulkupload {
             // Convert video.
             $command = $CFG->videoassessment_ffmpegcommand;
             $command = self::fix_ffmpeg_options($command, $videoformat);
-            $cmdline = strtr($command, array(
+            $cmdline = strtr($command, [
                 '{INPUT}'  => escapeshellarg($srcpath),
-                '{OUTPUT}' => escapeshellarg($path.$videoformat),
-            )) . ' > ' . escapeshellarg("$path.log") . ' 2>&1';
+                '{OUTPUT}' => escapeshellarg($path . $videoformat),
+            ]) . ' > ' . escapeshellarg("$path.log") . ' 2>&1';
             $retval = self::exec_nolimit($cmdline);
             if ($retval != 0) {
                 throw new Exception("failed to execute: $cmdline");
@@ -222,24 +224,28 @@ class videoassessment_bulkupload {
             // Generate thumbnail.
             $command = $CFG->videoassessment_ffmpegthumbnailcommand;
             $command = self::fix_ffmpeg_options($command, $thumbformat);
-            $cmdline = strtr($command, array(
-                '{INPUT}'  => escapeshellarg($path.$videoformat),
+            $cmdline = strtr($command, [
+                '{INPUT}'  => escapeshellarg($path . $videoformat),
                 '{OUTPUT}' => escapeshellarg($path . $thumbformat),
-                )) . ' > ' . escapeshellarg($path . $thumbformat . '.log') . ' 2>&1';
+                ]) . ' > ' . escapeshellarg($path . $thumbformat . '.log') . ' 2>&1';
             $retval = self::exec_nolimit($cmdline);
             if ($retval != 0) {
                 throw new Exception("failed to execute: $cmdline");
             }
             // Generate a hint track for progressive playback (MP4 only).
-            if ($videoformat == '.mp4' &&
-                !empty($CFG->videoassessment_mp4boxcommand)) {
+            if (
+                $videoformat == '.mp4' &&
+                !empty($CFG->videoassessment_mp4boxcommand)
+            ) {
                 // Network-mounted directories may fail to rename,
                 // so save as a different name and copy & delete.
-                $cmdline = sprintf('%s -hint %s -out %s >%s 2>&1',
+                $cmdline = sprintf(
+                    '%s -hint %s -out %s >%s 2>&1',
                     $CFG->videoassessment_mp4boxcommand,
                     escapeshellarg($path . $videoformat),
                     escapeshellarg($path . '.hint.mp4'),
-                    escapeshellarg($path . '.box.log'));
+                    escapeshellarg($path . '.box.log')
+                );
                 $retval = self::exec_nolimit($cmdline);
                 if ($retval == 0 && file_exists($path . '.hint.mp4')) {
                     @copy($path . '.hint.mp4', $path . $videoformat);
@@ -248,15 +254,14 @@ class videoassessment_bulkupload {
             }
 
             // Move to Moodle Storage (Overwrite).
-            $file = $this->store_file($path . $videoformat, $base.$videoformat, true);
-            $thumbnail = $this->store_file($path . $thumbformat, $base.$thumbformat, true);
+            $file = $this->store_file($path . $videoformat, $base . $videoformat, true);
+            $thumbnail = $this->store_file($path . $thumbformat, $base . $thumbformat, true);
             $this->video_data_update($name, $file, $thumbnail);
             @unlink($path . $videoformat);
             @unlink($path . $thumbformat);
 
             // Delete origin file.
             @unlink($srcpath);
-
         } catch (Exception $ex) {
             @file_put_contents("$path.err", $ex->getMessage());
             throw $ex;
@@ -333,8 +338,10 @@ class videoassessment_bulkupload {
     private function video_data_update($tmpname, stored_file $file, stored_file $thumbnail) {
         global $DB;
 
-        $video = $DB->get_record('videoassessment_videos',
-                ['videoassessment' => $this->assessment->id, 'tmpname' => $tmpname]);
+        $video = $DB->get_record(
+            'videoassessment_videos',
+            ['videoassessment' => $this->assessment->id, 'tmpname' => $tmpname]
+        );
         if (!$video) {
             throw new coding_exception(get_string('errornovideorecord', 'videoassessment'));
         }
@@ -361,9 +368,9 @@ class videoassessment_bulkupload {
         if (!$name) {
             throw new moodle_exception('nofile');
         }
-        $uploadpath = $this->get_tempdir().'/upload/'.$name;
+        $uploadpath = $this->get_tempdir() . '/upload/' . $name;
         $base = pathinfo($name, PATHINFO_FILENAME);
-        $convertpath = $this->get_tempdir().'/convert/'.$base;
+        $convertpath = $this->get_tempdir() . '/convert/' . $base;
 
         if (file_exists("$convertpath.err")) {
             debugging("$convertpath.err exists");
@@ -399,8 +406,7 @@ class videoassessment_bulkupload {
         $files = array_filter($files, function (stored_file $file) {
             return !$file->is_directory() && preg_match('/\.(mp4|mov|avi|webm|ogv|flv|mkv)$/i', $file->get_filename());
         });
-        uasort($files, function ($lhs, $rhs)
-        {
+        uasort($files, function ($lhs, $rhs) {
             return -strnatcasecmp($lhs->get_filename(), $rhs->get_filename());
         });
         return $files;
@@ -424,13 +430,13 @@ class videoassessment_bulkupload {
                 $file->delete();
             }
         }
-        $record = array(
+        $record = [
             'contextid' => $this->context->id,
             'component' => 'mod_videoassessment',
             'filearea'  => 'video',
             'itemid'    => 0,
             'filepath'  => '/',
-            'filename'  => $name);
+            'filename'  => $name];
         return $fs->create_file_from_pathname($record, $path);
     }
 
@@ -449,21 +455,44 @@ class videoassessment_bulkupload {
         $fs = get_file_storage();
         $record = new stdClass();
         $record->filepath = $newpath;
-        if ($rename && $fs->file_exists($file->get_contextid(),
-            'mod_videoassessment', 'video', 0, '/', $file->get_filename())) {
+        if (
+            $rename && $fs->file_exists(
+                $file->get_contextid(),
+                'mod_videoassessment',
+                'video',
+                0,
+                '/',
+                $file->get_filename()
+            )
+        ) {
             $ext = pathinfo($file->get_filename(), PATHINFO_EXTENSION);
             $name = pathinfo($file->get_filename(), PATHINFO_FILENAME);
             for ($i = 1; $i == 0; $i++) {
                 $record->filename = sprintf('%s-%d.%s', $name, $i, $ext);
-                if (!$fs->file_exists($file->get_contextid(),
-                    'mod_videoassessment', 'video', 0, '/', $record->filename)) {
+                if (
+                    !$fs->file_exists(
+                        $file->get_contextid(),
+                        'mod_videoassessment',
+                        'video',
+                        0,
+                        '/',
+                        $record->filename
+                    )
+                ) {
                     break;
                 }
             }
         }
-        if ($thumbfile = $fs->get_file($file->get_contextid(),
-            'mod_videoassessment', 'video', 0, $file->get_filepath(),
-            pathinfo($file->get_filename(), PATHINFO_FILENAME) . self::THUMBNAIL_FORMAT)) {
+        if (
+            $thumbfile = $fs->get_file(
+                $file->get_contextid(),
+                'mod_videoassessment',
+                'video',
+                0,
+                $file->get_filepath(),
+                pathinfo($file->get_filename(), PATHINFO_FILENAME) . self::THUMBNAIL_FORMAT
+            )
+        ) {
             $thumbrecord = clone $record;
             if (!empty($record->filename)) {
                 $thumbrecord->filename
@@ -483,7 +512,7 @@ class videoassessment_bulkupload {
      * @return string URL-safe encoded filename
      */
     private static function encode_filename($name) {
-        return strtr(base64_encode($name), array('+' => '-', '/' => '.', '=' => '_'));
+        return strtr(base64_encode($name), ['+' => '-', '/' => '.', '=' => '_']);
     }
     /**
      * Decode URL-safe filename back to original.
@@ -492,7 +521,7 @@ class videoassessment_bulkupload {
      * @return string Original filename
      */
     private static function decode_filename($code) {
-        return base64_decode(strtr($code, array('-' => '+', '.' => '/', '_' => '=')));
+        return base64_decode(strtr($code, ['-' => '+', '.' => '/', '_' => '=']));
     }
 
     /**
@@ -506,8 +535,10 @@ class videoassessment_bulkupload {
      * @throws \Exception If command template is invalid
      */
     private static function fix_ffmpeg_options($command, $format) {
-        if (strpos($command, '{INPUT}') <= stripos($command, 'ffmpeg') ||
-            strpos($command, '{OUTPUT}') <= stripos($command, 'ffmpeg')) {
+        if (
+            strpos($command, '{INPUT}') <= stripos($command, 'ffmpeg') ||
+            strpos($command, '{OUTPUT}') <= stripos($command, 'ffmpeg')
+        ) {
             throw new Exception('invalid command setting');
         }
         if (strpos($command, '-i') === false) {
@@ -546,17 +577,17 @@ class videoassessment_bulkupload {
      */
     private static function parse_ffmpeg_progress($log) {
         if (preg_match('/Duration: (\d+):(\d+):(\d+\.\d+),/', $log, $match)) {
-            list (, $h, $m, $s) = $match;
+             [, $h, $m, $s] = $match;
             $duration = $h * 60 * 60 + $m * 60 + $s;
             // ffmpeg 0.8.2
             if (preg_match_all('/ time=(\d+):(\d+):(\d+\.\d+) /', $log, $matches, PREG_SET_ORDER)) {
-                list (, $h, $m, $s) = end($matches);
+                 [, $h, $m, $s] = end($matches);
                 $time = $h * 60 * 60 + $m * 60 + $s;
                 return $time / $duration;
             }
             // ffmpeg latest
             if (preg_match_all('/ time=(\d+\.\d+) /', $log, $matches, PREG_SET_ORDER)) {
-                list (, $time) = end($matches);
+                 [, $time] = end($matches);
                 return $time / $duration;
             }
             return 0.0;
@@ -610,7 +641,7 @@ class videoassessment_bulkupload {
     private static function exec_nolimit($cmdline) {
         ignore_user_abort(true);
         set_time_limit(0);
-        $output = array();
+        $output = [];
         $retval = 0;
         putenv('PATH=');
         putenv('LD_LIBRARY_PATH=');
@@ -632,7 +663,7 @@ class videoassessment_bulkupload {
 
         if ($CFG->ostype == 'WINDOWS') {
             $currentlocale = setlocale(LC_CTYPE, '0');
-            if (@list(, $codepage) = explode('.', $currentlocale)) {
+            if (@[, $codepage] = explode('.', $currentlocale)) {
                 // Even if an error occurs, conversion proceeds partially,
                 // so do not determine based on the presence or absence of a return value.
                 $success = true;
@@ -640,7 +671,7 @@ class videoassessment_bulkupload {
                     $success = false;
                     debugging('Iconv error in encode_to_native_pathname');
                 }, E_NOTICE);
-                $shellpath = iconv('UTF-8', 'CP'.$codepage, $path);
+                $shellpath = iconv('UTF-8', 'CP' . $codepage, $path);
                 restore_error_handler();
 
                 if ($success) {

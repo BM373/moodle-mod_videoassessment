@@ -159,7 +159,6 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
                     $o .= $OUTPUT->heading($label . $comment);
                 }
             }
-
         }
         $o .= \html_writer::end_tag('div');
 
@@ -192,7 +191,7 @@ require_capability('mod/videoassessment:view', $context);
 // The redirect to grading should ONLY happen when "Save and create rubric" button is clicked,
 // which sets a user preference with a timestamp. This check is now done server-side only in lib.php
 // during add_instance/update_instance, and the preference is cleared immediately after redirect.
-// 
+//
 // Clear any stale preferences as a safety measure to prevent unwanted redirects.
 $redirect_to_grading = get_user_preferences('videoassessment_redirect_to_grading');
 if (!empty($redirect_to_grading)) {
@@ -200,12 +199,12 @@ if (!empty($redirect_to_grading)) {
     $parts = explode(':', $redirect_to_grading);
     $vaid = (int)$parts[0];
     $preftimestamp = isset($parts[1]) ? (int)$parts[1] : 0;
-    
+
     // Check if we're coming from modedit.php (activity creation/editing).
-    $isfrommodedit = isset($_SERVER['HTTP_REFERER']) && 
+    $isfrommodedit = isset($_SERVER['HTTP_REFERER']) &&
         (strpos($_SERVER['HTTP_REFERER'], '/course/modedit.php') !== false ||
          strpos($_SERVER['HTTP_REFERER'], '/mod/videoassessment/modedit.php') !== false);
-    
+
     // Only redirect if ALL of these conditions are met:
     // 1. Coming from modedit.php (activity creation/editing)
     // 2. Preference was set very recently (within 0.5 seconds - extremely strict)
@@ -215,7 +214,7 @@ if (!empty($redirect_to_grading)) {
     if ($isfrommodedit && $preftimestamp > 0) {
         $recent = (time() - $preftimestamp) <= 0.5; // 0.5 second window - extremely strict
         $matchesactivity = ($vaid == $cm->instance);
-        
+
         if ($recent && $matchesactivity) {
             // Double-check: verify the activity exists and matches
             $va = $DB->get_record('videoassessment', ['id' => $vaid]);
@@ -224,31 +223,31 @@ if (!empty($redirect_to_grading)) {
             }
         }
     }
-    
+
     if ($should_redirect) {
         // Clear the preference immediately to prevent redirect loops.
         unset_user_preference('videoassessment_redirect_to_grading');
-        
+
         // Get or create the grading area and redirect.
         require_once($CFG->dirroot . '/grade/grading/lib.php');
         $gradingmanager = get_grading_manager($context, 'mod_videoassessment', 'beforeteacher');
-        
+
         $arearecord = $DB->get_record('grading_areas', [
             'contextid' => $context->id,
             'component' => 'mod_videoassessment',
-            'areaname' => 'beforeteacher'
+            'areaname' => 'beforeteacher',
         ]);
-        
+
         if (!$arearecord) {
             // Create the area.
             $gradingmanager->set_active_method('rubric');
             $arearecord = $DB->get_record('grading_areas', [
                 'contextid' => $context->id,
                 'component' => 'mod_videoassessment',
-                'areaname' => 'beforeteacher'
+                'areaname' => 'beforeteacher',
             ]);
         }
-        
+
         if ($arearecord && $arearecord->id) {
             // Redirect to grading page.
             redirect(new moodle_url('/grade/grading/manage.php', ['areaid' => $arearecord->id]));

@@ -38,7 +38,6 @@ class provider implements
     \core_privacy\local\request\core_data_provider,
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
-
     /**
      * Returns metadata about the plugin's database tables and how user data is stored.
      *
@@ -344,7 +343,6 @@ class provider implements
         $DB->delete_records('videoassessment_grade_items', ['videoassessment' => $videoassessmentid]);
         $DB->delete_records('videoassessment_videos', ['videoassessment' => $videoassessmentid]);
         $DB->delete_records('videoassessment_video_assocs', ['videoassessment' => $videoassessmentid]);
-
     }
 
     /**
@@ -399,7 +397,7 @@ class provider implements
         }
         $videoassessmentid = $cm->instance;
 
-        list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        [$userinsql, $userinparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
         $params = array_merge(['videoassessment' => $videoassessmentid], $userinparams);
         $params2 = $userinparams;
 
@@ -409,6 +407,5 @@ class provider implements
         $DB->delete_records_select('videoassessment_grades', "videoassessment = :videoassessment AND gradeitem $userinsql", $params);
         $DB->delete_records_select('videoassessment_grade_items', "videoassessment = :videoassessment AND gradeduser $userinsql", $params);
         $DB->delete_records_select('videoassessment_video_assocs', "videoassessment = :videoassessment AND associationid $userinsql", $params);
-
     }
 }

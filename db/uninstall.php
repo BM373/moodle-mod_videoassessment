@@ -35,4 +35,3 @@ defined('MOODLE_INTERNAL') || die();
 function xmldb_videoassessment_uninstall() {
     // No cleanup needed - default rubric template creation has been removed.
 }
-

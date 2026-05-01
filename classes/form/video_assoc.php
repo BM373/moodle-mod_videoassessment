@@ -56,11 +56,11 @@ class video_assoc extends \moodleform {
         }
         $mform->addElement('hidden', 'action', 'videoassoc');
         $mform->setType('action', PARAM_ALPHA);
-        $mform->addElement('hidden', 'videoid', '', array('id' => 'id_videoid'));
+        $mform->addElement('hidden', 'videoid', '', ['id' => 'id_videoid']);
         $mform->setType('videoid', PARAM_INT);
-        $mform->addElement('hidden', 'assocdata', '', array('id' => 'id_assocdata'));
+        $mform->addElement('hidden', 'assocdata', '', ['id' => 'id_assocdata']);
         $mform->setType('assocdata', PARAM_RAW);
-        $mform->addElement('hidden', 'timing', 'before', array('id' => 'id_timing'));
+        $mform->addElement('hidden', 'timing', 'before', ['id' => 'id_timing']);
         $mform->setType('timing', PARAM_ALPHA);
     }
 }

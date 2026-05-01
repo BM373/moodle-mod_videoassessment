@@ -64,7 +64,7 @@ class page_manage_grades extends page {
         global $DB, $PAGE;
 
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'manageGradesInit');
-        $PAGE->requires->strings_for_js(array('confirmdeletegrade'), va::VA);
+        $PAGE->requires->strings_for_js(['confirmdeletegrade'], va::VA);
 
         $userid = required_param('userid', PARAM_INT);
 
@@ -79,48 +79,48 @@ class page_manage_grades extends page {
 
                 $gradeitems = $this->va->get_grade_items($gradingarea, $userid);
                 if ($gradeitems) {
-                    $grades = array();
+                    $grades = [];
                     $table = new \html_table();
-                    $table->attributes = array('class' => 'generaltable boxaligncenter');
-                    $table->head = array(
+                    $table->attributes = ['class' => 'generaltable boxaligncenter'];
+                    $table->head = [
                             '',
                             get_string('name'),
                             get_string('grades'),
                             get_string('timemarked', 'videoassessment'),
                             '',
-                    );
+                    ];
 
                     foreach ($gradeitems as $gradeitem) {
-                        $grader = $DB->get_record('user', array('id' => $gradeitem->grader));
-                        $deleteurl = new \moodle_url($this->url, array(
+                        $grader = $DB->get_record('user', ['id' => $gradeitem->grader]);
+                        $deleteurl = new \moodle_url($this->url, [
                             'userid' => $userid,
                             'action' => 'delete',
                             'gradeitem' => $gradeitem->id,
-                        ));
+                        ]);
 
                         $iconhtml = $this->output->pix_icon('t/delete', get_string('delete'));
 
-                        $form = \html_writer::start_tag('form', array(
+                        $form = \html_writer::start_tag('form', [
                             'method' => 'post',
                             'action' => $deleteurl,
                             'class' => 'deletegradeform', // optional for JS
                             'style' => 'display:inline',
-                        ));
-                        $form .= \html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()));
-                        $form .= \html_writer::tag('button', $iconhtml, array(
+                        ]);
+                        $form .= \html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+                        $form .= \html_writer::tag('button', $iconhtml, [
                             'type' => 'submit',
                             'class' => 'deletegrade', // this class triggers confirmation
                             'style' => 'all: unset; cursor: pointer;',
                             'title' => get_string('delete'),
-                        ));
+                        ]);
                         $form .= \html_writer::end_tag('form');
-                        $table->data[] = array(
+                        $table->data[] = [
                             $this->output->user_picture($grader),
                             fullname($grader),
                             $gradeitem->grade,
                             userdate($gradeitem->timemarked),
                             $form,
-                        );
+                        ];
                         if ($gradeitem->grade !== null && $gradeitem->grade > -1) {
                             $grades[] = $gradeitem->grade;
                         }
@@ -130,16 +130,16 @@ class page_manage_grades extends page {
                     if ($grades) {
                         $average = array_sum($grades) / count($grades);
                     }
-                    $table->data[] = array(
+                    $table->data[] = [
                         get_string('average', 'videoassessment'),
                         '',
                         $average,
                         '',
                         '',
-                    );
+                    ];
                     echo \html_writer::table($table);
                 } else {
-                    echo \html_writer::tag('div', get_string('notgradedyet', 'videoassessment'), array('style' => 'text-align: center'));
+                    echo \html_writer::tag('div', get_string('notgradedyet', 'videoassessment'), ['style' => 'text-align: center']);
                 }
             }
         }
@@ -162,14 +162,14 @@ class page_manage_grades extends page {
         require_sesskey();
 
         $id = required_param('gradeitem', PARAM_INT);
-        $gradeitem = $DB->get_record(va::TABLE_GRADE_ITEMS, array('id' => $id), '*', MUST_EXIST);
+        $gradeitem = $DB->get_record(va::TABLE_GRADE_ITEMS, ['id' => $id], '*', MUST_EXIST);
 
-        $DB->delete_records(va::TABLE_GRADES, array('gradeitem' => $id));
-        $DB->delete_records(va::TABLE_GRADE_ITEMS, array('id' => $id));
+        $DB->delete_records(va::TABLE_GRADES, ['gradeitem' => $id]);
+        $DB->delete_records(va::TABLE_GRADE_ITEMS, ['id' => $id]);
 
         $this->va->aggregate_grades($gradeitem->gradeduser);
 
-        redirect(new \moodle_url($this->url, array('userid' => optional_param('userid', 0, PARAM_INT))));
+        redirect(new \moodle_url($this->url, ['userid' => optional_param('userid', 0, PARAM_INT)]));
     }
 }
 

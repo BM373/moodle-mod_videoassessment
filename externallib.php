@@ -45,14 +45,14 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_getallcomments_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'ajax' => new external_value(PARAM_INT, 'The data from the videoassessment comment form'),
                 'action' => new external_value(PARAM_ALPHANUM, 'Which action it will create'),
                 'userid' => new external_value(PARAM_INT, 'Activity which user belongs to'),
                 'timing' => new external_value(PARAM_RAW, 'Time of activity'),
                 'cmid' => new external_value(PARAM_INT, 'CM ID'),
                 'id' => new external_value(PARAM_RAW, 'videoassessment ID'),
-            )
+            ]
         );
     }
 
@@ -75,14 +75,14 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::get_getallcomments_parameters(),
-            array(
+            [
                 'ajax' => $ajax,
                 'action' => $action,
                 'userid' => $userid,
                 'timing' => $timing,
                 'cmid' => $cmid,
                 'id' => $id,
-            )
+            ]
         );
 
         $cmid = $params['cmid'];
@@ -112,11 +112,10 @@ class mod_videoassessment_external extends external_api {
                     $o .= $OUTPUT->heading($label . $comment);
                 }
             }
-
         }
 
         $o .= \html_writer::end_tag('div');
-        $data = array();
+        $data = [];
         $data['html'] = json_encode($o);
         return $data;
     }
@@ -131,9 +130,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_getallcomments_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 
@@ -148,12 +147,12 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_coursesbycategory_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'ajax' => new external_value(PARAM_INT, 'The data from the videoassessment comment form'),
                 'action' => new external_value(PARAM_ALPHANUM, 'Which action it will create'),
                 'catid' => new external_value(PARAM_INT, 'Activity which user belongs to'),
                 'currentcourseid' => new external_value(PARAM_INT, 'Time of activity'),
-            )
+            ]
         );
     }
 
@@ -174,12 +173,12 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::get_coursesbycategory_parameters(),
-            array(
+            [
                 'ajax' => $ajax,
                 'action' => $action,
                 'catid' => $catid,
                 'currentcourseid' => $currentcourseid,
-            )
+            ]
         );
 
         $catid = $params['catid'];
@@ -211,7 +210,7 @@ class mod_videoassessment_external extends external_api {
             }
         }
 
-        $data = array();
+        $data = [];
         $data['html'] = $html;
         return $data;
     }
@@ -226,9 +225,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_coursesbycategory_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 
@@ -242,12 +241,12 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_sectionsbycourse_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'ajax' => new external_value(PARAM_INT, 'The data from the videoassessment comment form'),
                 'action' => new external_value(PARAM_ALPHANUM, 'Which action it will create'),
                 'courseid' => new external_value(PARAM_INT, 'Activity which user belongs to'),
                 'currentsectionid' => new external_value(PARAM_INT, 'Time of activity'),
-            )
+            ]
         );
     }
 
@@ -268,12 +267,12 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::get_sectionsbycourse_parameters(),
-            array(
+            [
                 'ajax' => $ajax,
                 'action' => $action,
                 'courseid' => $courseid,
                 'currentsectionid' => $currentsectionid,
-            )
+            ]
         );
 
         $courseid = $params['courseid'];
@@ -307,7 +306,7 @@ class mod_videoassessment_external extends external_api {
             }
         }
 
-        $data = array();
+        $data = [];
         $data['html'] = $html;
         return $data;
     }
@@ -322,9 +321,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_sectionsbycourse_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 
@@ -366,12 +365,12 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::assignclass_sort_group_parameters(),
-            array(
+            [
                 'action' => $action,
                 'sort' => $sort,
                 'groupid' => $groupid,
                 'id' => $id,
-            )
+            ]
         );
         $sort = $params['sort'];
         $groupid = $params['groupid'];
@@ -388,7 +387,6 @@ class mod_videoassessment_external extends external_api {
         $va = new \mod_videoassessment\va($context, $cm, $course);
 
         if ($sort == assign_class::SORT_MANUALLY) {
-
             try {
                 $transaction = $DB->start_delegated_transaction();
 
@@ -402,7 +400,7 @@ class mod_videoassessment_external extends external_api {
                     $itemid = $cm->course;
                 }
 
-                $sortitem = $DB->get_record('videoassessment_sort_items', array('type' => $type, 'itemid' => $itemid));
+                $sortitem = $DB->get_record('videoassessment_sort_items', ['type' => $type, 'itemid' => $itemid]);
 
                 if (!$sortitem) {
                     $object = (object)[
@@ -418,7 +416,6 @@ class mod_videoassessment_external extends external_api {
                 $i = 1;
                 $studentsdata = [];
                 foreach ($students as $student) {
-
                     if (!empty($student->orderid)) {
                         $object = (object)[
                             'id' => $student->orderid,
@@ -481,9 +478,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function assignclass_sort_group_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 }

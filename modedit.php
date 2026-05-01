@@ -27,10 +27,10 @@
 
 require_once("../../config.php");
 require_once("lib.php");
-require_once($CFG->libdir.'/filelib.php');
-require_once($CFG->libdir.'/gradelib.php');
-require_once($CFG->libdir.'/completionlib.php');
-require_once($CFG->libdir.'/plagiarismlib.php');
+require_once($CFG->libdir . '/filelib.php');
+require_once($CFG->libdir . '/gradelib.php');
+require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/plagiarismlib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/classes/va.php');
 
@@ -55,7 +55,7 @@ if (!empty($add)) {
     $url->param('course', $course);
     $PAGE->set_url($url);
 
-    $course = $DB->get_record('course', array('id' => $course), '*', MUST_EXIST);
+    $course = $DB->get_record('course', ['id' => $course], '*', MUST_EXIST);
     require_login($course);
 
     // There is no page for this in the navigation. The closest we'll have is the course section.
@@ -63,7 +63,7 @@ if (!empty($add)) {
     // will be the closest match we have.
     navigation_node::override_active_url(course_get_url($course, $section));
 
-    list($module, $context, $cw, $cm, $data) = prepare_new_moduleinfo_data($course, $add, $section);
+    [$module, $context, $cw, $cm, $data] = prepare_new_moduleinfo_data($course, $add, $section);
     $data->return = 0;
     $data->sr = $sectionreturn;
     $data->add = $add;
@@ -83,25 +83,23 @@ if (!empty($add)) {
         $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
     }
     $navbaraddition = $pageheading;
-
 } else if (!empty($update)) {
-
     $url->param('update', $update);
     $PAGE->set_url($url);
 
     // Select the "Edit settings" from navigation.
-    navigation_node::override_active_url(new moodle_url('/course/modedit.php', array('update' => $update, 'return' => 1)));
+    navigation_node::override_active_url(new moodle_url('/course/modedit.php', ['update' => $update, 'return' => 1]));
 
     // Check the course module exists.
     $cm = get_coursemodule_from_id('', $update, 0, false, MUST_EXIST);
 
     // Check the course exists.
-    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
     // require_login
     require_login($course, false, $cm); // needed to setup proper $COURSE
 
-    list($cm, $context, $module, $data, $cw) = get_moduleinfo_data($cm, $course);
+    [$cm, $context, $module, $data, $cw] = get_moduleinfo_data($cm, $course);
     $data->return = $return;
     $data->sr = $sectionreturn;
     $data->update = $update;
@@ -118,7 +116,6 @@ if (!empty($add)) {
         $pageheading = get_string('updatinga', 'moodle', $fullmodulename);
     }
     $navbaraddition = null;
-
 } else {
     require_login();
     throw new moodle_exception('invalidaction');
@@ -140,7 +137,7 @@ if (file_exists($modmoodleform)) {
     throw new moodle_exception('noformdesc');
 }
 
-$mformclassname = 'mod_'.$module->name.'_mod_form';
+$mformclassname = 'mod_' . $module->name . '_mod_form';
 $mform = new $mformclassname($data, $cw->section, $cm, $course);
 $mform->set_data($data);
 
@@ -148,17 +145,17 @@ if ($mform->is_cancelled()) {
     if ($return && !empty($cm->id)) {
         redirect("$CFG->wwwroot/course/modedit.php?update=$update&return=1");
     } else {
-        redirect(course_get_url($course, $cw->section, array('sr' => $sectionreturn)));
+        redirect(course_get_url($course, $cw->section, ['sr' => $sectionreturn]));
     }
 } else if ($fromform = $mform->get_data()) {
     if (!empty($fromform->update)) {
-        list($cm, $fromform) = update_moduleinfo($cm, $fromform, $course, $mform);
+        [$cm, $fromform] = update_moduleinfo($cm, $fromform, $course, $mform);
     } else if (!empty($fromform->add)) {
         $fromform = add_moduleinfo($fromform, $course, $mform);
     } else {
         throw new moodle_exception('invaliddata');
     }
-    $url = new moodle_url("/course/modedit.php", array('update' => $fromform->coursemodule, 'return' => 1));
+    $url = new moodle_url("/course/modedit.php", ['update' => $fromform->coursemodule, 'return' => 1]);
     $isquicksetup = required_param('isquickSetup', PARAM_INT);
     if ($isquicksetup == 1) {
         $users = get_enrolled_users($context, 'mod/videoassessment:submit', 0, 'u.id');
@@ -170,8 +167,10 @@ if ($mform->is_cancelled()) {
         $mappings = $va->get_random_peers_for_users($userids, $fromform->usedpeers);
 
         foreach ($mappings as $id => $peers) {
-            $DB->delete_records('videoassessment_peers',
-                array('videoassessment' => $fromform->instance, 'userid' => $id));
+            $DB->delete_records(
+                'videoassessment_peers',
+                ['videoassessment' => $fromform->instance, 'userid' => $id]
+            );
 
             foreach ($peers as $peer) {
                 $row = new \stdClass();
@@ -181,11 +180,9 @@ if ($mform->is_cancelled()) {
                 $DB->insert_record('videoassessment_peers', $row);
             }
         }
-
     }
     redirect($url);
     exit;
-
 } else {
     $streditinga = get_string('editinga', 'moodle', $fullmodulename);
     $strmodulenameplural = get_string('modulenameplural', $module->name);

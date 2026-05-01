@@ -60,14 +60,14 @@ class page_delete_video extends page {
         global $CFG, $DB, $PAGE;
 
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'initDeleteVideos');
-        $PAGE->requires->strings_for_js(array(
+        $PAGE->requires->strings_for_js([
             'errorcheckvideostodelete',
             'confirmdeletevideos',
-        ), 'mod_videoassessment');
+        ], 'mod_videoassessment');
 
-        $form = new videos_delete(null, (object) array(
+        $form = new videos_delete(null, (object) [
             'va' => $this->va,
-        ));
+        ]);
 
         if ($data = $form->get_data()) {
             $videos = optional_param_array('videos', null, PARAM_BOOL);

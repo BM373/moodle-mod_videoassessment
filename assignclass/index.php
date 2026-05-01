@@ -36,9 +36,11 @@ $groupid = optional_param('groupid', 0, PARAM_INT);
 $cm = get_coursemodule_from_id('videoassessment', $cmid, 0, false, MUST_EXIST);
 require_login($cm->course, true, $cm);
 
-if (optional_param('sort', null, PARAM_INT) !== null
+if (
+    optional_param('sort', null, PARAM_INT) !== null
     && optional_param('id', null, PARAM_INT) !== null
-    && optional_param('groupid', null, PARAM_INT) !== null) {
+    && optional_param('groupid', null, PARAM_INT) !== null
+) {
     $sort = required_param('sort', PARAM_INT);
     $groupid = required_param('groupid', PARAM_INT);
     $id = required_param('id', PARAM_INT);

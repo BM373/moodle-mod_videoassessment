@@ -63,11 +63,11 @@ class video_upload extends \moodleform {
 
         $mobile = va::uses_mobile_upload();
         if ($mobile) {
-            $mform->updateAttributes(array('enctype' => 'multipart/form-data', "id" => "mobileform"));
+            $mform->updateAttributes(['enctype' => 'multipart/form-data', "id" => "mobileform"]);
             $mform->addElement('hidden', 'mobile', 1);
             $mform->setType('mobile', PARAM_BOOL);
         } else {
-            $mform->updateAttributes(array("id" => "mform"));
+            $mform->updateAttributes(["id" => "mform"]);
         }
 
         $mform->addElement('hidden', 'id', required_param('id', PARAM_INT));
@@ -81,7 +81,7 @@ class video_upload extends \moodleform {
         $mform->setType('user', PARAM_INT);
         $mform->addElement('hidden', 'timing', optional_param('timing', '', PARAM_ALPHA));
         $mform->setType('timing', PARAM_ALPHA);
-        $mform->addElement('hidden', 'actionmodel', optional_param('actionmodel', 0, PARAM_INT), array('class' => 'actionmodel'));
+        $mform->addElement('hidden', 'actionmodel', optional_param('actionmodel', 0, PARAM_INT), ['class' => 'actionmodel']);
         $mform->setType('actionmodel', PARAM_INT);
         $mform->addElement('header', 'uploadingvideo', get_string('uploadingvideo', 'videoassessment'));
         $mform->addHelpButton('uploadingvideo', 'uploadingvideo', 'videoassessment');
@@ -92,10 +92,10 @@ class video_upload extends \moodleform {
             $mform->addHelpButton('upload', 'uploadyoutube', 'videoassessment');
 
             if ($mobile) {
-                $mform->addElement('text', 'mobileurl', '', array('size' => 40));
+                $mform->addElement('text', 'mobileurl', '', ['size' => 40]);
                 $mform->setType('mobileurl', PARAM_URL);
             } else {
-                $mform->addElement('text', 'url', '', array('size' => 40));
+                $mform->addElement('text', 'url', '', ['size' => 40]);
                 $mform->setType('url', PARAM_URL);
             }
         }
@@ -115,31 +115,35 @@ class video_upload extends \moodleform {
             }
             $maxbytes = $COURSE->maxbytes;
             if ($CFG->version < va::MOODLE_VERSION_23) {
-                $acceptedtypes = array('*');
+                $acceptedtypes = ['*'];
             } else {
-                $acceptedtypes = array('video', 'audio');
+                $acceptedtypes = ['video', 'audio'];
             }
 
             if ($mobile) {
-                $input = \html_writer::empty_tag('input',
-                    array(
+                $input = \html_writer::empty_tag(
+                    'input',
+                    [
                         'type' => 'file',
                         'id' => 'id_mobilevideo',
                         'name' => 'mobilevideo',
                         'accept' => 'video/*',
-                    ));
+                    ]
+                );
                 $mform->addElement('static', 'mobilevideo', "", $input);
             } else {
                 $str = va::str('video');
-                $mform->addElement('filemanager', 'video',
+                $mform->addElement(
+                    'filemanager',
+                    'video',
                     "",
                     null,
-                    array(
+                    [
                         'subdirs' => 0,
                         'maxbytes' => $maxbytes,
                         'maxfiles' => 1,
                         'accepted_types' => $acceptedtypes,
-                    )
+                    ]
                 );
             }
         }
@@ -151,8 +155,8 @@ class video_upload extends \moodleform {
             $mform->addElement(
                 'html',
                 '<div id="recordrtc" class="recordrtc"><div id="record-content-div"></div>
-                    <span id="btn-start-recording" class="btn btn-secondary">' . get_string('startrecoding', 'videoassessment') .'</span>
-                    <span id="btn-pause-recording" class="btn btn-secondary"style="display: none; font-size: 15px;">'. get_string('pause', 'videoassessment') .'</span>
+                    <span id="btn-start-recording" class="btn btn-secondary">' . get_string('startrecoding', 'videoassessment') . '</span>
+                    <span id="btn-pause-recording" class="btn btn-secondary"style="display: none; font-size: 15px;">' . get_string('pause', 'videoassessment') . '</span>
                     </span></div>'
             );
             $mform->addElement(
@@ -166,21 +170,21 @@ class video_upload extends \moodleform {
             $PAGE->requires->js('/mod/videoassessment/DetectRTC.js');
             $PAGE->requires->js_call_amd('mod_videoassessment/record', 'reCord', []);
         }
-        
+
         // Set default upload type - must be after all radio buttons are added.
         $mform->setDefault('upload', $defaultuploadtype);
 
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initUploadTypeChange');
-        $buttonarray = array();
+        $buttonarray = [];
         if ($mobile) {
-            $PAGE->requires->js_call_amd('mod_videoassessment/videoassessment', 'init_mobile_upload_progress_bar', array());
+            $PAGE->requires->js_call_amd('mod_videoassessment/videoassessment', 'init_mobile_upload_progress_bar', []);
             $btn = "submit";
         } else {
             $btn = "submit";
         }
         $buttonarray[] = &$mform->createElement($btn, 'submitbutton', get_string('upload'));
-        $buttonarray[] = &$mform->createElement('button', 'cancelbutton', get_string('cancel'), array('onclick' => 'javascript :history.back(-1)'));
-        $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
+        $buttonarray[] = &$mform->createElement('button', 'cancelbutton', get_string('cancel'), ['onclick' => 'javascript :history.back(-1)']);
+        $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
         $mform->closeHeaderBefore('buttonar');
     }
 
@@ -195,7 +199,7 @@ class video_upload extends \moodleform {
      * @return string[] Array of validation error messages
      */
     public function validation($data, $files) {
-        $errors = array();
+        $errors = [];
 
         if (isset($data['mobile']) && empty($data['mobileurl'])) {
             if (empty($files['mobilevideo'])) {

@@ -74,11 +74,11 @@ class rubric {
 
             $this->managers->$gradingarea = get_grading_manager($va->context, 'mod_videoassessment', $gradingarea);
             $this->controllers->$gradingarea = null;
-            
+
             // Check if there's an active method.
             $manager = $this->get_manager($gradingarea);
             $gradingmethod = $manager->get_active_method();
-            
+
             // If no active method but a rubric definition exists, set it to 'rubric'.
             if (!$gradingmethod) {
                 try {
@@ -86,7 +86,7 @@ class rubric {
                     if ($controller) {
                         $isdefined = $controller->is_form_defined();
                         $isavailable = $controller->is_form_available();
-                        
+
                         if ($isdefined && $isavailable) {
                             // Rubric exists and is ready, so set it as the active method.
                             $manager->set_active_method('rubric');
@@ -102,7 +102,7 @@ class rubric {
                     // No rubric available, continue.
                 }
             }
-            
+
             if ($gradingmethod) {
                 try {
                     $this->controllers->$gradingarea = $manager->get_controller($gradingmethod);
@@ -161,7 +161,7 @@ class rubric {
         if ($controller && $controller->is_form_available()) {
             return $controller;
         }
-        
+
         // If controller exists but form is not available, check why.
         if ($controller && $controller->is_form_defined() && !$controller->is_form_available()) {
             // Definition exists but not available - might be DRAFT status.
@@ -169,7 +169,7 @@ class rubric {
             // TODO: Check if we should allow DRAFT rubrics or require READY status.
             return $controller;
         }
-        
+
         // If controller wasn't created in constructor, try to create it now.
         // This can happen if the active method wasn't set when constructor ran.
         $manager = $this->get_manager($gradingarea);
@@ -196,7 +196,7 @@ class rubric {
                 // No rubric available, continue to fallback.
             }
         }
-        
+
         // Fallback: If this is not the teacher area and no rubric exists,
         // try to use the teacher's rubric as a fallback.
         if ($gradingarea != 'beforeteacher' && strpos($gradingarea, 'teacher') === false) {
@@ -206,7 +206,7 @@ class rubric {
                 if ($teachercontroller && $teachercontroller->is_form_available()) {
                     // Auto-duplicate the rubric to this area so it's available.
                     videoassessment_auto_duplicate_rubric($teachermanager->get_context()->id);
-                    
+
                     // Reload the controller for this area after duplication.
                     $manager = $this->get_manager($gradingarea);
                     if ($manager) {
@@ -226,7 +226,7 @@ class rubric {
                 }
             }
         }
-        
+
         return null;
     }
 }

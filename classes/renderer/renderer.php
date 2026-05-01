@@ -58,7 +58,7 @@ class renderer extends plugin_renderer_base {
      * @return string HTML output of the rendered object
      */
     public function render(renderable $widget) {
-        $rendermethod = 'render_'.str_replace('\\', '_', get_class($widget));
+        $rendermethod = 'render_' . str_replace('\\', '_', get_class($widget));
         if (method_exists($this, $rendermethod)) {
             return $this->$rendermethod($widget);
         }
@@ -105,8 +105,8 @@ class renderer extends plugin_renderer_base {
      * @return string HTML content for task navigation links
      */
     public function task_link(va $va) {
-        $highlight = (object)array('upload' => null, 'associate' => null, 'assess' => null);
-        $current = array('class' => 'tasklink-current');
+        $highlight = (object)['upload' => null, 'associate' => null, 'assess' => null];
+        $current = ['class' => 'tasklink-current'];
         switch ($va->action) {
             case 'videos':
                 $highlight->associate = $current;
@@ -118,17 +118,34 @@ class renderer extends plugin_renderer_base {
 
         $o = '';
         if ($va->is_teacher()) {
-            $links = array(
-                    $this->output->action_link(new \moodle_url('/mod/videoassessment/bulkupload/index.php',
-                            array('cmid' => $va->cm->id)),
-                            get_string('uploadvideos', 'videoassessment'), $highlight->upload),
-                    $this->output->action_link(new \moodle_url('/mod/videoassessment/view.php',
-                            array('id' => $va->cm->id, 'action' => 'videos')),
-                            get_string('associate', 'videoassessment'), null, $highlight->associate),
-                    $this->output->action_link(new \moodle_url('/mod/videoassessment/view.php',
-                            array('id' => $va->cm->id)),
-                            get_string('assess', 'videoassessment'), null, $highlight->assess),
-            );
+            $links = [
+                    $this->output->action_link(
+                        new \moodle_url(
+                            '/mod/videoassessment/bulkupload/index.php',
+                            ['cmid' => $va->cm->id]
+                        ),
+                        get_string('uploadvideos', 'videoassessment'),
+                        $highlight->upload
+                    ),
+                    $this->output->action_link(
+                        new \moodle_url(
+                            '/mod/videoassessment/view.php',
+                            ['id' => $va->cm->id, 'action' => 'videos']
+                        ),
+                        get_string('associate', 'videoassessment'),
+                        null,
+                        $highlight->associate
+                    ),
+                    $this->output->action_link(
+                        new \moodle_url(
+                            '/mod/videoassessment/view.php',
+                            ['id' => $va->cm->id]
+                        ),
+                        get_string('assess', 'videoassessment'),
+                        null,
+                        $highlight->assess
+                    ),
+            ];
             $o .= $this->output->box(implode(get_separator(), $links));
         }
 
@@ -149,7 +166,7 @@ class renderer extends plugin_renderer_base {
 
         if ($CFG->release < 2012062500) {
             // Moodle 2.2
-            require_once($CFG->dirroot.'/filter/mediaplugin/filter.php');
+            require_once($CFG->dirroot . '/filter/mediaplugin/filter.php');
         }
 
         if (optional_param('novideo', 0, PARAM_BOOL)) {
@@ -159,8 +176,13 @@ class renderer extends plugin_renderer_base {
             $url = $video->data->originalname;
         } else {
             $url = moodle_url::make_pluginfile_url(
-                    $video->context->id, 'mod_videoassessment', 'video', 0,
-                    $video->file->get_filepath(), $video->file->get_filename());
+                $video->context->id,
+                'mod_videoassessment',
+                'video',
+                0,
+                $video->file->get_filepath(),
+                $video->file->get_filename()
+            );
         }
 
         $url = (string)$url;
@@ -175,12 +197,12 @@ class renderer extends plugin_renderer_base {
         : '';
 
         // Use the video object's context instead of $this->va (which may not exist here).
-        $filter = new \filter_mediaplugin\text_filter($video->context, array());
+        $filter = new \filter_mediaplugin\text_filter($video->context, []);
         if (va::check_mp4_support()) {
             // Browsers supporting the MP4 format use the HTML5 <video> tag.
             $prevfiltermediapluginenablehtml5video = !empty($CFG->filtermediapluginenablehtml5video);
             $CFG->filtermediapluginenablehtml5video = true;
-            $html = $filter->filter('<a href="'.$url.$dim.'">'.$alt.'</a>');
+            $html = $filter->filter('<a href="' . $url . $dim . '">' . $alt . '</a>');
             $CFG->filtermediapluginenablehtml5video = $prevfiltermediapluginenablehtml5video;
             return $html;
         }
@@ -192,12 +214,12 @@ class renderer extends plugin_renderer_base {
         // then rewrite the resulting HTML with the original extension.
         $mp4 = null;
         if (preg_match('/\.mp4$/i', $url, $m)) {
-            list ($mp4) = $m;
+             [$mp4] = $m;
             $url = substr_replace($url, '.flv', -4);
         }
         $prevfiltermediapluginenableflv = !empty($CFG->filtermediapluginenableflv);
         $CFG->filtermediapluginenableflv = true;
-        $html = $filter->filter('<a href="'.$url.$dim.'">'.$alt.'</a>');
+        $html = $filter->filter('<a href="' . $url . $dim . '">' . $alt . '</a>');
         $CFG->filtermediapluginenableflv = $prevfiltermediapluginenableflv;
         if ($mp4) {
             $html = preg_replace('/\.flv(?=["#])/', $mp4, $html);
@@ -239,7 +261,7 @@ class renderer extends plugin_renderer_base {
                 // Due date.
                 $cell1content = get_string('duedate', 'assign');
                 if ($duedate - $time <= 0) {
-                    $cell2content = userdate($duedate).'('.get_string('assignmentisdue', 'videoassessment').')';
+                    $cell2content = userdate($duedate) . '(' . get_string('assignmentisdue', 'videoassessment') . ')';
                 } else {
                     $cell2content = format_time($duedate - $time);
                 }
@@ -251,11 +273,10 @@ class renderer extends plugin_renderer_base {
                     if ($cutoffdate > $time) {
                         $cell2content = get_string('latesubmissionsaccepted', 'videoassessment', userdate($va->cutoffdate));
                     } else {
-                        $cell2content = userdate($va->cutoffdate).'('.get_string('nomoresubmissionsaccepted', 'videoassessment').')';
+                        $cell2content = userdate($va->cutoffdate) . '(' . get_string('nomoresubmissionsaccepted', 'videoassessment') . ')';
                     }
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);
                 }
-
             }
             $o .= html_writer::table($t);
             $o .= $this->output->box_end();
@@ -277,8 +298,13 @@ class renderer extends plugin_renderer_base {
      * @param array $secondattributes Optional attributes for the second cell
      * @return void
      */
-    private function add_table_row_tuple(html_table $table, $first, $second, $firstattributes = [],
-                                        $secondattributes = []) {
+    private function add_table_row_tuple(
+        html_table $table,
+        $first,
+        $second,
+        $firstattributes = [],
+        $secondattributes = []
+    ) {
         $row = new html_table_row();
         $cell1 = new html_table_cell($first);
         $cell1->header = true;
@@ -289,7 +315,7 @@ class renderer extends plugin_renderer_base {
         if (!empty($secondattributes)) {
             $cell2->attributes = $secondattributes;
         }
-        $row->cells = array($cell1, $cell2);
+        $row->cells = [$cell1, $cell2];
         $table->data[] = $row;
     }
 }

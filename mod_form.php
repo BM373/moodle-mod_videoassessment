@@ -1033,12 +1033,12 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             $namefieldsql = \core_user\fields::for_name()->get_sql('u', false, '', '', false);
             $userfields = 'u.id, ' . $namefieldsql->selects;
             $allmembers = groups_get_members($group->id, $userfields);
-            
+
             // Include all group members (students and teachers).
             foreach ($allmembers as $member) {
                 $groupmembers[] = $member->id;
             }
-            
+
             if (!empty($groupmembers)) {
                 $groupdata[$group->id] = [
                     'name' => $group->name,
@@ -1055,7 +1055,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
                 $allgroupuserids[$memberid] = $memberid;
             }
         }
-        
+
         // Get user data for all group members (including teachers).
         $allusersdata = [];
         // Start with students.
@@ -1331,13 +1331,13 @@ class mod_videoassessment_mod_form extends moodleform_mod {
                 // Field doesn't exist in data (form field was empty/not submitted), set default to 0
                 $data->gradepass = 0;
             }
-            
+
             // Final safety check - ensure it's always numeric, never null
             $data->gradepass = (float)$data->gradepass;
             if ($data->gradepass < 0) {
                 $data->gradepass = 0;
             }
-            
+
             // DEBUG: Log after processing
             error_log('=== AFTER PROCESSING ===');
             error_log('gradepass final value: ' . var_export($data->gradepass, true));

@@ -33,7 +33,7 @@ defined('MOODLE_INTERNAL') || die();
  * @param string|\stdClass $a
  * @return string
  */
-function str ($identifier, $component = '', $a = null) {
+function str($identifier, $component = '', $a = null) {
     debugging('str function', DEBUG_DEVELOPER);
     if (!$component) {
         $component = 'mod_videoassessment';
