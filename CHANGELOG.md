@@ -20,6 +20,13 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 - Convert all first-party source files (PHP, JS sources, CSS, Mustache, YAML, Markdown,
   etc.) from CRLF to LF line endings.
 
+### Removed
+- `templates/course_options.mustache` and `templates/section_options.mustache`.
+  These partial templates emitted bare `<option>` elements and could not pass
+  Moodle's mustache HTML5 lint. The two AJAX endpoints in `view.php` now build
+  the option list inline with `html_writer::tag()`; the JSON response shape is
+  unchanged so client-side code does not need to be updated.
+
 ### Fixed
 - Complete the PHPDoc `@param` list of `mod_videoassessment\va::get_courses_managed_by`
   (added the missing `$catid` parameter) and reorder the `@param` entries of
@@ -30,6 +37,11 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 - `db/upgrade.php`: consolidate six separate `if ($oldversion < 2022080801) { ... }`
   blocks into a single block with one terminating `upgrade_mod_savepoint()` call,
   removing the "5 missing savepoint" errors flagged by Moodle Plugin CI.
+- `lang/en/videoassessment.php` and `lang/ja/videoassessment.php`: sort all
+  `$string` entries case-sensitively by key (matches the order expected by the
+  Moodle `LangFilesOrdering` sniff) and de-duplicate five accidentally-repeated
+  keys in the Japanese translation. The set of available language keys is
+  unchanged; only the ordering and the duplicate occurrences were normalised.
 
 ### Planned (tracked by 2026-04 fix list)
 The items below are planned and tracked but **not yet implemented**.

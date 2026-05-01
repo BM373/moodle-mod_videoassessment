@@ -116,6 +116,13 @@ $string['coursemisconf'] = 'Course setting is incorrect.';
 $string['courseshortnameexist'] = 'Short name is already used for another course';
 $string['currentgrade'] = 'Current grade in gradebook';
 $string['daysbefore'] = 'days before';
+$string['defaultcriterionbodylanguage'] = 'Good body language, facial expression, eye contact';
+$string['defaultcriterioncontent'] = 'Interesting, engaging content';
+$string['defaultcriterionlanguage'] = 'Easy-to-understand language';
+$string['defaultcriterionstructure'] = 'Strong introduction, transitions, conclusions';
+$string['defaultcriterionvoice'] = 'Clear voice with stress/intonation';
+$string['defaultrubrictemplate'] = 'Quick-start rubric for general performances (modifiable)';
+$string['defaultrubrictemplatedesc'] = 'This is a quick-start rubric template for general performances. You can customize it to fit your needs.';
 $string['delayedteachergrade'] = 'Delayed Teacher Grade';
 $string['delayedteachergrade_help'] = 'If enabled \'yes\', the teacher assessment ratings will not be shown to the student, until he/she has completed his/her self assessment. This will alleviate any bias in student scoring by not seeing a teacher score before they start assessing.';
 $string['deleteselectedvideos'] = 'Delete selected videos';
@@ -176,6 +183,9 @@ $string['gradeitem:beforeself'] = 'Self';
 $string['gradeitem:beforeteacher'] = 'Teacher';
 $string['gradeitem:beforetraining'] = 'Training Pre-test';
 $string['gradingareadefined'] = 'Can not duplicated because rubric is already exist';
+$string['gradingmethod_help'] = 'Choose the advanced grading method that should be used for calculating grades in the given context.
+
+To disable advanced grading and switch back to the default grading mechanism, choose \'Simple direct grading\'.';
 $string['group'] = 'group';
 $string['groupname'] = 'Group name';
 $string['inputnewcoursename'] = 'Input a new course name';
@@ -287,6 +297,53 @@ $string['previewvideo'] = 'Preview video';
 $string['printreport'] = 'Print report';
 $string['printrubrics'] = 'Print all rubric report';
 $string['printview'] = 'Open print view';
+$string['privacy:metadata:videoassessment'] = 'Information about the videoassessment files.';
+$string['privacy:metadata:videoassessment:class'] = 'Number of class.';
+$string['privacy:metadata:videoassessment:course'] = 'Course ID number.';
+$string['privacy:metadata:videoassessment:intro'] = 'Details about the file.';
+$string['privacy:metadata:videoassessment:name'] = 'Name of the course.';
+$string['privacy:metadata:videoassessment:ratingpeer'] = 'Rating by peer.';
+$string['privacy:metadata:videoassessment:ratingself'] = 'Rating by self.';
+$string['privacy:metadata:videoassessment:ratingteacher'] = 'Rating by teacher.';
+$string['privacy:metadata:videoassessment:timemodified'] = 'Last modification time.';
+$string['privacy:metadata:videoassessment:trainingdesc'] = 'Description about the training.';
+$string['privacy:metadata:videoassessment_aggregation'] = 'Information about the videoassessment aggregations.';
+$string['privacy:metadata:videoassessment_aggregation:timemodified'] = 'Modification time.';
+$string['privacy:metadata:videoassessment_aggregation:timing'] = 'videoassessment aggregation time.';
+$string['privacy:metadata:videoassessment_aggregation:userid'] = 'The user for whom this videoassessment aggregation.';
+$string['privacy:metadata:videoassessment_aggregation:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_grade_items'] = 'List of grade Items.';
+$string['privacy:metadata:videoassessment_grade_items:gradeduser'] = 'User who grading.';
+$string['privacy:metadata:videoassessment_grade_items:type'] = 'Name or type of grade.';
+$string['privacy:metadata:videoassessment_grade_items:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_grades'] = 'Grading records about video.';
+$string['privacy:metadata:videoassessment_grades:grade'] = 'Grade number.';
+$string['privacy:metadata:videoassessment_grades:gradeitem'] = 'Grading ID.';
+$string['privacy:metadata:videoassessment_grades:submissioncomment'] = 'Comment about grade.';
+$string['privacy:metadata:videoassessment_grades:timemarked'] = 'Grading entry time.';
+$string['privacy:metadata:videoassessment_grades:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_peers'] = 'Peer partner information.';
+$string['privacy:metadata:videoassessment_peers:peerid'] = 'Peer ID.';
+$string['privacy:metadata:videoassessment_peers:userid'] = 'Peer partner user ID.';
+$string['privacy:metadata:videoassessment_peers:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_sort_items'] = 'List of sort items.';
+$string['privacy:metadata:videoassessment_sort_items:itemid'] = 'Sort item ID.';
+$string['privacy:metadata:videoassessment_sort_items:type'] = 'Type of sort items.';
+$string['privacy:metadata:videoassessment_sort_order'] = 'Sorting order of sort items.';
+$string['privacy:metadata:videoassessment_sort_order:sortitemid'] = 'Id of sort item.';
+$string['privacy:metadata:videoassessment_sort_order:userid'] = 'For whom this sortable item is.';
+$string['privacy:metadata:videoassessment_video_assocs'] = 'Video assignments.';
+$string['privacy:metadata:videoassessment_video_assocs:associationid'] = 'User who associate with this video.';
+$string['privacy:metadata:videoassessment_video_assocs:timemodified'] = 'Last modification time.';
+$string['privacy:metadata:videoassessment_video_assocs:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_video_assocs:videoid'] = 'Video storage ID.';
+$string['privacy:metadata:videoassessment_videos'] = 'Information about uploaded video.';
+$string['privacy:metadata:videoassessment_videos:filename'] = 'Server name of the video file.';
+$string['privacy:metadata:videoassessment_videos:filepath'] = 'Path of the video file.';
+$string['privacy:metadata:videoassessment_videos:originalname'] = 'Uploaded name of the video file.';
+$string['privacy:metadata:videoassessment_videos:timecreated'] = 'Uploaded time of the file.';
+$string['privacy:metadata:videoassessment_videos:timemodified'] = 'Last modification time of the file.';
+$string['privacy:metadata:videoassessment_videos:videoassessment'] = 'videoassessment ID.';
 $string['publishvideos'] = 'Publish Videos';
 $string['publishvideos_help'] = 'In this stage, after all performances are assessed, a teacher can select videos for long term preservation. These videos will be published to a
 separate, newly created course in your site.';
@@ -333,6 +390,7 @@ $string['results'] = 'Results';
 $string['resumerecording'] = 'Resume Recording';
 $string['retakevideo'] = 'Retake a video';
 $string['reuploadvideo'] = 'Re-upload a video';
+$string['rubricnotcompleted'] = 'Please complete all rubric criteria before submitting.';
 $string['save'] = 'Save';
 $string['saveandcreaterubric'] = 'Save and create rubric';
 $string['saveassociations'] = 'Save associations';
@@ -496,70 +554,3 @@ $string['yes'] = 'Yes';
 
 
 /* privacy:metadata */
-$string['privacy:metadata:videoassessment'] = 'Information about the videoassessment files.';
-$string['privacy:metadata:videoassessment:course'] = 'Course ID number.';
-$string['privacy:metadata:videoassessment:name'] = 'Name of the course.';
-$string['privacy:metadata:videoassessment:intro'] = 'Details about the file.';
-$string['privacy:metadata:videoassessment:trainingdesc'] = 'Description about the training.';
-$string['privacy:metadata:videoassessment:timemodified'] = 'Last modification time.';
-$string['privacy:metadata:videoassessment:ratingteacher'] = 'Rating by teacher.';
-$string['privacy:metadata:videoassessment:ratingself'] = 'Rating by self.';
-$string['privacy:metadata:videoassessment:ratingpeer'] = 'Rating by peer.';
-$string['privacy:metadata:videoassessment:class'] = 'Number of class.';
-
-$string['privacy:metadata:videoassessment_aggregation'] = 'Information about the videoassessment aggregations.';
-$string['privacy:metadata:videoassessment_aggregation:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_aggregation:userid'] = 'The user for whom this videoassessment aggregation.';
-$string['privacy:metadata:videoassessment_aggregation:timing'] = 'videoassessment aggregation time.';
-$string['privacy:metadata:videoassessment_aggregation:timemodified'] = 'Modification time.';
-
-$string['privacy:metadata:videoassessment_grades'] = 'Grading records about video.';
-$string['privacy:metadata:videoassessment_grades:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_grades:gradeitem'] = 'Grading ID.';
-$string['privacy:metadata:videoassessment_grades:timemarked'] = 'Grading entry time.';
-$string['privacy:metadata:videoassessment_grades:grade'] = 'Grade number.';
-$string['privacy:metadata:videoassessment_grades:submissioncomment'] = 'Comment about grade.';
-
-$string['privacy:metadata:videoassessment_grade_items'] = 'List of grade Items.';
-$string['privacy:metadata:videoassessment_grade_items:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_grade_items:type'] = 'Name or type of grade.';
-$string['privacy:metadata:videoassessment_grade_items:gradeduser'] = 'User who grading.';
-
-$string['privacy:metadata:videoassessment_peers'] = 'Peer partner information.';
-$string['privacy:metadata:videoassessment_peers:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_peers:userid'] = 'Peer partner user ID.';
-$string['privacy:metadata:videoassessment_peers:peerid'] = 'Peer ID.';
-
-$string['privacy:metadata:videoassessment_sort_items'] = 'List of sort items.';
-$string['privacy:metadata:videoassessment_sort_items:itemid'] = 'Sort item ID.';
-$string['privacy:metadata:videoassessment_sort_items:type'] = 'Type of sort items.';
-
-$string['privacy:metadata:videoassessment_sort_order'] = 'Sorting order of sort items.';
-$string['privacy:metadata:videoassessment_sort_order:sortitemid'] = 'Id of sort item.';
-$string['privacy:metadata:videoassessment_sort_order:userid'] = 'For whom this sortable item is.';
-
-$string['privacy:metadata:videoassessment_videos'] = 'Information about uploaded video.';
-$string['privacy:metadata:videoassessment_videos:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_videos:filepath'] = 'Path of the video file.';
-$string['privacy:metadata:videoassessment_videos:filename'] = 'Server name of the video file.';
-$string['privacy:metadata:videoassessment_videos:originalname'] = 'Uploaded name of the video file.';
-$string['privacy:metadata:videoassessment_videos:timecreated'] = 'Uploaded time of the file.';
-$string['privacy:metadata:videoassessment_videos:timemodified'] = 'Last modification time of the file.';
-
-$string['privacy:metadata:videoassessment_video_assocs'] = 'Video assignments.';
-$string['privacy:metadata:videoassessment_video_assocs:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_video_assocs:videoid'] = 'Video storage ID.';
-$string['privacy:metadata:videoassessment_video_assocs:associationid'] = 'User who associate with this video.';
-$string['privacy:metadata:videoassessment_video_assocs:timemodified'] = 'Last modification time.';
-
-$string['defaultrubrictemplate'] = 'Quick-start rubric for general performances (modifiable)';
-$string['defaultrubrictemplatedesc'] = 'This is a quick-start rubric template for general performances. You can customize it to fit your needs.';
-$string['defaultcriterioncontent'] = 'Interesting, engaging content';
-$string['defaultcriterionbodylanguage'] = 'Good body language, facial expression, eye contact';
-$string['defaultcriterionvoice'] = 'Clear voice with stress/intonation';
-$string['defaultcriterionlanguage'] = 'Easy-to-understand language';
-$string['defaultcriterionstructure'] = 'Strong introduction, transitions, conclusions';
-$string['gradingmethod_help'] = 'Choose the advanced grading method that should be used for calculating grades in the given context.
-
-To disable advanced grading and switch back to the default grading mechanism, choose \'Simple direct grading\'.';
-$string['rubricnotcompleted'] = 'Please complete all rubric criteria before submitting.';

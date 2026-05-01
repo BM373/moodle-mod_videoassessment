@@ -58,10 +58,18 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
             }
         }
 
-        $templatecontext = [
-            'courses' => $courseoptions,
-        ];
-        $html = $OUTPUT->render_from_template('mod_videoassessment/course_options', $templatecontext);
+        // Build the <option> list directly. A Mustache partial cannot be used
+        // here because templates emitting bare <option> elements fail Moodle's
+        // mustache lint (HTML5 requires <option> to be inside <select>); the
+        // resulting HTML is injected into an existing <select> by the caller.
+        $html = html_writer::tag('option', '(' . get_string('new') . ')', ['value' => '0']);
+        foreach ($courseoptions as $option) {
+            $attributes = ['value' => $option['id']];
+            if (!empty($option['selected'])) {
+                $attributes['selected'] = 'selected';
+            }
+            $html .= html_writer::tag('option', s($option['fullname']), $attributes);
+        }
         echo json_encode([
             'html' => $html,
         ]);
@@ -89,10 +97,17 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
             }
         }
 
-        $templatecontext = [
-            'sections' => $sectionopts,
-        ];
-        $html = $OUTPUT->render_from_template('mod_videoassessment/section_options', $templatecontext);
+        // Same rationale as the course_options branch above: build the
+        // <option> list inline rather than via a Mustache partial that would
+        // fail HTML5 lint when emitting bare <option> elements.
+        $html = '';
+        foreach ($sectionopts as $option) {
+            $attributes = ['value' => $option['id']];
+            if (!empty($option['selected'])) {
+                $attributes['selected'] = 'selected';
+            }
+            $html .= html_writer::tag('option', s($option['name']), $attributes);
+        }
 
         echo json_encode([
             'html' => $html,
