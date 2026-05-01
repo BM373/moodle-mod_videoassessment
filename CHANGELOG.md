@@ -24,6 +24,12 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 - Complete the PHPDoc `@param` list of `mod_videoassessment\va::get_courses_managed_by`
   (added the missing `$catid` parameter) and reorder the `@param` entries of
   `mod_videoassessment\va::get_peers_sort` to match the function signature.
+- `db/upgrade.php`: reorder the upgrade blocks so that version `2020091702`
+  (videoassessment_grades.isnotifystudent) comes before `2020091703`, matching
+  Moodle's expectation of chronologically ordered savepoints.
+- `db/upgrade.php`: consolidate six separate `if ($oldversion < 2022080801) { ... }`
+  blocks into a single block with one terminating `upgrade_mod_savepoint()` call,
+  removing the "5 missing savepoint" errors flagged by Moodle Plugin CI.
 
 ### Planned (tracked by 2026-04 fix list)
 The items below are planned and tracked but **not yet implemented**.

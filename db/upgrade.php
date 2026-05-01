@@ -510,6 +510,15 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2019041410, 'videoassessment');
     }
 
+    if ($oldversion < 2020091702) {
+        $table = new xmldb_table('videoassessment_grades');
+        $field = new xmldb_field('isnotifystudent', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 1);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2020091702, 'videoassessment');
+    }
+
     if ($oldversion < 2020091703) {
         $table = new xmldb_table('videoassessment');
         $field = new xmldb_field('isregisteredemail',
@@ -742,15 +751,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2020091703, 'videoassessment');
     }
 
-    if ($oldversion < 2020091702) {
-        $table = new xmldb_table('videoassessment_grades');
-        $field = new xmldb_field('isnotifystudent', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 1);
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-        upgrade_mod_savepoint(true, 2020091702, 'videoassessment');
-    }
-
     if ($oldversion < 2020092202) {
         $table = new xmldb_table('videoassessment');
         $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 0);
@@ -889,8 +889,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2020111601, 'videoassessment');
     }
     if ($oldversion < 2022080801) {
+        // videoassessment_aggregation: extra self-assessment bonus columns.
         $table = new xmldb_table('videoassessment_aggregation');
-
         $field = new xmldb_field('selffairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -900,19 +900,15 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-    }
-    if ($oldversion < 2022080801) {
+        // videoassessment_grades: comment format column.
         $table = new xmldb_table('videoassessment_grades');
-
         $field = new xmldb_field('submissioncommentformat', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
 
-    if ($oldversion < 2022080801) {
+        // videoassessment: due-date / assessment-type / weighting columns.
         $table = new xmldb_table('videoassessment');
-
         $field = new xmldb_field('allowsubmissionsfromdate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -929,7 +925,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
         $field = new xmldb_field('isselfassesstype', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -962,7 +957,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
         $field = new xmldb_field('numberofpeers', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -971,27 +965,17 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
-    if ($oldversion < 2022080801) {
-        $table = new xmldb_table('videoassessment');
-
         $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
-    if ($oldversion < 2022080801) {
-        $table = new xmldb_table('videoassessment');
-
         $field = new xmldb_field('gradepass_videoassessment', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
 
-    if ($oldversion < 2022080801) {
+        // videoassessment_aggregation: fairness / final score columns.
         $table = new xmldb_table('videoassessment_aggregation');
-
         $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -1000,6 +984,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+
         upgrade_mod_savepoint(true, 2022080801, 'videoassessment');
     }
 
