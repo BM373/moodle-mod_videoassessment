@@ -50,28 +50,43 @@ if ($ADMIN->fulltree) {
 
     if (!class_exists('admin_setting_configtext_ffmpegcommand')) {
         /**
-         * Custom admin setting for validating ffmpeg command.
+         * Custom admin setting wrapping {@see \mod_videoassessment\admin\command_validator}.
          *
-         * Validates the ffmpeg command to ensure it contains the required placeholders
-         * for input and output file paths.
+         * Item #9 of the 2026-04 fix programme. The previous implementation only
+         * checked that ``{INPUT}`` / ``{OUTPUT}`` placeholders appeared after the
+         * literal ``ffmpeg``, which let a site administrator inject arbitrary
+         * shell metacharacters into the FFmpeg command line. This wrapper
+         * delegates to the namespaced validator so the same allow-list is
+         * applied uniformly and is also covered by PHPUnit data-driven tests.
          */
         class admin_setting_configtext_ffmpegcommand extends admin_setting_configtext {
             /**
-             * Validate the ffmpeg command.
+             * Validate an FFmpeg command via the hardened command validator.
              *
-             * Checks if the command contains the required placeholders for input and output file paths.
-             *
-             * @param string $data The ffmpeg command to validate
-             * @return string|true True if validation passes, error message string if fails
+             * @param string $data The ffmpeg command to validate.
+             * @return string|true True if validation passes; error string if it fails.
              */
             public function validate($data) {
-                if (
-                    strpos($data, '{INPUT}') <= stripos($data, 'ffmpeg') ||
-                    strpos($data, '{OUTPUT}') <= stripos($data, 'ffmpeg')
-                ) {
-                    return get_string('validateerror', 'admin');
-                }
-                return true;
+                return \mod_videoassessment\admin\command_validator::validate_ffmpeg((string)$data);
+            }
+        }
+    }
+    if (!class_exists('admin_setting_configtext_mp4boxcommand')) {
+        /**
+         * Custom admin setting for the MP4Box command line.
+         *
+         * Empty values are accepted (MP4Box is optional). When non-empty,
+         * delegates to {@see \mod_videoassessment\admin\command_validator::validate_mp4box}.
+         */
+        class admin_setting_configtext_mp4boxcommand extends admin_setting_configtext {
+            /**
+             * Validate an MP4Box command via the hardened command validator.
+             *
+             * @param string $data The MP4Box command to validate.
+             * @return string|true True if validation passes; error string if it fails.
+             */
+            public function validate($data) {
+                return \mod_videoassessment\admin\command_validator::validate_mp4box((string)$data);
             }
         }
     }
@@ -98,7 +113,7 @@ if ($ADMIN->fulltree) {
     );
 
     $settings->add(
-        new admin_setting_configtext(
+        new admin_setting_configtext_mp4boxcommand(
             'videoassessment_mp4boxcommand',
             get_string('mp4boxcommand', 'videoassessment'),
             get_string('mp4boxcommanddesc', 'videoassessment'),

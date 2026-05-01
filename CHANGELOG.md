@@ -21,6 +21,16 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#9** Harden the FFmpeg / MP4Box command admin settings against shell
+  injection. A new `mod_videoassessment\admin\command_validator` class
+  enforces an allow-list of characters, requires `{INPUT}` and `{OUTPUT}`
+  placeholders to appear exactly once on FFmpeg commands, and requires the
+  first token to be the expected binary (ffmpeg or MP4Box). The previous
+  validator merely checked that placeholders appeared after the literal
+  "ffmpeg" string, which let an administrator add `;`, `&&`, `|`, `$( )`
+  or backticks and have them executed via `strtr()` + the shell.
+  `tests/admin/command_validator_test.php` exercises the validator with
+  data-providers for both safe forms and a battery of injection patterns.
 - **#11** Rename the `order` column on the `videoassessment` table to
   `sortorder`. `order` is a PostgreSQL reserved keyword, which caused
   `$DB->update_record('videoassessment', ...)` to fail with
