@@ -21,6 +21,17 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#1** Generalise the wording of the upload / link UI so it no longer
+  implies YouTube exclusivity. The English strings `allowyoutube` (now
+  "Allow external video links (e.g. YouTube)"), `uploadingvideo`
+  ("Upload / link video"), `uploadvideo` ("Upload / link a video"),
+  `reuploadvideo` and `uploadyoutube` ("Insert External Video Link")
+  are updated, and the `recordnewvideo_help` paragraph now reflects
+  YouTube Shorts support and explicitly mentions Vimeo and
+  esup-portail/Pod as additional accepted hosts. The Japanese (`ja`)
+  translations are kept in sync, with new `allowyoutube` /
+  `allowyoutube_help` entries inserted in the correct alphabetical
+  position so the LangFilesOrdering sniff stays clean.
 - **#5** Replace the random peer-assignment algorithm in
   `va::get_random_peers_for_users()` with a load-balancing pass that
   tracks how often each user has already been chosen and always picks
