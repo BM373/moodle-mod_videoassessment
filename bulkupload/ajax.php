@@ -26,6 +26,13 @@ require_once(__DIR__ . '/../../../config.php');
 
 require_once(__DIR__ . '/lib.php');
 
+
+// Item #8 of the 2026-04 fix programme: explicit site-level login
+// gate so the moodle.Files.RequireLogin sniff sees a require_login()
+// call in this entry point. The downstream code re-runs require_login()
+// with the correct course / cm context once those are available.
+require_login();
+
 try {
     $cmid = required_param('cmid', PARAM_INT);
 

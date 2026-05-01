@@ -23,6 +23,13 @@ require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/classes/form/videos_delete.php');
 
+
+// Item #8 of the 2026-04 fix programme: explicit site-level login
+// gate so the moodle.Files.RequireLogin sniff sees a require_login()
+// call in this entry point. The downstream code re-runs require_login()
+// with the correct course / cm context once those are available.
+require_login();
+
 /**
  * Page controller for deleting multiple videos from video assessment.
  *

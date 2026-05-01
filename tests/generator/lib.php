@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Test generator for mod_videoassessment.
  *
@@ -34,7 +32,6 @@ defined('MOODLE_INTERNAL') || die();
  * @package mod_videoassessment
  */
 class mod_videoassessment_generator extends testing_module_generator {
-
     /**
      * Default form data for create_instance(). Mirrors the activity
      * form's defaults so create_instance() can be called with just

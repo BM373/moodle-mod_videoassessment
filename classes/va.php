@@ -792,8 +792,6 @@ class va {
      * Shows unassociated/associated/all uploaded videos with filters and
      * pagination and provides association management actions.
      *
-     * @global \moodle_page $PAGE
-     * @global \core_renderer $OUTPUT
      * @return string Rendered HTML for the videos list
      */
     private function view_videos() {
@@ -2459,11 +2457,6 @@ class va {
      *
      * Allows teachers to create resource links for published content.
      *
-     * @global \core_renderer $OUTPUT
-     * @global \moodle_page $PAGE
-     * @global \moodle_database $DB
-     * @global \stdClass $USER
-     * @global \stdClass $CFG
      * @return string Rendered HTML for the publish view
      */
     private function view_publish() {
@@ -3513,7 +3506,6 @@ class va {
      * @param int $userid
      * @param int|null $catid Optional category id; when provided, restrict to that category.
      * @return object[]
-     * @global object $CFG
      */
     public static function get_courses_managed_by($userid, $catid = null) {
         global $CFG;
