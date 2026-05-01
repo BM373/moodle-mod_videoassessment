@@ -188,63 +188,7 @@ class grade_table {
         }
 
         if ($users) {
-            $groupmode = groups_get_activity_groupmode($cm);
-            $aag = has_capability('moodle/site:accessallgroups', $context);
-
-            if ($groupmode == VISIBLEGROUPS || $aag) {
-                $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // Any group in grouping.
-            } else {
-                $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // Only assigned groups.
-            }
-
-            $groupid = groups_get_activity_group($cm, true, $allowedgroups);
-            $groupid = optional_param('group', $groupid, PARAM_INT);
-
-            if (!empty($groupid)) {
-                $type = 'group';
-                $itemid = $groupid;
-            } else {
-                $type = 'course';
-                $itemid = $cm->course;
-            }
-
-            $sortitem = $DB->get_record('videoassessment_sort_items', ['type' => $type, 'itemid' => $itemid]);
-
-            if (!empty($sortitem)) {
-                $sort = $sortitem->sortby;
-            } else {
-                $sort = assign_class::SORT_ID;
-            }
-
-            $nsort = optional_param('nsort', null, PARAM_INT);
-
-            if (!empty($nsort)) {
-                $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
-
-                if ($nsort == self::ORDER_ASC) {
-                    $orderstr .= ' ASC';
-                } else {
-                    $orderstr .= ' DESC';
-                }
-
-                $users = $this->va->get_students_sort($groupid, false, $orderstr);
-            } else {
-                if ($sort == assign_class::SORT_MANUALLY) {
-                    $users = $this->va->get_students_sort($groupid, true);
-                } else {
-                    if (in_array($sort, [assign_class::SORT_ID, assign_class::SORT_NAME])) {
-                        if ($sort == assign_class::SORT_ID) {
-                            $orderstr = ' ORDER BY u.id';
-                        } else {
-                            $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
-                        }
-                    } else {
-                        $orderstr = '';
-                    }
-
-                    $users = $this->va->get_students_sort($groupid, false, $orderstr);
-                }
-            }
+            $users = $this->resolve_sorted_users($cm, $context, $users);
 
             foreach ($users as $user) {
                 if (empty($user->id)) {
@@ -427,63 +371,7 @@ class grade_table {
         $peers = $this->va->get_peers($USER->id);
 
         if ($users) {
-            $groupmode = groups_get_activity_groupmode($cm);
-            $aag = has_capability('moodle/site:accessallgroups', $context);
-
-            if ($groupmode == VISIBLEGROUPS || $aag) {
-                $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid); // Any group in grouping.
-            } else {
-                $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid); // Only assigned groups.
-            }
-
-            $groupid = groups_get_activity_group($cm, true, $allowedgroups);
-            $groupid = optional_param('group', $groupid, PARAM_INT);
-
-            if (!empty($groupid)) {
-                $type = 'group';
-                $itemid = $groupid;
-            } else {
-                $type = 'course';
-                $itemid = $cm->course;
-            }
-
-            $sortitem = $DB->get_record('videoassessment_sort_items', ['type' => $type, 'itemid' => $itemid]);
-
-            if (!empty($sortitem)) {
-                $sort = $sortitem->sortby;
-            } else {
-                $sort = assign_class::SORT_ID;
-            }
-
-            $nsort = optional_param('nsort', null, PARAM_INT);
-
-            if (!empty($nsort)) {
-                $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
-
-                if ($nsort == self::ORDER_ASC) {
-                    $orderstr .= ' ASC';
-                } else {
-                    $orderstr .= ' DESC';
-                }
-
-                $users = $this->va->get_students_sort($groupid, false, $orderstr);
-            } else {
-                if ($sort == assign_class::SORT_MANUALLY) {
-                    $users = $this->va->get_students_sort($groupid, true);
-                } else {
-                    if (in_array($sort, [assign_class::SORT_ID, assign_class::SORT_NAME])) {
-                        if ($sort == assign_class::SORT_ID) {
-                            $orderstr = ' ORDER BY u.id';
-                        } else {
-                            $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
-                        }
-                    } else {
-                        $orderstr = '';
-                    }
-
-                    $users = $this->va->get_students_sort($groupid, false, $orderstr);
-                }
-            }
+            $users = $this->resolve_sorted_users($cm, $context, $users);
 
             foreach ($users as $user) {
                 if ($user->id == $USER->id) {
@@ -607,9 +495,78 @@ class grade_table {
     }
 
     /**
-     * Setup table headers and column structure.
+     * Apply the activity's persisted sort preferences to the user list.
      *
-     * Initializes the table data structure and creates header rows
+     * Reads the saved {@see assign_class}-style preference from
+     * `videoassessment_sort_items` (per-group or per-course), or honours an
+     * `?nsort=ASC|DESC` query parameter, and re-fetches the students with
+     * the appropriate ORDER BY clause via
+     * {@see \mod_videoassessment\va::get_students_sort()}.
+     *
+     * Originally inlined twice in `print_teacher_grade_table()` and
+     * `print_class_grade_table()` (~60 LOC each); extracted to a single
+     * helper to address the phpcpd duplication finding.
+     *
+     * @param \stdClass $cm Course-module record (needs course, groupingid,
+     *                       groupmembersonly).
+     * @param \context_module $context Activity context for capability checks.
+     * @param array $users Initial user list (used only for the early-return guard).
+     * @return array Re-sorted user list.
+     */
+    private function resolve_sorted_users($cm, $context, array $users): array {
+        global $DB, $USER;
+
+        $groupmode = groups_get_activity_groupmode($cm);
+        $aag = has_capability('moodle/site:accessallgroups', $context);
+
+        if ($groupmode == VISIBLEGROUPS || $aag) {
+            $allowedgroups = groups_get_all_groups($cm->course, 0, $cm->groupingid);
+        } else {
+            $allowedgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid);
+        }
+
+        $groupid = groups_get_activity_group($cm, true, $allowedgroups);
+        $groupid = optional_param('group', $groupid, PARAM_INT);
+
+        if (!empty($groupid)) {
+            $type = 'group';
+            $itemid = $groupid;
+        } else {
+            $type = 'course';
+            $itemid = $cm->course;
+        }
+
+        $sortitem = $DB->get_record('videoassessment_sort_items', ['type' => $type, 'itemid' => $itemid]);
+        $sort = !empty($sortitem) ? $sortitem->sortby : assign_class::SORT_ID;
+
+        $nsort = optional_param('nsort', null, PARAM_INT);
+
+        if (!empty($nsort)) {
+            $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
+            $orderstr .= ($nsort == self::ORDER_ASC) ? ' ASC' : ' DESC';
+            return $this->va->get_students_sort($groupid, false, $orderstr);
+        }
+
+        if ($sort == assign_class::SORT_MANUALLY) {
+            return $this->va->get_students_sort($groupid, true);
+        }
+
+        if (in_array($sort, [assign_class::SORT_ID, assign_class::SORT_NAME])) {
+            $orderstr = ($sort == assign_class::SORT_ID)
+                ? ' ORDER BY u.id'
+                : ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
+        } else {
+            $orderstr = '';
+        }
+
+        return $this->va->get_students_sort($groupid, false, $orderstr);
+    }
+
+    /**
+     * Set up the grade table header with appropriate columns and styling.
+     *
+     * Initializes the table structure including column headers, classes,
+     * and visual elements. Configures the table layout
      * with column titles, sorting options, and grade type labels.
      *
      * @return void
