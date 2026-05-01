@@ -1781,8 +1781,11 @@ class va {
                             }
                         }
                     }
-                } catch (Exception $e) {
-                    // No rubric available.
+                } catch (\Exception $e) {
+                    debugging(
+                        'No rubric available for rateridforinstance lookup: ' . $e->getMessage(),
+                        DEBUG_DEVELOPER
+                    );
                 }
 
                 if (!$hasdefinition) {
@@ -1795,10 +1798,26 @@ class va {
                         if ($testcontroller) {
                             $hasdefinitiondetail = $testcontroller->is_form_defined();
                             $isavailable = $testcontroller->is_form_available();
-                            debugging("Rubric controller not available for grading area: {$gradingarea}, gradertype: {$gradertype}. Active method: " . ($activemethod ?: 'NULL') . ", Definition exists: " . ($hasdefinitiondetail ? 'YES' : 'NO') . ", Is available: " . ($isavailable ? 'YES' : 'NO'), DEBUG_NORMAL);
+                            $detail = sprintf(
+                                'Active method: %s, Definition exists: %s, Is available: %s',
+                                $activemethod ?: 'NULL',
+                                $hasdefinitiondetail ? 'YES' : 'NO',
+                                $isavailable ? 'YES' : 'NO'
+                            );
+                            debugging(
+                                "Rubric controller not available for grading area: {$gradingarea}, "
+                                    . "gradertype: {$gradertype}. {$detail}",
+                                DEBUG_NORMAL
+                            );
                         }
-                    } catch (Exception $e) {
-                        debugging("Rubric controller not available for grading area: {$gradingarea}, gradertype: {$gradertype}. Active method: " . ($activemethod ?: 'NULL') . ", Error: " . $e->getMessage(), DEBUG_NORMAL);
+                    } catch (\Exception $e) {
+                        debugging(
+                            "Rubric controller not available for grading area: {$gradingarea}, "
+                                . "gradertype: {$gradertype}. Active method: "
+                                . ($activemethod ?: 'NULL')
+                                . ', Error: ' . $e->getMessage(),
+                            DEBUG_NORMAL
+                        );
                     }
                 }
             }
@@ -2382,7 +2401,10 @@ class va {
                     . '</span><span class="comment-score">'
                     . (int) $usergrades->finalscore . '</span>'
                     . \html_writer::end_tag('div');
-                $o .= $OUTPUT->container(get_string('grade', 'videoassessment') . ': ' . implode(', ', $timinggrades) . $totalscore . $selffairnessbonus . $fairnessbonus . $finalscore, 'finalgrade');
+                $finalgradetext = get_string('grade', 'videoassessment') . ': '
+                    . implode(', ', $timinggrades)
+                    . $totalscore . $selffairnessbonus . $fairnessbonus . $finalscore;
+                $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
             }
         }
         $o .= \html_writer::end_tag('div');

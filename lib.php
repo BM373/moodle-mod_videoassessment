@@ -98,7 +98,6 @@ function videoassessment_add_instance($va, $form) {
     // Moodle core processes gradepass AFTER add_instance in edit_module_post_actions(),
     // so we need to ensure it's set in $va (which is $moduleinfo) so Moodle core can read it.
 
-
     // ALWAYS initialize to 0 - this ensures the field is never null.
     $gradepassvalue = 0.0;
 
@@ -145,7 +144,6 @@ function videoassessment_add_instance($va, $form) {
     // Convert to float to ensure it's numeric - ALWAYS do this.
     $gradepassvalue = (float)$gradepassvalue;
 
-
     // CRITICAL: ALWAYS set gradepass in $va ($moduleinfo) so Moodle core can read it in edit_module_post_actions()
     // Moodle core checks: if (isset($moduleinfo->{$gradepassfieldname})) where fieldname is 'gradepass' for itemnumber 0
     // We MUST set this so Moodle core can process it - ALWAYS set it, even if 0.
@@ -171,15 +169,8 @@ function videoassessment_add_instance($va, $form) {
     $va->gradepass = (float)$va->gradepass;
     $va->gradepass_videoassessment = (float)$va->gradepass_videoassessment;
 
-
     $va->id = $DB->insert_record('videoassessment', $va);
 
-    if ($va->id) {
-        try {
-            $inserted = $DB->get_record('videoassessment', ['id' => $va->id], 'id, gradepass, gradepass_videoassessment');
-        } catch (Exception $e) {
-        }
-    }
     videoassessment_update_calendar($va);
 
     // Process peer assignments from the form.
@@ -228,8 +219,8 @@ function videoassessment_add_instance($va, $form) {
     } else {
         // Explicitly clear any existing preference if rubric button was NOT clicked.
         // This prevents stale preferences from causing unwanted redirects.
-        $existing_pref = get_user_preferences('videoassessment_redirect_to_grading');
-        if (!empty($existing_pref)) {
+        $existingpref = get_user_preferences('videoassessment_redirect_to_grading');
+        if (!empty($existingpref)) {
             unset_user_preference('videoassessment_redirect_to_grading');
         }
     }
@@ -318,7 +309,13 @@ function videoassessment_update_instance($va, $form) {
             }
 
             // Priority 2: Check $va object (processed form data from form->get_data()).
-            if (!$gradepassfound && property_exists($va, 'gradepass') && $va->gradepass !== '' && $va->gradepass !== null && (is_numeric($va->gradepass) || $va->gradepass === 0 || $va->gradepass === '0')) {
+            if (
+                !$gradepassfound
+                && property_exists($va, 'gradepass')
+                && $va->gradepass !== ''
+                && $va->gradepass !== null
+                && (is_numeric($va->gradepass) || $va->gradepass === 0 || $va->gradepass === '0')
+            ) {
                 $gradepassvalue = (float)$va->gradepass;
                 $gradepassfound = true;
             }
@@ -326,7 +323,17 @@ function videoassessment_update_instance($va, $form) {
             // Priority 3: Check form object if available.
             if (!$gradepassfound && $form && method_exists($form, 'get_data')) {
                 $formdata = $form->get_data();
-                if ($formdata && property_exists($formdata, 'gradepass') && $formdata->gradepass !== '' && $formdata->gradepass !== null && (is_numeric($formdata->gradepass) || $formdata->gradepass === 0 || $formdata->gradepass === '0')) {
+                if (
+                    $formdata
+                    && property_exists($formdata, 'gradepass')
+                    && $formdata->gradepass !== ''
+                    && $formdata->gradepass !== null
+                    && (
+                        is_numeric($formdata->gradepass)
+                        || $formdata->gradepass === 0
+                        || $formdata->gradepass === '0'
+                    )
+                ) {
                     $gradepassvalue = (float)$formdata->gradepass;
                     $gradepassfound = true;
                 }
@@ -479,8 +486,8 @@ function videoassessment_update_instance($va, $form) {
     } else {
         // Explicitly clear any existing preference if rubric button was NOT clicked.
         // This prevents stale preferences from causing unwanted redirects.
-        $existing_pref = get_user_preferences('videoassessment_redirect_to_grading');
-        if (!empty($existing_pref)) {
+        $existingpref = get_user_preferences('videoassessment_redirect_to_grading');
+        if (!empty($existingpref)) {
             unset_user_preference('videoassessment_redirect_to_grading');
         }
     }
@@ -1078,7 +1085,7 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
     }
 
     // Determine which areas need rubrics based on settings.
-    $areas_to_duplicate = [];
+    $areastoduplicate = [];
 
     // When forceupdate is true (template selection), always duplicate to class and teacher areas.
     $forceclassandteacher = false;
@@ -1142,12 +1149,12 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
             }
 
             if ($shouldupdate) {
-                $areas_to_duplicate[] = $area;
+                $areastoduplicate[] = $area;
             }
         }
     }
 
-    if (empty($areas_to_duplicate)) {
+    if (empty($areastoduplicate)) {
         return; // All areas already have rubrics.
     }
 
@@ -1155,7 +1162,7 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
     $transaction = $DB->start_delegated_transaction();
 
     try {
-        foreach ($areas_to_duplicate as $targetarea) {
+        foreach ($areastoduplicate as $targetarea) {
             // Set the active method to 'rubric' for this area BEFORE creating the definition.
             // Use context/component/area approach to get the manager.
             $targetmanager = get_grading_manager($context, 'mod_videoassessment', $targetarea->areaname);
@@ -1218,6 +1225,16 @@ function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false)
     }
 }
 
+/**
+ * Add Video Assessment-specific entries to the activity settings navigation.
+ *
+ * Adds rubric / grade navigation items so the activity settings block
+ * exposes them next to Moodle's standard module entries.
+ *
+ * @param settings_navigation $settings The settings_navigation root node.
+ * @param navigation_node $videoassessmentnode Module-specific navigation node.
+ * @return void
+ */
 function videoassessment_extend_settings_navigation($settings, navigation_node $videoassessmentnode) {
     global $PAGE, $DB;
     $areaname = '';
@@ -1337,14 +1354,14 @@ function videoassessment_cm_info_view(cm_info $cm) {
 
     // Check if there's a pending redirect to grading page.
     // This handles the case where "Save and create rubric" was clicked.
-    static $redirectChecked = false;
-    if (!$redirectChecked) {
-        $redirectChecked = true;
+    static $redirectchecked = false;
+    if (!$redirectchecked) {
+        $redirectchecked = true;
 
         // Add inline JavaScript to check sessionStorage and redirect if needed.
         // Uses a unique token to ensure the redirect only happens once.
-        $checkUrl = $CFG->wwwroot . '/mod/videoassessment/check_grading_redirect.php';
-        $inlineJs = "
+        $checkurl = $CFG->wwwroot . '/mod/videoassessment/check_grading_redirect.php';
+        $inlinejs = "
             (function() {
                 // Don't redirect if we're already on the grading management page or any grading-related page.
                 var currentUrl = window.location.href;
@@ -1404,7 +1421,7 @@ function videoassessment_cm_info_view(cm_info $cm) {
                 sessionStorage.setItem('videoassessment_processed_tokens', JSON.stringify(processedTokens));
 
                 // Check for redirect via AJAX.
-                fetch('{$checkUrl}', {credentials: 'same-origin'})
+                fetch('{$checkurl}', {credentials: 'same-origin'})
                     .then(function(response) { return response.json(); })
                     .then(function(data) {
                         if (data.redirect && data.url) {
@@ -1416,7 +1433,7 @@ function videoassessment_cm_info_view(cm_info $cm) {
                     });
             })();
         ";
-        $PAGE->requires->js_init_code($inlineJs, false);
+        $PAGE->requires->js_init_code($inlinejs, false);
     }
 }
 

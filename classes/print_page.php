@@ -245,7 +245,10 @@ class print_page {
                         . (int) $usergrades->finalscore
                         . '</span>'
                         . \html_writer::end_tag('div');
-                    $o .= $OUTPUT->container(get_string('grade', 'videoassessment') . ': ' . implode(', ', $timinggrades) . $totalscore . $fairnessbonus . $finalscore, 'finalgrade');
+                    $finalgradetext = get_string('grade', 'videoassessment') . ': '
+                        . implode(', ', $timinggrades)
+                        . $totalscore . $fairnessbonus . $finalscore;
+                    $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
                 }
             }
             $o .= \html_writer::end_tag('div');

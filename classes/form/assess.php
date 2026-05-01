@@ -385,12 +385,10 @@ class assess extends \moodleform {
                             // Also set error on the form element directly to ensure it's displayed.
                             $this->_form->setElementError($errorfield, $errormessage);
                         }
-                    } else if ($gradingdata !== null && is_array($gradingdata) && $gradinginstance->is_empty_form($gradingdata)) {
-                        // Form is empty - this is allowed, no validation needed.
-                    } else {
-                        // No grading data submitted - this might be an issue, but we'll allow it for now.
                     }
-                    // If gradingdata is null or form is empty, don't show error - allow empty submission.
+                    // If gradingdata is null, an empty rubric form, or simply not
+                    // submitted at all, fall through and allow the (empty)
+                    // submission - no rubric error is raised.
                 }
             }
         }

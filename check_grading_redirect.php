@@ -29,12 +29,12 @@ require_login();
 header('Content-Type: application/json');
 
 // Always clear the preference first to prevent redirect loops.
-$redirect_to_grading = get_user_preferences('videoassessment_redirect_to_grading');
+$redirecttograding = get_user_preferences('videoassessment_redirect_to_grading');
 unset_user_preference('videoassessment_redirect_to_grading');
 
-if (!empty($redirect_to_grading)) {
+if (!empty($redirecttograding)) {
     // Parse the preference value: 'id:timestamp' or just 'id' (for backward compatibility).
-    $parts = explode(':', $redirect_to_grading);
+    $parts = explode(':', $redirecttograding);
     $vaid = (int)$parts[0];
     $preftimestamp = isset($parts[1]) ? (int)$parts[1] : 0;
 

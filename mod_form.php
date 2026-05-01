@@ -1299,12 +1299,6 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $data = parent::get_data();
 
         if ($data) {
-            if (property_exists($data, 'gradepass')) {
-            }
-        } else {
-        }
-
-        if ($data) {
             // Process gradepass field - Moodle parent processes 'gradepass' with unformat_float(),
             // but we need to ensure it's properly set (default to 0 if empty).
             // For itemnumber 0 (which maps to 'grading'), the field name is just 'gradepass'.
@@ -1328,7 +1322,6 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             if ($data->gradepass < 0) {
                 $data->gradepass = 0;
             }
-
 
             if (!empty($this->current->_advancedgradingdata['areas'])) {
                 // Get all area names.

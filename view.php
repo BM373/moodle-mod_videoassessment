@@ -193,10 +193,10 @@ require_capability('mod/videoassessment:view', $context);
 // during add_instance/update_instance, and the preference is cleared immediately after redirect.
 //
 // Clear any stale preferences as a safety measure to prevent unwanted redirects.
-$redirect_to_grading = get_user_preferences('videoassessment_redirect_to_grading');
-if (!empty($redirect_to_grading)) {
+$redirecttograding = get_user_preferences('videoassessment_redirect_to_grading');
+if (!empty($redirecttograding)) {
     // Parse the preference value: 'id:timestamp' or just 'id' (for backward compatibility).
-    $parts = explode(':', $redirect_to_grading);
+    $parts = explode(':', $redirecttograding);
     $vaid = (int)$parts[0];
     $preftimestamp = isset($parts[1]) ? (int)$parts[1] : 0;
 
@@ -210,7 +210,7 @@ if (!empty($redirect_to_grading)) {
     // 2. Preference was set very recently (within 0.5 seconds - extremely strict)
     // 3. Preference ID matches current activity instance
     // 4. Preference has a valid timestamp.
-    $should_redirect = false;
+    $shouldredirect = false;
     if ($isfrommodedit && $preftimestamp > 0) {
         $recent = (time() - $preftimestamp) <= 0.5; // 0.5 second window - extremely strict
         $matchesactivity = ($vaid == $cm->instance);
@@ -219,12 +219,12 @@ if (!empty($redirect_to_grading)) {
             // Double-check: verify the activity exists and matches.
             $va = $DB->get_record('videoassessment', ['id' => $vaid]);
             if ($va && $va->id == $cm->instance) {
-                $should_redirect = true;
+                $shouldredirect = true;
             }
         }
     }
 
-    if ($should_redirect) {
+    if ($shouldredirect) {
         // Clear the preference immediately to prevent redirect loops.
         unset_user_preference('videoassessment_redirect_to_grading');
 
@@ -259,8 +259,8 @@ if (!empty($redirect_to_grading)) {
 } else {
     // No preference found - ensure any stale preferences are cleared.
     // This is a safety measure to prevent issues from previous activity creations.
-    $stale_pref = get_user_preferences('videoassessment_redirect_to_grading');
-    if (!empty($stale_pref)) {
+    $stalepref = get_user_preferences('videoassessment_redirect_to_grading');
+    if (!empty($stalepref)) {
         unset_user_preference('videoassessment_redirect_to_grading');
     }
 }

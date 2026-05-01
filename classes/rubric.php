@@ -98,16 +98,19 @@ class rubric {
                             $gradingmethod = 'rubric';
                         }
                     }
-                } catch (Exception $e) {
-                    // No rubric available, continue.
+                } catch (\Exception $e) {
+                    debugging(
+                        'No rubric available for grading area: ' . $e->getMessage(),
+                        DEBUG_DEVELOPER
+                    );
                 }
             }
 
             if ($gradingmethod) {
                 try {
                     $this->controllers->$gradingarea = $manager->get_controller($gradingmethod);
-                } catch (Exception $e) {
-                    // Controller creation failed, leave as null.
+                } catch (\Exception $e) {
+                    // Controller creation failed; leave as null and continue.
                     $this->controllers->$gradingarea = null;
                 }
             }
@@ -192,8 +195,11 @@ class rubric {
                         return $rubriccontroller;
                     }
                 }
-            } catch (Exception $e) {
-                // No rubric available, continue to fallback.
+            } catch (\Exception $e) {
+                debugging(
+                    'Rubric controller lookup failed, falling back: ' . $e->getMessage(),
+                    DEBUG_DEVELOPER
+                );
             }
         }
 
@@ -219,8 +225,11 @@ class rubric {
                                 $this->controllers->$gradingarea = $rubriccontroller;
                                 return $rubriccontroller;
                             }
-                        } catch (Exception $e) {
-                            // Still not available.
+                        } catch (\Exception $e) {
+                            debugging(
+                                'Rubric remained unavailable after duplication: ' . $e->getMessage(),
+                                DEBUG_DEVELOPER
+                            );
                         }
                     }
                 }
