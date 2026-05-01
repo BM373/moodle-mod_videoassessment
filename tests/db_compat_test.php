@@ -281,8 +281,7 @@ final class db_compat_test extends \advanced_testcase {
         }
 
         $rows = $DB->get_records_sql(
-            'SELECT id, name FROM {videoassessment} WHERE id ' .
-                $DB->sql_compare_text('id') . ' IN (?, ?, ?) ORDER BY name ASC',
+            'SELECT id, name FROM {videoassessment} WHERE id IN (?, ?, ?) ORDER BY name ASC',
             array_values($ids)
         );
         $this->assertSame(['Alpha', 'Bravo', 'Charlie'], array_values(array_column($rows, 'name')));
