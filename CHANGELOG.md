@@ -21,6 +21,22 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Fixed (customer-requested 2026-04 fixes)
+- **#10** Emit fine-grained logstore events from the Video Assessment
+  workflow. Four new event classes are introduced under
+  `\mod_videoassessment\event\`:
+  - `video_uploaded` (CRUD c, edulevel participating) - triggered from
+    `bulkupload/lib.php::video_data_add()` and
+    `youtube_video_data_add()` whenever a row is inserted into
+    `videoassessment_videos`.
+  - `peer_review_submitted` (CRUD c) - triggered from `va.php` when a
+    self / peer / class rubric is saved.
+  - `grade_assigned` (CRUD u, edulevel teaching) - triggered from
+    `va.php` when a teacher persists a rubric grade.
+  - `report_viewed` (CRUD r) - triggered from `print.php` when the
+    activity report screen is rendered.
+  Each class extends `\core\event\base`, declares its `objecttable`,
+  and is exercised by `tests/event/event_test.php` (data-driven sanity
+  + `redirectEvents` capture).
 - **#9** Harden the FFmpeg / MP4Box command admin settings against shell
   injection. A new `mod_videoassessment\admin\command_validator` class
   enforces an allow-list of characters, requires `{INPUT}` and `{OUTPUT}`

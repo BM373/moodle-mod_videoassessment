@@ -294,7 +294,20 @@ class videoassessment_bulkupload {
         $video->originalname = $originalname;
         $video->timecreated = $video->timemodified = time();
 
-        return $DB->insert_record('videoassessment_videos', $video);
+        $videoid = $DB->insert_record('videoassessment_videos', $video);
+
+        // Item #10: emit a fine-grained "video uploaded" log event so
+        // analytics can distinguish uploads from raw activity views.
+        \mod_videoassessment\event\video_uploaded::create([
+            'context' => $this->context,
+            'objectid' => $videoid,
+            'other' => [
+                'videoassessmentid' => $this->assessment->id,
+                'filename' => $originalname,
+            ],
+        ])->trigger();
+
+        return $videoid;
     }
 
     /**
@@ -321,7 +334,21 @@ class videoassessment_bulkupload {
         $video->originalname = $originalname;
         $video->timecreated = $video->timemodified = time();
 
-        return $DB->insert_record('videoassessment_videos', $video);
+        $videoid = $DB->insert_record('videoassessment_videos', $video);
+
+        // Item #10: same logstore event used for direct uploads, with
+        // the original name (which is the YouTube video URL or title) as
+        // the filename payload.
+        \mod_videoassessment\event\video_uploaded::create([
+            'context' => $this->context,
+            'objectid' => $videoid,
+            'other' => [
+                'videoassessmentid' => $this->assessment->id,
+                'filename' => $originalname,
+            ],
+        ])->trigger();
+
+        return $videoid;
     }
     /**
      * Update video record with processed file information.

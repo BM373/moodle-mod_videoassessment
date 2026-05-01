@@ -42,4 +42,13 @@ require_capability('mod/videoassessment:exportownsubmission', $context);
 
 $va = new mod_videoassessment\va($context, $cm, $course);
 $pp = new mod_videoassessment\print_page($va);
+
+// Item #10: emit a fine-grained "report viewed" event so analytics can
+// distinguish report visits from generic activity views.
+\mod_videoassessment\event\report_viewed::create([
+    'context' => $context,
+    'objectid' => $cm->instance,
+    'other' => ['videoassessmentid' => $cm->instance],
+])->trigger();
+
 $pp->do_action();

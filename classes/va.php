@@ -1929,6 +1929,30 @@ class va {
                 }
                 $grade->timemarked = time();
                 $DB->update_record('videoassessment_grades', $grade);
+
+                // Item #10: emit a fine-grained logstore event for each
+                // rubric save so analytics layers can distinguish teacher
+                // grading from self / peer reviews.
+                $eventother = [
+                    'videoassessmentid' => $this->va->id,
+                    'gradertype' => $gradertype,
+                    'timing' => $timing,
+                ];
+                if ($gradertype === 'teacher') {
+                    \mod_videoassessment\event\grade_assigned::create([
+                        'context' => $this->context,
+                        'objectid' => $grade->id,
+                        'relateduserid' => $user->id,
+                        'other' => $eventother,
+                    ])->trigger();
+                } else {
+                    \mod_videoassessment\event\peer_review_submitted::create([
+                        'context' => $this->context,
+                        'objectid' => $grade->id,
+                        'relateduserid' => $user->id,
+                        'other' => $eventother,
+                    ])->trigger();
+                }
             }
 
             $this->aggregate_grades($user->id);
