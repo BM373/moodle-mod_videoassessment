@@ -161,19 +161,19 @@ define([
     /**
      * Check if we should redirect to the advanced grading page after activity creation.
      * This is triggered by the "Save and create rubric" button on the mod_form.
-     * 
+     *
      * @param {number} contextId - The context ID of the current activity.
      * @param {number} cmid - The course module ID.
      */
     const checkRedirectToGrading = (contextId, cmid) => {
         const shouldRedirect = localStorage.getItem('videoassessment_redirect_to_grading');
-        
+
         if (shouldRedirect === '1') {
             // Clear the flag immediately to prevent redirect loops.
             localStorage.removeItem('videoassessment_redirect_to_grading');
-            
+
             console.log('Redirecting to advanced grading page for cmid:', cmid);
-            
+
             // Redirect to the grading management page.
             // We'll use the view.php with a special parameter that will handle finding the area ID.
             window.location.href = M.cfg.wwwroot + '/mod/videoassessment/view.php?id=' + cmid + '&redirecttograding=1';

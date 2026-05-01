@@ -22,16 +22,16 @@
  */
 define(['jquery', 'core/str'], function ($, str) {
     console.log('[VideoAssessment] ===== AMD MODULE DEFINED =====');
-    
+
     return {
         videoassessmentAssess: function () {
             // CRITICAL: This must be the FIRST line to verify function execution
             console.log('[VideoAssessment] ===== FUNCTION CALLED - START =====');
-            
+
             try {
                 console.log('[VideoAssessment] jQuery version:', $.fn.jquery);
                 console.log('[VideoAssessment] Document ready:', $(document).ready ? 'Yes' : 'No');
-                
+
                 // IMMEDIATE test: Catch ALL clicks on the entire page - use immediate execution
                 $(document).on('click.videoassessment-test', function(e) {
                     console.log('[VideoAssessment] ANY CLICK ANYWHERE:', {
@@ -42,9 +42,9 @@ define(['jquery', 'core/str'], function ($, str) {
                         textContent: e.target.textContent ? e.target.textContent.substring(0, 50) : 'N/A'
                     });
                 });
-                
+
                 console.log('[VideoAssessment] Click handler attached');
-            
+
             // Test if we can find ANY textareas at all
             setTimeout(function() {
                 var $allTextareas = $('textarea');
@@ -169,7 +169,7 @@ define(['jquery', 'core/str'], function ($, str) {
             // Handle rubric remark textareas.
             function setupFeedbackHandlers() {
                 console.log('[VideoAssessment] setupFeedbackHandlers() called');
-                
+
                 // Find all remark textareas in the rubric.
                 var remarkSelectors = [
                     '.remark textarea',
@@ -179,12 +179,12 @@ define(['jquery', 'core/str'], function ($, str) {
                     '.gradingform_rubric td.remark textarea',
                     '.gradingform_rubric .criterion .remark textarea'
                 ];
-                
+
                 var $remarkTextareas = $(remarkSelectors.join(', '));
-                
+
                 console.log('[VideoAssessment] Searching for remark textareas with selectors:', remarkSelectors);
                 console.log('[VideoAssessment] Found ' + $remarkTextareas.length + ' remark textareas');
-                
+
                 if ($remarkTextareas.length > 0) {
                     $remarkTextareas.each(function(index) {
                         console.log('[VideoAssessment] Remark textarea #' + index + ':', {
@@ -205,7 +205,7 @@ define(['jquery', 'core/str'], function ($, str) {
                         });
                     });
                 }
-                
+
                 // Handle focus/blur on remark textareas.
                 // Mobile: Hide video when textarea is focused, show when blurred.
                 $remarkTextareas.off('focus.videoassessment blur.videoassessment').on('focus.videoassessment', function() {
@@ -253,7 +253,7 @@ define(['jquery', 'core/str'], function ($, str) {
                         // Check if clicking outside remark areas.
                         var isRemarkElement = $target.closest('.remark, td.remark, .criterion .remark').length > 0 ||
                                               $target.is('.remark, td.remark, .criterion .remark');
-                        
+
                         if (!isRemarkElement) {
                             // Check if any remark textarea is focused.
                             var $focused = $(remarkSelectors.join(':focus, ') + ':focus');
@@ -277,7 +277,7 @@ define(['jquery', 'core/str'], function ($, str) {
                     className: e.target.className,
                     id: e.target.id
                 });
-                
+
                 if (isMobile()) {
                     var $target = $(e.target);
                     // Check if clicking on or inside any remark textarea.
@@ -287,7 +287,7 @@ define(['jquery', 'core/str'], function ($, str) {
                                    $target.is('.remark textarea') ||
                                    $target.closest('td.remark, .criterion .remark').length > 0 ||
                                    $target.is('td.remark, .criterion .remark');
-                    
+
                     console.log('[VideoAssessment] Is remark element?', {
                         isRemark: isRemark,
                         closestRemark: $target.closest('.remark').length,
@@ -297,7 +297,7 @@ define(['jquery', 'core/str'], function ($, str) {
                         closestTdRemark: $target.closest('td.remark, .criterion .remark').length,
                         isTdRemark: $target.is('td.remark, .criterion .remark')
                     });
-                    
+
                     if (isRemark) {
                         console.log('[VideoAssessment] Remark clicked/focused via delegation, hiding video');
                         hideVideo();
@@ -306,17 +306,17 @@ define(['jquery', 'core/str'], function ($, str) {
                     console.log('[VideoAssessment] Not mobile, skipping remark handling');
                 }
             });
-            
+
             // Catch-all click/mousedown handler to see ALL interactions on the page
             $(document).on('click.videoassessment-debug mousedown.videoassessment-debug', function(e) {
                 var $target = $(e.target);
-                var isRemarkArea = $target.closest('.remark').length > 0 || 
+                var isRemarkArea = $target.closest('.remark').length > 0 ||
                                    $target.is('.remark') ||
                                    $target.closest('td.remark').length > 0 ||
                                    $target.is('td.remark') ||
                                    $target.closest('.remark textarea').length > 0 ||
                                    $target.is('.remark textarea');
-                
+
                 if (isRemarkArea) {
                     console.log('[VideoAssessment] CATCH-ALL: ' + e.type + ' detected in remark area!', {
                         target: e.target,
@@ -329,25 +329,25 @@ define(['jquery', 'core/str'], function ($, str) {
                     });
                 }
             });
-            
+
             // Also try attaching directly to any textarea elements we can find
             function attachDirectHandlers() {
                 var $allTextareas = $('textarea');
                 console.log('[VideoAssessment] Found ' + $allTextareas.length + ' total textareas on page');
-                
+
                 $allTextareas.each(function(index) {
                     var $textarea = $(this);
                     var isRemarkTextarea = $textarea.closest('.remark').length > 0 ||
                                          $textarea.closest('td.remark').length > 0 ||
                                          $textarea.parent().hasClass('remark');
-                    
+
                     if (isRemarkTextarea) {
                         console.log('[VideoAssessment] Attaching direct handlers to remark textarea #' + index, {
                             element: this,
                             id: this.id,
                             className: this.className
                         });
-                        
+
                         // Mobile: Hide video when textarea is clicked/focused.
                         $textarea.off('click.videoassessment-direct focus.videoassessment-direct blur.videoassessment-direct')
                                  .on('click.videoassessment-direct', function() {
@@ -370,12 +370,12 @@ define(['jquery', 'core/str'], function ($, str) {
                     }
                 });
             }
-            
+
             // Try attaching direct handlers immediately and after delays
             setTimeout(attachDirectHandlers, 100);
             setTimeout(attachDirectHandlers, 1000);
             setTimeout(attachDirectHandlers, 3000);
-            
+
             // Initial debug: Check what's on the page right now
             console.log('[VideoAssessment] Initial page check:');
             console.log('[VideoAssessment] - Window size:', window.innerWidth, 'x', window.innerHeight);
@@ -384,24 +384,24 @@ define(['jquery', 'core/str'], function ($, str) {
             console.log('[VideoAssessment] - All .remark elements:', $('.remark').length);
             console.log('[VideoAssessment] - All .remark textareas:', $('.remark textarea').length);
             console.log('[VideoAssessment] - All td.remark:', $('td.remark').length);
-            
+
             // Setup handlers after a short delay to ensure editors are initialized.
             console.log('[VideoAssessment] Setting up handlers in 500ms...');
             setTimeout(function() {
                 console.log('[VideoAssessment] First setup attempt (500ms delay)');
                 setupFeedbackHandlers();
             }, 500);
-            
+
             setTimeout(function() {
                 console.log('[VideoAssessment] Second setup attempt (1500ms delay)');
                 setupFeedbackHandlers();
             }, 1500);
-            
+
             setTimeout(function() {
                 console.log('[VideoAssessment] Third setup attempt (3000ms delay)');
                 setupFeedbackHandlers();
             }, 3000);
-            
+
             // Use MutationObserver to catch dynamically added remark textareas.
             if (typeof MutationObserver !== 'undefined') {
                 var observer = new MutationObserver(function(mutations) {
@@ -426,14 +426,14 @@ define(['jquery', 'core/str'], function ($, str) {
                         setTimeout(setupFeedbackHandlers, 100);
                     }
                 });
-                
+
                 // Observe the document body for changes.
                 observer.observe(document.body, {
                     childList: true,
                     subtree: true
                 });
             }
-            
+
             // Re-setup handlers when window is resized or orientation changes (in case mobile detection changes).
             $(window).on('resize orientationchange', function() {
                 if (isMobile()) {

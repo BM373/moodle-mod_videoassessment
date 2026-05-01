@@ -28,23 +28,23 @@ define(['jquery'], function($) {
             if (window.location.href.indexOf('/grade/grading/manage.php') === -1) {
                 return;
             }
-            
+
             // Check if this is for videoassessment module.
             var urlParams = new URLSearchParams(window.location.search);
             var component = urlParams.get('component');
             if (component !== 'mod_videoassessment') {
                 return;
             }
-            
+
             // Clear any pending redirect flags when on the grading page.
             // This prevents redirects when navigating away from this page.
             sessionStorage.removeItem('videoassessment_check_grading_redirect');
             // Also clear processed tokens to prevent any redirect logic from running.
             sessionStorage.removeItem('videoassessment_processed_tokens');
-            
+
             // Prevent any click handlers from triggering redirects on this page.
             $(document).off('click.videoassessment-redirect');
-            
+
             function changeHeading() {
                 // Find the heading element.
                 var heading = $('h1, h2, .page-header-headings h1').first();
@@ -53,11 +53,11 @@ define(['jquery'], function($) {
                     setTimeout(changeHeading, 100);
                     return;
                 }
-                
+
                 // Check if rubric is the active method.
                 var methodSelect = $('select[name="setmethod"]');
                 var isRubric = false;
-                
+
                 if (methodSelect.length) {
                     isRubric = methodSelect.val() === 'rubric';
                 } else {
@@ -65,13 +65,13 @@ define(['jquery'], function($) {
                     isRubric = window.location.href.indexOf('method=rubric') !== -1 ||
                               $('body').text().toLowerCase().indexOf('rubric') !== -1;
                 }
-                
+
                 // Change heading if rubric is used and heading is "Advanced grading".
                 if (isRubric && heading.text().trim() === 'Advanced grading') {
                     heading.text('Create or select rubric');
                 }
             }
-            
+
             // Run when DOM is ready.
             $(document).ready(function() {
                 changeHeading();

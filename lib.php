@@ -951,7 +951,8 @@ function videoassessment_update_calendar($va) {
  * This ensures that when a rubric is created for the teacher area,
  * it's automatically available for peer, self, and class assessors.
  *
- * @param int $contextid The context ID of the video assessment
+ * @param int $contextid The context ID of the video assessment.
+ * @param bool $forceupdate When true, regenerate the duplicates even when targets already exist.
  * @return void
  */
 function videoassessment_auto_duplicate_rubric($contextid, $forceupdate = false) {
