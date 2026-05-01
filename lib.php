@@ -828,9 +828,16 @@ function videoassessment_get_areaname_by_id($id) {
  * @return boolean True if intro should be shown, false otherwise
  */
 function videoassessment_show_intro($va) {
+    // showdescription is a standard Moodle activity-form field but the
+    // videoassessment table never declared a column for it (legacy
+    // schema). Treat both properties as 0 when missing so this function
+    // does not emit "undefined property" notices on every fixture
+    // load.
+    $showdescription = $va->showdescription ?? 0;
+    $allowfrom = $va->allowsubmissionsfromdate ?? 0;
     if (
-        $va->showdescription ||
-        time() > $va->allowsubmissionsfromdate
+        $showdescription ||
+        time() > $allowfrom
     ) {
         return true;
     }

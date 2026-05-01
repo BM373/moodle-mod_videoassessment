@@ -62,7 +62,7 @@ class assign_class extends \moodleform {
         global $DB, $OUTPUT;
 
         $mform = $this->_form;
-        /* @var $va \mod_videoassessment\va */
+        /** @var \mod_videoassessment\va $va */
         $va = $this->_customdata->va;
 
         $attrs = $mform->getAttributes();

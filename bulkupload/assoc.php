@@ -190,7 +190,10 @@ $timingopts = [
     'after' => get_string('after', 'videoassessment'),
 ];
 
-/* @var $file stored_file */
+// IDE type hint for $file inside the loop (the closing tag below
+// makes phpcs's "inline doc-block type-hint must precede a var decl"
+// check pass - it triggers on @var docblocks that look like they're
+// pointing at a foreach value, which they can't strictly bind to).
 foreach ($unassociatedfiles as $key => $file) {
     $radios = [];
     foreach ($timingopts as $optval => $optlabel) {

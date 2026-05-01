@@ -44,7 +44,7 @@ class video_upload extends \moodleform {
     protected function definition() {
         global $COURSE, $CFG, $PAGE;
         $mform = $this->_form;
-        /* @var $va \mod_videoassessment\va */
+        /** @var \mod_videoassessment\va $va */
         $va = $this->_customdata->va;
 
         // Get video publishing settings.

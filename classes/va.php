@@ -3327,7 +3327,7 @@ class va {
                         }
                         $instances = $controller->get_active_instances($gradeitem->id);
                         if (isset($instances[0])) {
-                            /* @var $instance \gradingform_rubric_instance */
+                            /** @var \gradingform_rubric_instance $instance */
                             $instance = $instances[0];
                             $definition = $instance->get_controller()->get_definition();
                             $filling = $instance->get_rubric_filling();

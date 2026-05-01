@@ -116,7 +116,7 @@ class assess extends \moodleform {
 
         $mform = $this->_form;
         $data = $this->_customdata;
-        /* @var $va \mod_videoassessment\va */
+        /** @var \mod_videoassessment\va $va */
         $va = $data->va;
         $attributes = [];
 
@@ -356,7 +356,7 @@ class assess extends \moodleform {
         // Allow plugin videoassessment types to do any extra validation after the form has been submitted.
         $errors = parent::validation($data, $files);
         $cdata = $this->_customdata;
-        /* @var $va \mod_videoassessment\va */
+        /** @var \mod_videoassessment\va $va */
         $va = $cdata->va;
 
         // Check if advanced grading is being used and validate rubric completeness.
