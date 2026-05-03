@@ -120,9 +120,10 @@ if ($ADMIN->fulltree) {
             'videoassessment_ffmpegcommand',
             get_string('ffmpegcommand', 'videoassessment'),
             get_string('ffmpegcommanddesc', 'videoassessment'),
-            '/usr/local/bin/ffmpeg -i {INPUT} {OUTPUT}',
+            '/usr/local/bin/ffmpeg -i {INPUT} -c:v libx264 -profile:v high -preset fast -crf 23'
+                . ' -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart {OUTPUT}',
             PARAM_RAW,
-            60
+            120
         )
     );
 

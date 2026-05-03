@@ -36,8 +36,13 @@ namespace mod_videoassessment\admin;
  * backticks or `$( )` to the value.
  *
  * This validator enforces an allow-list of:
- *   - characters: `[A-Za-z0-9 _\-./={}]` plus the special placeholders
- *     `{INPUT}` and `{OUTPUT}`,
+ *   - characters: `[A-Za-z0-9 _\-.\/={}:+,]` plus the special placeholders
+ *     `{INPUT}` and `{OUTPUT}`. The `:` and `+` characters are needed
+ *     for FFmpeg stream specifiers (`-c:v libx264`, `-profile:v high`)
+ *     and modifier flags (`-movflags +faststart`); `,` is needed for
+ *     comma-separated codec options (`-tune zerolatency,fastdecode`).
+ *     None of `:`, `+`, `,` are POSIX shell metacharacters on their own,
+ *     so widening the allow-list does not weaken the injection guard.
  *   - shape: the value MUST start with an absolute path (`/...`) or a
  *     bare binary name (no slashes), MUST contain `{INPUT}` and
  *     `{OUTPUT}` exactly once, and MUST NOT contain shell metacharacters
@@ -49,7 +54,7 @@ namespace mod_videoassessment\admin;
  */
 final class command_validator {
     /** @var string Regex matching the allowed character class. */
-    private const ALLOWED_CHARS = '/^[A-Za-z0-9 _\-.\/={}\']+$/';
+    private const ALLOWED_CHARS = '/^[A-Za-z0-9 _\-.\/={}:+,\']+$/';
 
     /**
      * Substrings that are forbidden anywhere in the command.
