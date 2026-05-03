@@ -45,6 +45,12 @@ define(['mod_videoassessment/utils'], function(utils) {
             const fileName = utils.getFileName(safeMime.split('/')[1]);
             formData.append('isRecordVideo', 1);
             formData.append(safeMime.startsWith('audio') ? 'audio' : 'video', blob, fileName);
+            // The PHP handler reads the original filename via
+            // optional_param('video-filename', ...) and persists it as
+            // videoassessment_videos.originalname (NOT NULL). Without
+            // this field the DB insert throws and the upload silently
+            // dies inside video_data_add().
+            formData.append('video-filename', fileName);
 
             const url = document.querySelector('#mform').getAttribute('action');
             const id = formData.get('id');

@@ -472,7 +472,17 @@ class va {
                 if (optional_param('isRecordVideo', 0, PARAM_INT) == 1) {
                     $upload = new \videoassessment_bulkupload($this->cm->id);
                     $fileidx = 'video';
+                    // If the JS uploader did not pass a `video-filename`
+                    // field, fall back to the uploaded $_FILES name so
+                    // we never insert NULL into
+                    // videoassessment_videos.originalname (NOT NULL).
                     $filename = optional_param('video-filename', null, PARAM_FILE);
+                    if (empty($filename) && !empty($_FILES[$fileidx]['name'])) {
+                        $filename = clean_param($_FILES[$fileidx]['name'], PARAM_FILE);
+                    }
+                    if (empty($filename)) {
+                        $filename = 'recording.webm';
+                    }
                     $tempname = $upload->get_temp_name($_FILES[$fileidx]['name']);
                     $upload->create_temp_dirs();
                     $tmppath = $upload->get_tempdir() . '/upload/' . $tempname;
