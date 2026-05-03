@@ -20,6 +20,7 @@ use plugin_renderer_base;
 use renderable;
 use mod_videoassessment\va;
 use mod_videoassessment\video;
+use mod_videoassessment\youtube_url;
 use filter_mediaplugin\text_filter;
 use moodle_url;
 use html_table;
@@ -185,6 +186,46 @@ class renderer extends plugin_renderer_base {
 
         $url = (string)$url;
         @$alt = $this->alt ?? $url;
+
+        // Render YouTube videos (including /shorts/ and youtu.be) as a
+        // direct iframe rather than going through filter_mediaplugin,
+        // because Moodle's media_youtube_plugin URL regex does not
+        // accept the /shorts/ path on every supported branch.
+        // Item #4 (2026-04 fix programme): extend the embed contract
+        // to cover the three accepted YouTube URL forms and pick a
+        // 9:16 aspect ratio for Shorts so the recording is shown
+        // in its native portrait orientation.
+        if ($video->data->tmpname == 'Youtube') {
+            $youtubeid = youtube_url::extract_id($url);
+            if ($youtubeid !== null) {
+                if (youtube_url::is_shorts($url)) {
+                    // Portrait 9:16 — pick a width that fits within
+                    // the surrounding column even on small screens.
+                    $iframewidth = 270;
+                    $iframeheight = 480;
+                } else {
+                    $iframewidth = !empty($video->data->width) ? (int) $video->data->width : 400;
+                    $iframeheight = !empty($video->data->height) ? (int) $video->data->height : 225;
+                }
+                $embedurl = youtube_url::embed_url($youtubeid);
+                return html_writer::tag(
+                    'iframe',
+                    '',
+                    [
+                        'src' => $embedurl,
+                        'width' => $iframewidth,
+                        'height' => $iframeheight,
+                        'frameborder' => 0,
+                        'allow' => 'accelerometer; autoplay; clipboard-write; encrypted-media; '
+                            . 'gyroscope; picture-in-picture; web-share',
+                        'referrerpolicy' => 'strict-origin-when-cross-origin',
+                        'allowfullscreen' => 'allowfullscreen',
+                        'class' => 'mod-videoassessment-youtube-embed'
+                            . (youtube_url::is_shorts($url) ? ' shorts' : ''),
+                    ]
+                );
+            }
+        }
 
         // Use width and height from $video->data if available, otherwise default.
         $width = !empty($video->data->width) ? $video->data->width : 400;
