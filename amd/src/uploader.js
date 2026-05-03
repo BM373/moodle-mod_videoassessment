@@ -31,10 +31,20 @@ define(['mod_videoassessment/utils'], function(utils) {
          * @param {string} mimeType
          */
         upload(blob, mimeType) {
+            // Defend against an undefined or codec-suffixed mimeType so
+            // the upload never falls over on a Blob the browser fills
+            // in differently (e.g. RecordRTC's MediaStreamRecorder
+            // backend produces "video/webm;codecs=vp8,opus" while the
+            // Cisco/Safari path can leave it empty). Strip everything
+            // after the first ";" so the extension lookup gets a bare
+            // "webm" / "mp4" instead of "webm;codecs=vp8,opus".
+            const safeMime = (mimeType || (blob && blob.type) || 'video/webm')
+                .split(';')[0]
+                .trim();
             const formData = new FormData(document.querySelector('#mform'));
-            const fileName = utils.getFileName(mimeType.split('/')[1]);
+            const fileName = utils.getFileName(safeMime.split('/')[1]);
             formData.append('isRecordVideo', 1);
-            formData.append(mimeType.startsWith('audio') ? 'audio' : 'video', blob, fileName);
+            formData.append(safeMime.startsWith('audio') ? 'audio' : 'video', blob, fileName);
 
             const url = document.querySelector('#mform').getAttribute('action');
             const id = formData.get('id');

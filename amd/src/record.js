@@ -66,7 +66,15 @@ define([
             clearAutoStop();
             recorder.stopRecording(function() {
                 var blob = recorder.getBlob();
-                uploader.upload(blob, recorder.mimeType);
+                // RecordRTC's recorder.mimeType is undefined for the
+                // MediaStreamRecorder backend used in modern browsers.
+                // Fall back to the blob's own type (set by the browser
+                // when the MediaRecorder finalises the chunks), and
+                // finally to the type we asked the recorder to produce.
+                var mimeType = (blob && blob.type)
+                    ? blob.type
+                    : (recorder.mimeType || 'video/webm');
+                uploader.upload(blob, mimeType);
             });
         }
 
