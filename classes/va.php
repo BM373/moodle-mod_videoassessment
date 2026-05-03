@@ -203,6 +203,14 @@ class va {
             'reallyresetallpeers',
             'reallydeletevideo',
             'comment',
+            // Used by AMD module mod_videoassessment/record (in-browser
+            // recorder UI labels). Without these the button text resets
+            // to undefined when JS toggles state.
+            'startrecoding',
+            'stoprecording',
+            'pause',
+            'resumerecording',
+            'errorcapturingmedia',
         ], 'videoassessment');
 
         $PAGE->requires->strings_for_js(['all'], 'moodle');
