@@ -67,11 +67,41 @@ define([], function() {
     }
 
     /**
+     * Read the current level score from a rubric `.level` cell.
+     *
+     * Moodle's gradingform_rubric renders the per-level point value
+     * as `<span class="scorevalue">N</span>` inside the `.level` td;
+     * older custom rubric implementations sometimes attach the value
+     * as a `data-score` attribute. Try both, in that order, so the
+     * helper works against any standard Moodle build and falls back
+     * gracefully on customised templates.
+     *
+     * @param {Element} lvl
+     * @returns {number} parsed score, or NaN if neither source is set
+     */
+    function levelScore(lvl) {
+        var sv = lvl.querySelector('.scorevalue');
+        if (sv && sv.textContent !== '') {
+            // The textContent may be "3", "3 points", or localised
+            // string; parseFloat picks up the leading numeric prefix.
+            var parsed = parseFloat(sv.textContent);
+            if (!isNaN(parsed)) {
+                return parsed;
+            }
+        }
+        return parseFloat(lvl.dataset.score);
+    }
+
+    /**
      * Read the current selection out of a rubric DOM subtree.
      *
      * Each criterion is expected to be a `.criterion` element with
-     * `.level` children. A selected level has a `.checked` class and
-     * its score is read from `data-score`.
+     * `.level` children. A selected level has either a `.checked`
+     * class (set by Moodle's YUI rubric script on click) or
+     * `aria-checked="true"`. Both are accepted because the YUI
+     * script's click handler updates both attributes simultaneously
+     * but ordering against this helper's MutationObserver / click
+     * listener is not guaranteed.
      *
      * @param {Element} root
      * @returns {{
@@ -88,10 +118,12 @@ define([], function() {
             var levelEls = critEl.querySelectorAll('.level');
             criteria[critId] = [];
             levelEls.forEach(function(lvl) {
-                var score = parseFloat(lvl.dataset.score);
+                var score = levelScore(lvl);
                 if (!isNaN(score)) {
                     criteria[critId].push(score);
-                    if (lvl.classList.contains('checked')) {
+                    var isChecked = lvl.classList.contains('checked')
+                        || lvl.getAttribute('aria-checked') === 'true';
+                    if (isChecked) {
                         selected[critId] = score;
                     }
                 }
@@ -122,12 +154,36 @@ define([], function() {
                 display.textContent = format(result);
             }
 
-            // Recompute after every click inside the rubric. setTimeout
-            // gives Moodle's own click handler time to toggle the
-            // `.checked` class first.
+            // Click listener: setTimeout gives Moodle's own click
+            // handler (rubric.js / gradingpanel.js) time to toggle the
+            // `.checked` class and `aria-checked` attribute first.
             root.addEventListener('click', function() {
                 window.setTimeout(refresh, 50);
             });
+            // Keyboard support: Moodle's rubric.js binds space/enter
+            // on .level cells, so we mirror those triggers here.
+            root.addEventListener('keyup', function(e) {
+                if (e.key === ' ' || e.key === 'Enter' || e.code === 'Space') {
+                    window.setTimeout(refresh, 50);
+                }
+            });
+            // Defensive backup: if Moodle's rubric.js updates the
+            // `.checked` class via an internal API path that does not
+            // bubble a click event up to our root listener, the
+            // observer below picks up the class / aria attribute
+            // mutation directly. Filter to attribute changes only so
+            // we are not invoked during initial render or on every
+            // DOM tweak.
+            if (typeof MutationObserver === 'function') {
+                var observer = new MutationObserver(function() {
+                    refresh();
+                });
+                observer.observe(root, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class', 'aria-checked'],
+                });
+            }
             refresh();
         });
     }
