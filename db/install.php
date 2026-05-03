@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/grade/grading/lib.php');
 require_once($CFG->dirroot . '/grade/grading/form/rubric/lib.php');
+require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 
 /**
  * Create default rubric template for video assessment.

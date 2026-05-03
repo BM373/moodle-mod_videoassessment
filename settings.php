@@ -115,24 +115,33 @@ if ($ADMIN->fulltree) {
             }
         }
     }
+    // PR #57: read the existing config so the admin's saved value is
+    // displayed in the field; fall back to a browser-compatible H.264
+    // default (mp4v output is rejected by HTML5 <video>).
+    $ffmpegcmd = get_config('videoassessment', 'ffmpegcommand');
+    $ffmpegcmddefault = '/usr/local/bin/ffmpeg -i {INPUT} -c:v libx264 -profile:v high -preset fast -crf 23'
+        . ' -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart {OUTPUT}';
+    $ffmpegcmdsetting = !empty($ffmpegcmd) ? $ffmpegcmd : $ffmpegcmddefault;
     $settings->add(
         new admin_setting_configtext_ffmpegcommand(
             'videoassessment_ffmpegcommand',
             get_string('ffmpegcommand', 'videoassessment'),
             get_string('ffmpegcommanddesc', 'videoassessment'),
-            '/usr/local/bin/ffmpeg -i {INPUT} -c:v libx264 -profile:v high -preset fast -crf 23'
-                . ' -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart {OUTPUT}',
+            $ffmpegcmdsetting,
             PARAM_RAW,
             120
         )
     );
 
+    $ffmpegthumbnailcmd = get_config('videoassessment', 'ffmpegthumbnailcommand');
+    $ffmpegthumbnailcmddefault = '/usr/local/bin/ffmpeg -i {INPUT} -vframes 1 -s 137x91 -ss 1 {OUTPUT}';
+    $ffmpegthumbnailcmdsetting = !empty($ffmpegthumbnailcmd) ? $ffmpegthumbnailcmd : $ffmpegthumbnailcmddefault;
     $settings->add(
         new admin_setting_configtext_ffmpegcommand(
             'videoassessment_ffmpegthumbnailcommand',
             get_string('ffmpegthumbnailcommand', 'videoassessment'),
             get_string('ffmpegthumbnailcommanddesc', 'videoassessment'),
-            '/usr/local/bin/ffmpeg -i {INPUT} -vframes 1 -s 137x91 -ss 1 {OUTPUT}',
+            $ffmpegthumbnailcmdsetting,
             PARAM_RAW,
             60
         )

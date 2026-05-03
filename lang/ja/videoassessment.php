@@ -185,6 +185,8 @@ $string['inputnewcoursename'] = '新しいコース名を入力';
 $string['inputnewcourseshortname'] = '新しいコース短縮名を入力';
 $string['insertintosection'] = 'セクションに挿入';
 $string['installerrorffmpegdoesnotexist'] = 'ffmpegのデフォルトインストールパスが存在しません！';
+$string['installerrorffmpegversionnotfound'] = 'ffmpegのバージョン番号が見つかりませんでした。ffmpegがシステムに正しくインストールされ、正常に動作しているか確認してください。';
+$string['installsuccessffmpeg'] = 'ffmpegが正常に検出されました: {$a}';
 $string['invalidid'] = '無効なID';
 $string['invaliduploadedfile'] = 'アップロードされたファイルが無効です。';
 
