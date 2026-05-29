@@ -254,6 +254,12 @@ class assess extends \moodleform {
                         'class' => 'live-grade-total',
                         'data-vassmt-live-grade' => 1,
                         'data-vassmt-rubric-root' => $rubricrootselector,
+                        // The text is rewritten by JS as levels are
+                        // clicked; mark it as a polite, atomic live
+                        // region so screen readers announce the new
+                        // total without stealing rubric focus.
+                        'aria-live' => 'polite',
+                        'aria-atomic' => 'true',
                     ]
                 );
             $mform->addElement(

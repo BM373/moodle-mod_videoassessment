@@ -1,15 +1,35 @@
-@mod @mod_videoassessment @javascript
+@mod @mod_videoassessment
 Feature: Live "current grade in gradebook" indicator
-  In order to see the rubric total update before clicking Save
-  Changes
+  In order to see the rubric total update before clicking Save Changes
   As a teacher grading a student
-  I should see the live indicator wired into the assess form
+  I need the assess screen and its live grade indicator to load
+  # These scenarios assert page reachability and role-based navigation
+  # only, so they run without @javascript. The live in-browser update
+  # of the total is covered without a browser by tests/rubric_total_test
+  # (maths), tests/live_grade_js_test (DOM wiring) and
+  # tests/live_grade_aria_test (ARIA live region).
 
-  Scenario: Admin Dashboard renders for an authenticated teacher (placeholder)
-    Given I log in as "admin"
-    Then I should see "Dashboard"
-    # The full live-update behaviour requires a populated rubric and a
-    # student grading session, which is exercised by the PHPUnit test
-    # tests/rubric_total_test.php for the calculation logic. This
-    # placeholder scenario lets the suite stay green while the rubric
-    # / assess fixture step is being prepared for a follow-up.
+  Background:
+    Given the following "courses" exist:
+      | fullname | shortname |
+      | Course 1 | C1        |
+    And the following "users" exist:
+      | username | firstname | lastname | email                |
+      | teacher1 | Teacher   | One      | teacher1@example.com |
+      | student1 | Student   | One      | student1@example.com |
+    And the following "course enrolments" exist:
+      | user     | course | role           |
+      | teacher1 | C1     | editingteacher |
+      | student1 | C1     | student        |
+    And the following "activities" exist:
+      | activity        | name             | course | idnumber |
+      | videoassessment | Speaking task    | C1     | va1      |
+
+  Scenario: Teacher reaches the assess screen task navigation
+    Given I am on the "Speaking task" "videoassessment activity" page logged in as teacher1
+    Then I should see "Assess"
+    And I should see "Upload videos"
+
+  Scenario: A student does not see the teacher assess navigation
+    Given I am on the "Speaking task" "videoassessment activity" page logged in as student1
+    Then I should not see "Upload videos"
