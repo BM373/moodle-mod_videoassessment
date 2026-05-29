@@ -214,3 +214,19 @@
         display: -webkit-inline-box;
     }
 }
+
+/* Item #3 (2026-04 fix programme): in-browser recorder live preview.
+   record.js injects <video class="vam-record-preview"> into
+   #record-content-div while recording so the learner can see
+   themselves. Cap the height so a portrait phone camera does not
+   dominate the page, and mirror it horizontally so it reads like a
+   selfie view. */
+.vam-record-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 50vh;
+    margin: 0 auto 8px;
+    background: #000;
+    border-radius: 4px;
+    transform: scaleX(-1);
+}

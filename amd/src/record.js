@@ -44,6 +44,7 @@ define([
         var btnPause = document.querySelector('#btn-pause-recording');
         var recorder;
         var stream;
+        var previewVideo = null;
         var autoStopTimer = null;
 
         /**
@@ -53,6 +54,72 @@ define([
             if (autoStopTimer !== null) {
                 clearTimeout(autoStopTimer);
                 autoStopTimer = null;
+            }
+        }
+
+        /**
+         * Attach the live camera stream to a visible <video> element so
+         * the learner can see themselves while recording.
+         *
+         * Item #3 of the 2026-04 fix programme: Brendon and Matt both
+         * reported the recorder captured video "in the background" with
+         * no on-screen preview. The MediaStream was handed to RecordRTC
+         * but never attached to a <video srcObject>, leaving
+         * #record-content-div empty. The preview is muted (so the live
+         * microphone does not echo through the speakers) and uses
+         * playsinline so iOS Safari renders it inline rather than going
+         * fullscreen.
+         *
+         * @param {MediaStream} mediaStream
+         */
+        function showPreview(mediaStream) {
+            var container = document.querySelector('#record-content-div');
+            if (!container) {
+                return;
+            }
+            if (!previewVideo) {
+                previewVideo = document.createElement('video');
+                previewVideo.className = 'vam-record-preview';
+                previewVideo.muted = true;
+                previewVideo.defaultMuted = true;
+                previewVideo.autoplay = true;
+                previewVideo.setAttribute('playsinline', '');
+                previewVideo.setAttribute('aria-label', M.str.videoassessment.startrecoding);
+            }
+            previewVideo.srcObject = mediaStream;
+            // Clear any previous preview without innerHTML (avoids the
+            // XSS-prone assignment; the container only ever holds our
+            // own <video> element anyway).
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            container.appendChild(previewVideo);
+            var playpromise = previewVideo.play();
+            if (playpromise && typeof playpromise.catch === 'function') {
+                // Autoplay can be rejected before user interaction; the
+                // preview still renders the first frame, so swallow it.
+                playpromise.catch(function() {
+                    return undefined;
+                });
+            }
+        }
+
+        /**
+         * Stop the camera and remove the live preview element. Releasing
+         * the tracks turns off the webcam indicator light.
+         */
+        function teardownPreview() {
+            if (stream) {
+                stream.getTracks().forEach(function(track) {
+                    track.stop();
+                });
+            }
+            if (previewVideo) {
+                previewVideo.srcObject = null;
+                if (previewVideo.parentNode) {
+                    previewVideo.parentNode.removeChild(previewVideo);
+                }
+                previewVideo = null;
             }
         }
 
@@ -74,6 +141,7 @@ define([
                 var mimeType = (blob && blob.type)
                     ? blob.type
                     : (recorder.mimeType || 'video/webm');
+                teardownPreview();
                 uploader.upload(blob, mimeType);
             });
         }
@@ -86,6 +154,9 @@ define([
 
             media.captureUserMedia(function(userStream) {
                 stream = userStream;
+                // Show the live camera feed BEFORE recording starts so
+                // the learner can frame themselves.
+                showPreview(stream);
                 recorder = new RecordRTC(stream, {
                     type: 'video',
                     mimeType: 'video/webm',
