@@ -377,6 +377,26 @@ final class va_test extends \advanced_testcase {
     }
 
     /**
+     * get_students_sort() ordered by the user's name must run on every
+     * supported database. The grade table builds the name ORDER BY via
+     * $DB->sql_concat(); a literal CONCAT(.., " ", ..) double-quotes the
+     * space, which PostgreSQL treats as an identifier and rejects.
+     *
+     * @covers \mod_videoassessment\va::get_students_sort
+     */
+    public function test_get_students_sort_by_name_runs_on_all_databases(): void {
+        $this->resetAfterTest();
+        global $DB;
+        ['va' => $vaobj, 'course' => $course] = $this->build_va();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $order = ' ORDER BY ' . $DB->sql_concat('u.firstname', "' '", 'u.lastname');
+        $students = $vaobj->get_students_sort(null, false, $order);
+        $this->assertArrayHasKey($student->id, $students);
+    }
+
+    /**
      * `va::uses_mobile_upload()` returns a boolean (the actual value
      * depends on the user-agent the test runner reports — Moodle
      * usually sets `default` which is neither mobile nor tablet).

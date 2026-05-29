@@ -548,7 +548,10 @@ class grade_table {
         $nsort = optional_param('nsort', null, PARAM_INT);
 
         if (!empty($nsort)) {
-            $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
+            // Build the name sort with sql_concat(): a literal
+            // CONCAT(.., " ", ..) double-quotes the space, which
+            // PostgreSQL reads as an identifier and rejects.
+            $orderstr = ' ORDER BY ' . $DB->sql_concat('u.firstname', "' '", 'u.lastname');
             $orderstr .= ($nsort == self::ORDER_ASC) ? ' ASC' : ' DESC';
             return $this->va->get_students_sort($groupid, false, $orderstr);
         }
@@ -560,7 +563,7 @@ class grade_table {
         if (in_array($sort, [assign_class::SORT_ID, assign_class::SORT_NAME])) {
             $orderstr = ($sort == assign_class::SORT_ID)
                 ? ' ORDER BY u.id'
-                : ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
+                : ' ORDER BY ' . $DB->sql_concat('u.firstname', "' '", 'u.lastname');
         } else {
             $orderstr = '';
         }
