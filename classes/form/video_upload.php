@@ -47,11 +47,14 @@ class video_upload extends \moodleform {
         /** @var \mod_videoassessment\va $va */
         $va = $this->_customdata->va;
 
-        // Get video publishing settings.
-        // Default to true (1) if field doesn't exist or is null (for backwards compatibility).
-        $allowyoutube = !isset($va->va->allowyoutube) || $va->va->allowyoutube;
-        $allowvideoupload = !isset($va->va->allowvideoupload) || $va->va->allowvideoupload;
-        $allowvideorecord = !isset($va->va->allowvideorecord) || $va->va->allowvideorecord;
+        // Resolve which upload methods are available as the logical AND
+        // of the site-admin flags (Item #2) and the per-activity instance
+        // flags. Consulting the instance flag alone would let an activity
+        // created before a site admin disabled a feature keep offering it.
+        $uploadoptions = \mod_videoassessment\upload_options::for_instance($va->va);
+        $allowyoutube = $uploadoptions['external'];
+        $allowvideoupload = $uploadoptions['upload'];
+        $allowvideorecord = $uploadoptions['record'];
 
         // Default to YouTube (1) as the selected option.
         $defaultuploadtype = 1; // YouTube is always default when available.
