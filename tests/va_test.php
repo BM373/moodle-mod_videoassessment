@@ -306,6 +306,77 @@ final class va_test extends \advanced_testcase {
     }
 
     /**
+     * Enrol two students and register one as the other's peer, then
+     * return the grader/assessed pair plus the va instance. Shared
+     * setup for the get_peers_sort() portability tests below.
+     *
+     * @return array{va: va, grader: \stdClass, assessed: \stdClass}
+     */
+    private function build_peer_pair(): array {
+        global $DB;
+        ['va' => $vaobj, 'course' => $course, 'instance' => $instance] = $this->build_va();
+        $assessed = $this->getDataGenerator()->create_user();
+        $grader = $this->getDataGenerator()->create_user();
+        // The enrol_user() call creates the user_enrolments +
+        // role_assignments rows the get_peers_sort() query joins against.
+        $this->getDataGenerator()->enrol_user($assessed->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($grader->id, $course->id, 'student');
+        $DB->insert_record('videoassessment_peers', (object) [
+            'videoassessment' => $instance->id,
+            'userid' => $assessed->id,
+            'peerid' => $grader->id,
+        ]);
+        return ['va' => $vaobj, 'grader' => $grader, 'assessed' => $assessed];
+    }
+
+    /**
+     * get_peers_sort() with the default "ORDER BY u.id" fragment must
+     * run on every supported database. PostgreSQL rejects a query that
+     * groups by vp.userid but orders by the non-grouped u.id column, so
+     * this guards the regression that crashed the activity's main view
+     * under pgsql (MySQL silently tolerated it).
+     *
+     * @covers \mod_videoassessment\va::get_peers_sort
+     */
+    public function test_get_peers_sort_by_id_runs_on_all_databases(): void {
+        $this->resetAfterTest();
+        ['va' => $vaobj, 'grader' => $grader, 'assessed' => $assessed] = $this->build_peer_pair();
+        $peers = $vaobj->get_peers_sort($grader->id, 0, false, ' ORDER BY u.id');
+        $this->assertSame([$assessed->id], array_values($peers));
+    }
+
+    /**
+     * Ordering the same query by the grader's name columns must also be
+     * portable: u.firstname / u.lastname have to be covered by the
+     * GROUP BY for PostgreSQL to accept the statement.
+     *
+     * @covers \mod_videoassessment\va::get_peers_sort
+     */
+    public function test_get_peers_sort_by_name_runs_on_all_databases(): void {
+        $this->resetAfterTest();
+        ['va' => $vaobj, 'grader' => $grader, 'assessed' => $assessed] = $this->build_peer_pair();
+        $order = " ORDER BY " . $GLOBALS['DB']->sql_concat('u.firstname', "' '", 'u.lastname');
+        $peers = $vaobj->get_peers_sort($grader->id, 0, false, $order);
+        $this->assertSame([$assessed->id], array_values($peers));
+    }
+
+    /**
+     * The no-explicit-order and manual-sort code paths must run too; the
+     * manual path orders by the MIN(vso.sortorder) aggregate alias.
+     *
+     * @covers \mod_videoassessment\va::get_peers_sort
+     */
+    public function test_get_peers_sort_default_and_manual_paths(): void {
+        $this->resetAfterTest();
+        ['va' => $vaobj, 'grader' => $grader, 'assessed' => $assessed] = $this->build_peer_pair();
+        $this->assertSame([$assessed->id], array_values($vaobj->get_peers_sort($grader->id)));
+        $this->assertSame(
+            [$assessed->id],
+            array_values($vaobj->get_peers_sort($grader->id, 0, true))
+        );
+    }
+
+    /**
      * `va::uses_mobile_upload()` returns a boolean (the actual value
      * depends on the user-agent the test runner reports — Moodle
      * usually sets `default` which is neither mobile nor tablet).

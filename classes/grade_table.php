@@ -203,6 +203,9 @@ class grade_table {
                     'gradebeforepeer',
                     'gradebeforeclass',
                     'gradebefore',
+                    'finalscore',
+                    'fairnessbonus',
+                    'selffairnessbonus',
                     'videoassessment',
                     'timemodified',
                 ];
@@ -295,7 +298,10 @@ class grade_table {
         $nsort = optional_param('nsort', null, PARAM_INT);
 
         if (!empty($nsort)) {
-            $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
+            // Use sql_concat() rather than a literal CONCAT(... , " ", ...):
+            // the double-quoted space is parsed by PostgreSQL as an
+            // identifier, not a string, and crashes the query.
+            $orderstr = ' ORDER BY ' . $DB->sql_concat('u.firstname', "' '", 'u.lastname');
 
             if ($nsort == self::ORDER_ASC) {
                 $orderstr .= ' ASC';
@@ -312,7 +318,7 @@ class grade_table {
                     if ($sort == assign_class::SORT_ID) {
                         $orderstr = ' ORDER BY u.id';
                     } else {
-                        $orderstr = ' ORDER BY CONCAT(u.firstname, " ", u.lastname)';
+                        $orderstr = ' ORDER BY ' . $DB->sql_concat('u.firstname', "' '", 'u.lastname');
                     }
                 } else {
                     $orderstr = '';

@@ -3776,6 +3776,11 @@ class va {
         // Use GROUP BY to handle duplicate userids from multiple role assignments or enrolments.
         // For sortorder, use MIN() to get the first sort order value (or NULL if not set).
         $groupbyfields = str_replace(', vso.sortorder as sortorder', ', MIN(vso.sortorder) as sortorder', $fields);
+        // PostgreSQL requires every non-aggregated column referenced in
+        // ORDER BY to appear in GROUP BY. The callers order by u.id or by
+        // the user's name columns, so group by those too; they are all
+        // functionally dependent on the user (vp.userid = u.id), so this
+        // does not change the one-row-per-peer result.
         $sql = "
             SELECT vp.userid $groupbyfields
             FROM {videoassessment_peers} vp
@@ -3786,7 +3791,7 @@ class va {
             $join
             WHERE vp.videoassessment = :videoassessment AND vp.peerid = :peerid AND ra.contextid = :contextid
         " . $where . "
-            GROUP BY vp.userid" . $order;
+            GROUP BY vp.userid, u.id, u.firstname, u.lastname" . $order;
 
         $students = $DB->get_records_sql($sql, $params);
         $peerids = [];
