@@ -43,7 +43,10 @@ final class educator_note_test extends \advanced_testcase {
      */
     public function test_landscape_note_string_en(): void {
         $note = get_string_manager()->get_string(
-            'educatornote_landscape', 'videoassessment', null, 'en'
+            'educatornote_landscape',
+            'videoassessment',
+            null,
+            'en'
         );
         $this->assertNotEmpty($note);
         $this->assertStringContainsStringIgnoringCase('landscape', $note);
@@ -56,7 +59,10 @@ final class educator_note_test extends \advanced_testcase {
      */
     public function test_landscape_note_string_ja(): void {
         $note = get_string_manager()->get_string(
-            'educatornote_landscape', 'videoassessment', null, 'ja'
+            'educatornote_landscape',
+            'videoassessment',
+            null,
+            'ja'
         );
         $this->assertNotEmpty($note);
         // Must not fall back to the bracketed [[key]] placeholder.
