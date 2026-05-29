@@ -158,6 +158,7 @@ $string['duplicatefor'] = 'Duplicate for';
 $string['duplicaterubric'] = 'Duplicate Rubric';
 $string['duplicaterubric_help'] = 'This feature will repeat the rubric that has been created for the teacher, and duplicate the rubric into the assessments of self, peer, and class modes.';
 $string['duplicatesuccess'] = 'Duplicate Success';
+$string['educatornote_landscape'] = 'Note to educators: for best results advise learners to always record videos with their smartphone in landscape position (horizontal).';
 $string['errorcapturingmedia'] = 'Error capturing media:';
 $string['errorcheckvideostodelete'] = 'Check videos to delete.';
 $string['errorinvalidtiming'] = 'Invalid timing value';

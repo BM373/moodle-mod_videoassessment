@@ -88,6 +88,45 @@ final class mobile_ui_test extends \basic_testcase {
     }
 
     /**
+     * The portrait YouTube Shorts embed must not be allowed to dominate
+     * the screen. Reviewer Brendon: "Viewing on mobile takes up 80% of
+     * screen - scrolling/grading UI difficult." The base rule caps the
+     * Shorts iframe at 50vh so at least half the viewport is left for the
+     * rubric.
+     *
+     * @coversNothing
+     */
+    public function test_shorts_embed_height_capped(): void {
+        $css = $this->read_css('assess.css');
+        $this->assertMatchesRegularExpression(
+            '~\.mod-videoassessment-youtube-embed\.shorts\s*\{[^}]*max-height:\s*50vh~s',
+            $css,
+            'The Shorts embed must be capped at max-height: 50vh so it does '
+                . 'not take up most of the assess screen on mobile.'
+        );
+    }
+
+    /**
+     * Inside the phone-portrait media query, the Shorts iframe must be
+     * height-constrained to fit the sticky video band rather than
+     * inheriting the generic iframe width:100% (which, combined with the
+     * 9:16 aspect ratio, made it overflow the 25vh band and push the
+     * rubric off-screen).
+     *
+     * @coversNothing
+     */
+    public function test_shorts_embed_constrained_in_mobile_query(): void {
+        $css = $this->read_css('assess.css');
+        $this->assertMatchesRegularExpression(
+            '~@media[^{]*max-width:\s*768px[^{]*\{.*'
+                . '\.mod-videoassessment-youtube-embed\.shorts[^}]*height:\s*25vh~s',
+            $css,
+            'assess.css must constrain the Shorts embed to the 25vh sticky '
+                . 'band inside the phone-portrait media query.'
+        );
+    }
+
+    /**
      * The remark textareas must keep themselves visible when focused
      * (e.g. via `scroll-margin-top` so the iOS keyboard does not hide
      * them).

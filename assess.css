@@ -301,7 +301,18 @@
      .assess-form-videos .mediaplugin {
          width: 100%;
      }
- 
+
+     /* Item #4 reviewer feedback: the portrait Shorts iframe inherits the
+        generic width:100% above which, with its 9:16 aspect ratio, makes
+        it far taller than the 25vh sticky band and pushes the rubric off
+        screen. Constrain it to the band and let the width follow. */
+     .path-mod-videoassessment .assess-form-videos .mod-videoassessment-youtube-embed.shorts,
+     .assess-form-videos .mod-videoassessment-youtube-embed.shorts {
+         width: auto;
+         height: 25vh;
+         max-height: 25vh;
+     }
+
      .path-mod-videoassessment .gradingform,
      .gradingform {
          float: none;
@@ -637,5 +648,8 @@
 .mod-videoassessment-youtube-embed.shorts {
     aspect-ratio: 9 / 16;
     height: auto;
-    max-height: 80vh;
+    /* Item #4 reviewer feedback: a portrait Shorts video at 80vh took up
+       most of the screen and made grading hard. Cap at half the viewport
+       so the rubric stays reachable below it. */
+    max-height: 50vh;
 }

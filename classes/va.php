@@ -1637,6 +1637,16 @@ class va {
         $PAGE->requires->js_call_amd('mod_videoassessment/assess', 'videoassessmentAssess', []);
         $o = '';
 
+        // Item #4 (2026-04 fix programme): advise educators to have
+        // learners record in landscape. Shown as a dismissible info
+        // notice at the top of the assess screen so it is easy to find
+        // (the reviewer reported the message was missing entirely).
+        $o .= $OUTPUT->notification(
+            self::str('educatornote_landscape'),
+            \core\output\notification::NOTIFY_INFO,
+            false
+        );
+
         $user = $DB->get_record('user', ['id' => optional_param('userid', 0, PARAM_INT)]);
 
         $gradertype = optional_param('gradertype', '', PARAM_ALPHA);

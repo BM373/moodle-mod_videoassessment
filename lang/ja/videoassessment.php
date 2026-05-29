@@ -136,6 +136,7 @@ $string['duplicatefor'] = '複製先';
 $string['duplicaterubric'] = 'ルーブリックを複製';
 $string['duplicaterubric_help'] = 'この機能は、教師用に作成されたルーブリックを繰り返し、ルーブリックを自己、ピア、クラスモードの評価に複製します。';
 $string['duplicatesuccess'] = '複製成功';
+$string['educatornote_landscape'] = '教員の皆さまへ: 最良の結果を得るため、学習者にはスマートフォンを横向き（ランドスケープ）にして録画するよう案内してください。';
 $string['errorcapturingmedia'] = 'メディアキャプチャエラー：';
 $string['errorcheckvideostodelete'] = '削除するビデオをチェックしてください。';
 $string['errorinvalidtiming'] = '無効なタイミング値';
