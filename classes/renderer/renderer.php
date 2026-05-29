@@ -20,7 +20,7 @@ use plugin_renderer_base;
 use renderable;
 use mod_videoassessment\va;
 use mod_videoassessment\video;
-use mod_videoassessment\youtube_url;
+use mod_videoassessment\video_embed;
 use filter_mediaplugin\text_filter;
 use moodle_url;
 use html_table;
@@ -187,18 +187,20 @@ class renderer extends plugin_renderer_base {
         $url = (string)$url;
         @$alt = $this->alt ?? $url;
 
-        // Render YouTube videos (including /shorts/ and youtu.be) as a
-        // direct iframe rather than going through filter_mediaplugin,
-        // because Moodle's media_youtube_plugin URL regex does not
-        // accept the /shorts/ path on every supported branch.
-        // Item #4 (2026-04 fix programme): extend the embed contract
-        // to cover the three accepted YouTube URL forms and pick a
-        // 9:16 aspect ratio for Shorts so the recording is shown
+        // Render external videos (YouTube incl. /shorts/ and youtu.be,
+        // and Vimeo) as a direct iframe rather than going through
+        // filter_mediaplugin, because Moodle's media_youtube_plugin URL
+        // regex does not accept the /shorts/ path on every supported
+        // branch.
+        // Item #4: 9:16 aspect ratio for Shorts so the recording shows
         // in its native portrait orientation.
+        // Item #1 (GDPR): video_embed::resolve() picks the
+        // cookie-suppressing host (youtube-nocookie.com / Vimeo ?dnt=1)
+        // when the site-admin GDPR toggle is enabled.
         if ($video->data->tmpname == 'Youtube') {
-            $youtubeid = youtube_url::extract_id($url);
-            if ($youtubeid !== null) {
-                if (youtube_url::is_shorts($url)) {
+            $embed = video_embed::resolve($url, video_embed::gdpr_enabled());
+            if ($embed !== null) {
+                if ($embed['shorts']) {
                     // Portrait 9:16 — pick a width that fits within
                     // the surrounding column even on small screens.
                     $iframewidth = 270;
@@ -207,12 +209,11 @@ class renderer extends plugin_renderer_base {
                     $iframewidth = !empty($video->data->width) ? (int) $video->data->width : 400;
                     $iframeheight = !empty($video->data->height) ? (int) $video->data->height : 225;
                 }
-                $embedurl = youtube_url::embed_url($youtubeid);
                 return html_writer::tag(
                     'iframe',
                     '',
                     [
-                        'src' => $embedurl,
+                        'src' => $embed['src'],
                         'width' => $iframewidth,
                         'height' => $iframeheight,
                         'frameborder' => 0,
@@ -221,7 +222,7 @@ class renderer extends plugin_renderer_base {
                         'referrerpolicy' => 'strict-origin-when-cross-origin',
                         'allowfullscreen' => 'allowfullscreen',
                         'class' => 'mod-videoassessment-youtube-embed'
-                            . (youtube_url::is_shorts($url) ? ' shorts' : ''),
+                            . ($embed['shorts'] ? ' shorts' : ''),
                     ]
                 );
             }

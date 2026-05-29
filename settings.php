@@ -207,4 +207,15 @@ if ($ADMIN->fulltree) {
             1
         )
     );
+    // Item #1 (GDPR): when on, external videos are embedded through the
+    // cookie-suppressing host (youtube-nocookie.com / Vimeo ?dnt=1) so
+    // no tracking cookies are set until the learner presses play.
+    $settings->add(
+        new admin_setting_configcheckbox(
+            'videoassessment/gdprcookiesuppression',
+            new lang_string('gdprcookiesuppression', 'videoassessment'),
+            new lang_string('gdprcookiesuppression_help', 'videoassessment'),
+            1
+        )
+    );
 }
