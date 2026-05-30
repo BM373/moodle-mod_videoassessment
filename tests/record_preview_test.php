@@ -308,4 +308,34 @@ final class record_preview_test extends \basic_testcase {
                 . 'primary record button.'
         );
     }
+
+    /**
+     * iOS Safari's MediaRecorder video path is not reliable, so the
+     * recorder must delegate to the iOS native camera app via
+     * <input type="file" capture> on iOS and bypass the
+     * RecordRTC/MediaRecorder flow entirely.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_delegates_to_native_camera_on_ios(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~openIosNativeCamera\s*\(\s*\)~',
+            $js,
+            'record.js must define an openIosNativeCamera helper that '
+                . 'invokes the iOS system camera app.'
+        );
+        $this->assertMatchesRegularExpression(
+            "~setAttribute\\(\\s*['\"]capture['\"]~",
+            $js,
+            'The iOS path must use an <input type=file capture> so '
+                . 'Safari/iOS opens the native camera UI.'
+        );
+        $this->assertMatchesRegularExpression(
+            "~accept\\s*=\\s*['\"]video/\\*['\"]~",
+            $js,
+            'The iOS capture input must accept video/* so the camera '
+                . 'app records video rather than offering a photo.'
+        );
+    }
 }

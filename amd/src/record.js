@@ -93,6 +93,62 @@ define([
     }
 
     /**
+     * Detect iOS (iPhone / iPad / iPod) where the in-browser
+     * MediaRecorder video path is unreliable. iOS Safari only added
+     * partial MediaRecorder support late and even on recent versions
+     * the video-mp4 path frequently fails isTypeSupported() and
+     * RecordRTC falls back to webm — which Safari then cannot encode,
+     * leaving the learner with a 0-byte blob. The reliable route on
+     * iOS is to delegate to the native camera app through an
+     * <input type="file" capture> element.
+     *
+     * @returns {boolean} True when the running browser is iOS Safari/Chrome.
+     */
+    function isIOSDevice() {
+        var ua = (navigator.userAgent || '');
+        return /iPhone|iPad|iPod/i.test(ua);
+    }
+
+    /**
+     * Open the iOS native camera app via a transient hidden file
+     * input, hand the recorded file to the uploader once the learner
+     * returns to the page.
+     *
+     * Used in place of the RecordRTC flow on iOS Safari, which cannot
+     * reliably produce a non-empty blob through MediaRecorder. The
+     * `capture` attribute is honoured by iOS Safari (and Android
+     * Chrome) and prompts the system camera UI directly.
+     */
+    function openIosNativeCamera() {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'video/*';
+        // 'user' = front-facing (selfie) camera, matching the in-browser
+        // flow's mirror preview. iOS users can still flip to the back
+        // camera from the system UI.
+        input.setAttribute('capture', 'user');
+        input.style.display = 'none';
+        input.addEventListener('change', function() {
+            if (input.files && input.files.length > 0) {
+                var file = input.files[0];
+                if (!file.size) {
+                    window.alert(
+                        M.str.videoassessment.errorcapturingmedia
+                        + ' (iOS capture returned a 0-byte file)'
+                    );
+                } else {
+                    uploader.upload(file, file.type || 'video/mp4');
+                }
+            }
+            if (input.parentNode) {
+                input.parentNode.removeChild(input);
+            }
+        });
+        document.body.appendChild(input);
+        input.click();
+    }
+
+    /**
      * Initialise the recording UI and logic.
      */
     function init() {
@@ -107,6 +163,14 @@ define([
         // to start (webm fallback) and getState() returns 'inactive',
         // which used to leave the Start/Stop toggle stuck on Start.
         var isRecording = false;
+        var iosCapture = isIOSDevice();
+
+        // On iOS, hide the Pause control: the system camera UI handles
+        // pause/resume itself, so the in-browser Pause button has no
+        // counterpart to talk to.
+        if (iosCapture && btnPause) {
+            btnPause.style.display = 'none';
+        }
 
         /**
          *
@@ -243,6 +307,16 @@ define([
         }
 
         btnStart.addEventListener('click', function() {
+            if (iosCapture) {
+                // Native iOS path: hand off to the camera app and
+                // let its recording UI handle preview / pause / stop.
+                // The file lands back in our input.onchange and is
+                // uploaded through the same uploader as the desktop
+                // RecordRTC flow.
+                openIosNativeCamera();
+                return;
+            }
+
             if (isRecording) {
                 finishRecording();
                 return;
