@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable no-restricted-properties, no-alert */
 /**
  * Video assessment
  *
@@ -57,10 +58,23 @@ define(['mod_videoassessment/utils'], function(utils) {
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', url);
+            const failureMessage = (M && M.str && M.str.videoassessment
+                && M.str.videoassessment.errorcapturingmedia)
+                || 'Error capturing media.';
             xhr.onload = () => {
-                if (xhr.status === 200) {
+                if (xhr.status >= 200 && xhr.status < 300) {
                     window.location.href = `${url}?id=${id}`;
+                } else {
+                    // Surface a visible error rather than leaving the
+                    // learner staring at a frozen "Stop recording"
+                    // screen. Without this the iPhone fix programme
+                    // ("録画停止" did not advance the form) only made
+                    // the silent failure mode louder.
+                    window.alert(failureMessage + ' (HTTP ' + xhr.status + ')');
                 }
+            };
+            xhr.onerror = () => {
+                window.alert(failureMessage);
             };
             xhr.send(formData);
         }

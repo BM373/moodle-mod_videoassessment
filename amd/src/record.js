@@ -37,6 +37,37 @@ define([
     var MAX_LENGTH_MS = 120 * 1000;
 
     /**
+     * Pick a MediaRecorder mimeType the running browser can actually
+     * encode. iOS Safari and macOS Safari do not support `video/webm`,
+     * so passing it to RecordRTC silently fails the underlying
+     * MediaRecorder.start() — the recorder stays in state 'inactive'
+     * and a subsequent tap that the UI thinks is "Stop" starts a
+     * second recording instead, leaving the learner unable to submit.
+     * Fall back to `video/mp4` (Safari) when webm is unsupported, and
+     * to whatever the browser will accept as a last resort.
+     *
+     * @returns {string} A mimeType string that MediaRecorder accepts.
+     */
+    function pickSupportedVideoMime() {
+        if (typeof window.MediaRecorder === 'undefined'
+            || typeof MediaRecorder.isTypeSupported !== 'function') {
+            return 'video/webm';
+        }
+        var candidates = [
+            'video/webm',
+            'video/webm;codecs=vp8,opus',
+            'video/mp4',
+            'video/mp4;codecs=h264,aac'
+        ];
+        for (var i = 0; i < candidates.length; i++) {
+            if (MediaRecorder.isTypeSupported(candidates[i])) {
+                return candidates[i];
+            }
+        }
+        return 'video/webm';
+    }
+
+    /**
      * Initialise the recording UI and logic.
      */
     function init() {
@@ -46,6 +77,11 @@ define([
         var stream;
         var previewVideo = null;
         var autoStopTimer = null;
+        // Track recording state ourselves rather than asking the
+        // underlying MediaRecorder. On iOS Safari the recorder can fail
+        // to start (webm fallback) and getState() returns 'inactive',
+        // which used to leave the Start/Stop toggle stuck on Start.
+        var isRecording = false;
 
         /**
          *
@@ -127,9 +163,10 @@ define([
          *
          */
         function finishRecording() {
-            if (!recorder) {
+            if (!recorder || !isRecording) {
                 return;
             }
+            isRecording = false;
             clearAutoStop();
             recorder.stopRecording(function() {
                 var blob = recorder.getBlob();
@@ -142,12 +179,20 @@ define([
                     ? blob.type
                     : (recorder.mimeType || 'video/webm');
                 teardownPreview();
+                // Guard against 0-byte blobs (a sign that
+                // MediaRecorder.start() was rejected silently). Surface
+                // an alert so the learner is not stuck on a screen
+                // where "stop" appears to do nothing.
+                if (!blob || !blob.size) {
+                    window.alert(M.str.videoassessment.errorcapturingmedia);
+                    return;
+                }
                 uploader.upload(blob, mimeType);
             });
         }
 
         btnStart.addEventListener('click', function() {
-            if (recorder && recorder.getState() === 'recording') {
+            if (isRecording) {
                 finishRecording();
                 return;
             }
@@ -157,13 +202,19 @@ define([
                 // Show the live camera feed BEFORE recording starts so
                 // the learner can frame themselves.
                 showPreview(stream);
+                var mimeType = pickSupportedVideoMime();
                 recorder = new RecordRTC(stream, {
                     type: 'video',
-                    mimeType: 'video/webm',
-                    disableLogs: false
+                    mimeType: mimeType,
+                    disableLogs: false,
+                    // Flush a chunk every second so MediaRecorder
+                    // produces a non-empty blob on Safari/iOS even if
+                    // the final stop event is delayed.
+                    timeSlice: 1000
                 });
 
                 recorder.startRecording();
+                isRecording = true;
                 btnPause.style.display = '';
                 btnStart.textContent = M.str.videoassessment.stoprecording;
 

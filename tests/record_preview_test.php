@@ -131,4 +131,79 @@ final class record_preview_test extends \basic_testcase {
             'record.js must call track.stop() to release the camera.'
         );
     }
+
+    /**
+     * iOS Safari cannot encode `video/webm`; passing it to RecordRTC
+     * leaves MediaRecorder in state 'inactive' so the recorder never
+     * stops cleanly and "録画停止" appears to do nothing. The module
+     * must pick a mimeType the running browser supports before handing
+     * one to RecordRTC.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_picks_supported_video_mime(): void {
+        $js = $this->read_record_js();
+        $this->assertStringContainsString(
+            'MediaRecorder.isTypeSupported',
+            $js,
+            'record.js must probe MediaRecorder.isTypeSupported() so a '
+                . 'Safari/iOS-compatible mimeType is picked at runtime.'
+        );
+        $this->assertStringContainsString(
+            'video/mp4',
+            $js,
+            'record.js must list video/mp4 as a Safari fallback.'
+        );
+    }
+
+    /**
+     * Stop/Start must be driven by an own boolean state instead of
+     * RecordRTC.getState(), which on iOS Safari returns "inactive"
+     * after a silent webm-fallback failure and used to trap the user
+     * in a Start/Stop loop with no upload.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_tracks_recording_state_locally(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~\bisRecording\b~',
+            $js,
+            'record.js must keep its own isRecording flag instead of '
+                . 'relying on RecordRTC.getState() for the Stop toggle.'
+        );
+    }
+
+    /**
+     * MediaRecorder.start() needs a non-zero timeSlice on iOS Safari for
+     * ondataavailable to flush before stop(); without it the final blob
+     * can be 0 bytes.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_uses_timeslice_for_safari(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~timeSlice\s*:\s*\d+~',
+            $js,
+            'record.js must request a periodic ondataavailable timeslice '
+                . 'so the iOS recorder produces a complete blob.'
+        );
+    }
+
+    /**
+     * A 0-byte blob (the failure mode on Safari without timeSlice) must
+     * surface as a visible error rather than uploading silently.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_guards_against_empty_blob(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~!blob\.size|blob\.size\s*===\s*0|blob\.size\s*<\s*1~',
+            $js,
+            'record.js must reject an empty recording blob and notify '
+                . 'the learner instead of uploading 0 bytes.'
+        );
+    }
 }
