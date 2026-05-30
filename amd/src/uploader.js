@@ -39,11 +39,29 @@ define(['mod_videoassessment/utils'], function(utils) {
             // Cisco/Safari path can leave it empty). Strip everything
             // after the first ";" so the extension lookup gets a bare
             // "webm" / "mp4" instead of "webm;codecs=vp8,opus".
-            const safeMime = (mimeType || (blob && blob.type) || 'video/webm')
+            const safeMime = (mimeType || (blob && blob.type) || '')
                 .split(';')[0]
                 .trim();
-            const formData = new FormData(document.querySelector('#mform'));
-            const fileName = utils.getFileName(safeMime.split('/')[1]);
+            // The submission form's id is "mform" on the desktop layout
+            // and "mobileform" on the mobile layout (mod_form sets one
+            // or the other based on the device class), so the upload
+            // path must look up both. Without this fallback the iOS
+            // native-camera path throws TypeError when FormData(null)
+            // is constructed because the desktop selector misses.
+            const form = document.querySelector('#mform')
+                || document.querySelector('#mobileform')
+                || document.querySelector('form.mform');
+            if (!form) {
+                window.alert(
+                    ((M && M.str && M.str.videoassessment
+                        && M.str.videoassessment.errorcapturingmedia)
+                        || 'Error capturing media.')
+                    + ' (submission form not found)'
+                );
+                return;
+            }
+            const formData = new FormData(form);
+            const fileName = utils.getFileName(safeMime.split('/')[1] || 'mp4');
             formData.append('isRecordVideo', 1);
             formData.append(safeMime.startsWith('audio') ? 'audio' : 'video', blob, fileName);
             // The PHP handler reads the original filename via
@@ -53,7 +71,7 @@ define(['mod_videoassessment/utils'], function(utils) {
             // dies inside video_data_add().
             formData.append('video-filename', fileName);
 
-            const url = document.querySelector('#mform').getAttribute('action');
+            const url = form.getAttribute('action');
             const id = formData.get('id');
 
             const xhr = new XMLHttpRequest();

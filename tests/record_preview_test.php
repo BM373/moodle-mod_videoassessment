@@ -347,6 +347,32 @@ final class record_preview_test extends \basic_testcase {
      *
      * @coversNothing
      */
+    /**
+     * The submission form is rendered with id="mform" on the desktop
+     * layout and id="mobileform" on the mobile layout. The uploader
+     * must look up both before constructing FormData; otherwise the
+     * iOS native-camera path crashes with
+     * `TypeError: Argument 1 ('form') to the FormData constructor
+     * must be an instance of HTMLFormElement` because the desktop
+     * selector misses and FormData(null) is illegal.
+     *
+     * @coversNothing
+     */
+    public function test_uploader_finds_mobile_and_desktop_form(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
+        $this->assertStringContainsString(
+            '#mform',
+            $js,
+            'uploader.js must look up the desktop submission form id.'
+        );
+        $this->assertStringContainsString(
+            '#mobileform',
+            $js,
+            'uploader.js must also look up the mobileform id so the '
+                . 'iOS native-camera path can post on a mobile UA.'
+        );
+    }
+
     public function test_record_js_keeps_ios_input_persistent(): void {
         $js = $this->read_record_js();
         $this->assertMatchesRegularExpression(
