@@ -432,17 +432,21 @@ class va {
         // local snapshot when the record path executes.
         $recordedfile = null;
         $mobilevideofile = null;
-        if (optional_param('isRecordVideo', 0, PARAM_INT) == 1
+        if (
+            optional_param('isRecordVideo', 0, PARAM_INT) == 1
             && !empty($_FILES['video'])
             && isset($_FILES['video']['tmp_name'])
             && is_uploaded_file($_FILES['video']['tmp_name'])
-            && (int)($_FILES['video']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            && (int)($_FILES['video']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK
+        ) {
             $recordedfile = $_FILES['video'];
         }
-        if (!empty($_FILES['mobilevideo'])
+        if (
+            !empty($_FILES['mobilevideo'])
             && isset($_FILES['mobilevideo']['tmp_name'])
             && is_uploaded_file($_FILES['mobilevideo']['tmp_name'])
-            && (int)($_FILES['mobilevideo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            && (int)($_FILES['mobilevideo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK
+        ) {
             $mobilevideofile = $_FILES['mobilevideo'];
         }
 
