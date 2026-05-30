@@ -1,17 +1,12 @@
 @mod @mod_videoassessment
-Feature: Smartphone-friendly assess screen layout (#7)
-  In order to grade rubrics on a phone without the focused textarea
-  hiding behind the keyboard or the floating video sliding under the
-  iOS Home indicator
-  As a teacher
-  The activity entry page must load with the smartphone-hardened CSS
-  attached
-  # The actual @media (max-width: 768px) rules are pinned by
-  # tests/mobile_ui_test.php (PHPUnit), which guarantees the safe-area
-  # inset + scroll-margin rules ship in assess.css. This Behat
-  # scenario adds a real-browser sanity check that the activity
-  # main view loads (so the stylesheet is in fact attached to the
-  # rendered page) for a teacher and for a student.
+Feature: Educator landscape-recording notice (#4)
+  In order to remind teachers to advise students to record in landscape
+  As a teacher viewing the activity entry page
+  I should see the educator landscape-recording info notification
+  # Reviewer Brendon reported "Can't find message to tell students to
+  # record in portrait." Item #4 renders the note on the activity
+  # entry page (view_main) so the teacher sees it without having to
+  # drill into a per-student assess view.
 
   Background:
     Given the following "courses" exist:
@@ -29,10 +24,11 @@ Feature: Smartphone-friendly assess screen layout (#7)
       | activity        | name          | course | idnumber |
       | videoassessment | Speaking task | C1     | va1      |
 
-  Scenario: Teacher reaches the activity main view
+  Scenario: Teacher sees the educator landscape note on the activity main page
     Given I am on the "Speaking task" "videoassessment activity" page logged in as teacher1
-    Then I should see "Speaking task"
+    Then I should see "Note to educators"
+    And I should see "landscape"
 
-  Scenario: Student reaches the activity main view
+  Scenario: Student does not see the educator landscape note
     Given I am on the "Speaking task" "videoassessment activity" page logged in as student1
-    Then I should see "Speaking task"
+    Then I should not see "Note to educators"

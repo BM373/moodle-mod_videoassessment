@@ -70,19 +70,33 @@ final class educator_note_test extends \advanced_testcase {
     }
 
     /**
-     * The assess view must reference the note string so it is rendered
-     * on screen (the reviewer looked on the assess screen and could not
-     * find it). Static-contract check against the source.
+     * The activity entry view (view_main) must reference the note
+     * string so a teacher sees it without having to drill into a
+     * per-student assess view. Static-contract check against the
+     * source: educatornote_landscape must be emitted from the
+     * is_teacher() branch of view_main().
      *
      * @coversNothing
      */
-    public function test_assess_view_renders_landscape_note(): void {
+    public function test_view_main_renders_landscape_note(): void {
         $src = file_get_contents(__DIR__ . '/../classes/va.php');
         $this->assertStringContainsString(
             'educatornote_landscape',
             $src,
-            'classes/va.php (view_assess) must output the educatornote_landscape '
-                . 'string so the advice is visible on the assess screen.'
+            'classes/va.php must output the educatornote_landscape string '
+                . 'so the advice is visible on the activity entry page.'
+        );
+        // Hard-pin location: the string must be reached from view_main,
+        // which is where teachers land by default.
+        $offsetnote = strpos($src, 'educatornote_landscape');
+        $offsetmain = strpos($src, 'function view_main');
+        $this->assertNotFalse($offsetnote);
+        $this->assertNotFalse($offsetmain);
+        $this->assertGreaterThan(
+            $offsetmain,
+            $offsetnote,
+            'educatornote_landscape must be emitted from view_main() (not '
+                . 'only from the deeper per-student view_assess).'
         );
     }
 }
