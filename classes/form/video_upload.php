@@ -212,6 +212,17 @@ class video_upload extends \moodleform {
     public function validation($data, $files) {
         $errors = [];
 
+        // The in-browser record / iOS native-camera flow attaches the
+        // recording as $_FILES['video'] (consumed by the isRecordVideo
+        // branch of view_upload_video). The legacy "Mobile upload"
+        // requirement only applies to the direct file-upload path, so
+        // skip it when the record path is active — otherwise the
+        // record-video POST fails validation, get_data() returns null,
+        // the form re-renders, and the upload silently vanishes.
+        if (optional_param('isRecordVideo', 0, PARAM_INT) == 1) {
+            return $errors;
+        }
+
         if (isset($data['mobile']) && empty($data['mobileurl'])) {
             if (empty($files['mobilevideo'])) {
                 $errors['mobilevideo'] = va::str('erroruploadvideo');

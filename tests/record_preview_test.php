@@ -367,6 +367,26 @@ final class record_preview_test extends \basic_testcase {
      *
      * @coversNothing
      */
+    /**
+     * The record-video flow uploads as $_FILES['video']; validation
+     * must not require $_FILES['mobilevideo'] on that path. Without
+     * this skip, the iOS / browser-record POST fails validation,
+     * get_data() returns null, the form silently re-renders, and the
+     * recording is dropped on the floor.
+     *
+     * @coversNothing
+     */
+    public function test_video_upload_validation_skips_mobile_on_record_path(): void {
+        $src = file_get_contents(__DIR__ . '/../classes/form/video_upload.php');
+        $this->assertMatchesRegularExpression(
+            "~optional_param\\(\\s*['\"]isRecordVideo['\"]~",
+            $src,
+            'video_upload::validation must check isRecordVideo and skip '
+                . 'the mobilevideo requirement when the record flow is '
+                . 'active.'
+        );
+    }
+
     public function test_uploader_validates_json_response(): void {
         $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
         $this->assertMatchesRegularExpression(
