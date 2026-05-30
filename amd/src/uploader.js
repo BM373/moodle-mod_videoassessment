@@ -61,7 +61,24 @@ define(['mod_videoassessment/utils'], function(utils) {
                 return;
             }
             const formData = new FormData(form);
-            const fileName = utils.getFileName(safeMime.split('/')[1] || 'mp4');
+            // Normalise the file extension we ask the helper to use.
+            // iOS native camera reports the recording as
+            // `video/quicktime`; the literal "quicktime" subtype is 9
+            // chars which, combined with the server-side
+            // `{unix-timestamp}{N}.{ext}` template, overflows
+            // videoassessment_videos.tmpname (varchar(20)) and the DB
+            // INSERT throws "Data too long for column 'tmpname'".
+            // Map the well-known long subtypes to their conventional
+            // short extensions and cap any future weird subtype at
+            // eight chars so the temp name always fits.
+            const subtype = (safeMime.split('/')[1] || 'mp4').trim();
+            const extmap = {
+                'quicktime': 'mov',
+                'x-matroska': 'mkv',
+                'mpeg': 'mpg'
+            };
+            const ext = (extmap[subtype] || subtype).slice(0, 8) || 'mp4';
+            const fileName = utils.getFileName(ext);
             formData.append('isRecordVideo', 1);
             formData.append(safeMime.startsWith('audio') ? 'audio' : 'video', blob, fileName);
             // The PHP handler reads the original filename via

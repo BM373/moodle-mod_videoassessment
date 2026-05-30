@@ -439,6 +439,32 @@ final class record_preview_test extends \basic_testcase {
         );
     }
 
+    /**
+     * iOS native camera reports recordings as video/quicktime; the
+     * literal subtype "quicktime" is 9 chars and overflows the
+     * videoassessment_videos.tmpname column (varchar(20)) when the
+     * server builds `{timestamp}{N}.{ext}`. uploader.js must normalise
+     * the extension (quicktime → mov, x-matroska → mkv, …) and cap
+     * any other subtype at 8 chars so the temp filename always fits.
+     *
+     * @coversNothing
+     */
+    public function test_uploader_normalises_long_mime_extensions(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
+        $this->assertMatchesRegularExpression(
+            "~quicktime['\"]?\\s*:\\s*['\"]mov~",
+            $js,
+            'uploader.js must map quicktime -> mov so the iOS native '
+                . 'camera recording fits in tmpname.'
+        );
+        $this->assertMatchesRegularExpression(
+            '~\.slice\s*\(\s*0\s*,\s*8\s*\)~',
+            $js,
+            'uploader.js must cap unknown subtypes at 8 chars so any '
+                . 'future weird mime cannot overflow tmpname.'
+        );
+    }
+
     public function test_uploader_validates_json_response(): void {
         $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
         $this->assertMatchesRegularExpression(
