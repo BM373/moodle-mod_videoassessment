@@ -428,6 +428,14 @@ final class record_preview_test extends \basic_testcase {
         );
     }
 
+    /**
+     * Static-contract guard for the validation skip introduced when
+     * the record-video XHR flow began crashing on the form's
+     * mobilevideo requirement. See the docblock above for the full
+     * rationale.
+     *
+     * @coversNothing
+     */
     public function test_video_upload_validation_skips_mobile_on_record_path(): void {
         $src = file_get_contents(__DIR__ . '/../classes/form/video_upload.php');
         $this->assertMatchesRegularExpression(
@@ -465,6 +473,12 @@ final class record_preview_test extends \basic_testcase {
         );
     }
 
+    /**
+     * Static-contract guard for the JSON response validation added
+     * after the iOS upload silently redirected on non-JSON failures.
+     *
+     * @coversNothing
+     */
     public function test_uploader_validates_json_response(): void {
         $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
         $this->assertMatchesRegularExpression(
@@ -482,6 +496,12 @@ final class record_preview_test extends \basic_testcase {
         );
     }
 
+    /**
+     * Static-contract guard for the dual lookup of #mform / #mobileform
+     * so the iOS upload can reach the mobile-rendered form id.
+     *
+     * @coversNothing
+     */
     public function test_uploader_finds_mobile_and_desktop_form(): void {
         $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
         $this->assertStringContainsString(
@@ -497,6 +517,12 @@ final class record_preview_test extends \basic_testcase {
         );
     }
 
+    /**
+     * Static-contract guard for the persistent iOS overlay so the
+     * file input does not disappear between camera open and change.
+     *
+     * @coversNothing
+     */
     public function test_record_js_keeps_ios_input_persistent(): void {
         $js = $this->read_record_js();
         $this->assertMatchesRegularExpression(
