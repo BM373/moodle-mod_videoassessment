@@ -80,16 +80,40 @@ define(['mod_videoassessment/utils'], function(utils) {
                 && M.str.videoassessment.errorcapturingmedia)
                 || 'Error capturing media.';
             xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    window.location.href = `${url}?id=${id}`;
-                } else {
+                if (xhr.status < 200 || xhr.status >= 300) {
                     // Surface a visible error rather than leaving the
                     // learner staring at a frozen "Stop recording"
-                    // screen. Without this the iPhone fix programme
-                    // ("録画停止" did not advance the form) only made
-                    // the silent failure mode louder.
+                    // screen.
                     window.alert(failureMessage + ' (HTTP ' + xhr.status + ')');
+                    return;
                 }
+                // The server returns JSON ({"action": ""}) on success.
+                // If we get an HTML page instead — typically the form
+                // re-rendered because get_data() returned null (PHP
+                // upload size limit exceeded, sesskey mismatch, etc.)
+                // — surface a snippet of the response so the silent
+                // failure becomes visible.
+                let parsed;
+                try {
+                    parsed = JSON.parse(xhr.responseText || '');
+                } catch (e) {
+                    parsed = null;
+                }
+                if (parsed && typeof parsed.action !== 'undefined') {
+                    window.location.href = `${url}?id=${id}`;
+                    return;
+                }
+                const snippet = (xhr.responseText || '')
+                    .replace(/<[^>]+>/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .slice(0, 200);
+                window.alert(
+                    failureMessage
+                    + ' (upload not accepted by the server'
+                    + (snippet ? ': ' + snippet : '')
+                    + ')'
+                );
             };
             xhr.onerror = () => {
                 window.alert(failureMessage);

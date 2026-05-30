@@ -358,6 +358,32 @@ final class record_preview_test extends \basic_testcase {
      *
      * @coversNothing
      */
+    /**
+     * The server returns {"action": "..."} JSON on success and a full
+     * HTML page on failure (form re-render, exception, upload-size
+     * rejection). The uploader must reject anything that does not
+     * parse as JSON so silent failures are visible rather than being
+     * mistaken for a successful redirect.
+     *
+     * @coversNothing
+     */
+    public function test_uploader_validates_json_response(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
+        $this->assertMatchesRegularExpression(
+            '~JSON\.parse\s*\(\s*xhr\.responseText~',
+            $js,
+            'uploader.js must parse xhr.responseText as JSON so a '
+                . 'silent failure (HTML form re-render with status 200) '
+                . 'is detected instead of redirecting blindly.'
+        );
+        $this->assertStringContainsString(
+            'upload not accepted by the server',
+            $js,
+            'uploader.js must surface a clear failure message when '
+                . 'the response is not valid JSON.'
+        );
+    }
+
     public function test_uploader_finds_mobile_and_desktop_form(): void {
         $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
         $this->assertStringContainsString(
