@@ -320,10 +320,10 @@ final class record_preview_test extends \basic_testcase {
     public function test_record_js_delegates_to_native_camera_on_ios(): void {
         $js = $this->read_record_js();
         $this->assertMatchesRegularExpression(
-            '~openIosNativeCamera\s*\(\s*\)~',
+            '~setupIosNativeCamera\s*\(~',
             $js,
-            'record.js must define an openIosNativeCamera helper that '
-                . 'invokes the iOS system camera app.'
+            'record.js must define a setupIosNativeCamera helper that '
+                . 'installs the iOS camera overlay on init.'
         );
         $this->assertMatchesRegularExpression(
             "~setAttribute\\(\\s*['\"]capture['\"]~",
@@ -336,6 +336,32 @@ final class record_preview_test extends \basic_testcase {
             $js,
             'The iOS capture input must accept video/* so the camera '
                 . 'app records video rather than offering a photo.'
+        );
+    }
+
+    /**
+     * The iOS overlay must be installed at init time (not lazily on
+     * each click) so the <input type=file capture> stays in the DOM
+     * across the camera transition — that is what makes Safari fire
+     * the change event reliably with the recorded mp4.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_keeps_ios_input_persistent(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~iosCapture\s*&&\s*btnStart[^{]*\{[^}]*setupIosNativeCamera~s',
+            $js,
+            'setupIosNativeCamera must be invoked once at init time '
+                . 'on iOS — not on every click — so the file input '
+                . 'persists across the native-camera transition.'
+        );
+        $this->assertMatchesRegularExpression(
+            "~position\\s*=\\s*['\"]absolute['\"]~",
+            $js,
+            'The iOS overlay must be position:absolute over the Start '
+                . 'button so the tap is recognised as a user gesture '
+                . 'on the file input itself.'
         );
     }
 }

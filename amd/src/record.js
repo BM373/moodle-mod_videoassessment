@@ -110,16 +110,27 @@ define([
     }
 
     /**
-     * Open the iOS native camera app via a transient hidden file
-     * input, hand the recorded file to the uploader once the learner
-     * returns to the page.
+     * Install a transparent `<input type="file" capture>` overlay on
+     * top of the Start button so that a tap opens the iOS native
+     * camera app and the change event reliably delivers the recorded
+     * mp4 file to the uploader.
      *
      * Used in place of the RecordRTC flow on iOS Safari, which cannot
      * reliably produce a non-empty blob through MediaRecorder. The
      * `capture` attribute is honoured by iOS Safari (and Android
      * Chrome) and prompts the system camera UI directly.
+     *
+     * @param {HTMLElement} btnStart The Start-recording button to overlay.
+     * @returns {HTMLInputElement} The installed file input element.
      */
-    function openIosNativeCamera() {
+    function setupIosNativeCamera(btnStart) {
+        // Render a transparent <input type="file" capture> directly on
+        // top of the Start button so the iOS tap that opens the camera
+        // ALSO travels through the input — programmatic .click() on a
+        // dynamically-added input can succeed at opening the camera but
+        // then drop the change event when the user returns. Keeping the
+        // input persistent (created once, never removed) makes Safari
+        // fire 'change' reliably with the recorded mp4 file.
         var input = document.createElement('input');
         input.type = 'file';
         input.accept = 'video/*';
@@ -127,25 +138,61 @@ define([
         // flow's mirror preview. iOS users can still flip to the back
         // camera from the system UI.
         input.setAttribute('capture', 'user');
-        input.style.display = 'none';
+        input.className = 'vam-ios-capture-input';
+        input.setAttribute('aria-label', M.str.videoassessment.startrecoding);
+        // Overlay-on-button styling: opacity 0 keeps it invisible but
+        // tappable, position absolute over the button covers its hit
+        // area exactly. Using opacity (not display:none) is required
+        // for the tap to be recognised inside the user gesture.
+        input.style.position = 'absolute';
+        input.style.top = '0';
+        input.style.left = '0';
+        input.style.width = '100%';
+        input.style.height = '100%';
+        input.style.opacity = '0';
+        input.style.cursor = 'pointer';
+
+        // Wrap the existing button so the input can be absolutely
+        // positioned on top of it without disrupting the surrounding
+        // form layout. Subsequent clicks on the visible button
+        // bubble through the overlay input first, opening the
+        // camera, while preserving the button's label.
+        var wrapper = document.createElement('span');
+        wrapper.className = 'vam-ios-capture-wrapper';
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+        if (btnStart && btnStart.parentNode) {
+            btnStart.parentNode.insertBefore(wrapper, btnStart);
+            wrapper.appendChild(btnStart);
+            wrapper.appendChild(input);
+        } else {
+            document.body.appendChild(input);
+        }
+
         input.addEventListener('change', function() {
-            if (input.files && input.files.length > 0) {
-                var file = input.files[0];
-                if (!file.size) {
-                    window.alert(
-                        M.str.videoassessment.errorcapturingmedia
-                        + ' (iOS capture returned a 0-byte file)'
-                    );
-                } else {
-                    uploader.upload(file, file.type || 'video/mp4');
-                }
+            if (!input.files || input.files.length === 0) {
+                return;
             }
-            if (input.parentNode) {
-                input.parentNode.removeChild(input);
+            var file = input.files[0];
+            if (!file.size) {
+                window.alert(
+                    M.str.videoassessment.errorcapturingmedia
+                    + ' (iOS capture returned a 0-byte file)'
+                );
+                return;
             }
+            // Surface progress so the learner knows the upload is in
+            // flight — without this the page just sits still after
+            // returning from the camera app and looks broken.
+            if (btnStart) {
+                btnStart.disabled = true;
+                btnStart.textContent = M.str.videoassessment.processingrecording
+                    || M.str.videoassessment.stoprecording;
+            }
+            uploader.upload(file, file.type || 'video/mp4');
         });
-        document.body.appendChild(input);
-        input.click();
+
+        return input;
     }
 
     /**
@@ -170,6 +217,14 @@ define([
         // counterpart to talk to.
         if (iosCapture && btnPause) {
             btnPause.style.display = 'none';
+        }
+
+        // On iOS, install the native-camera overlay over the Start
+        // button so a tap opens the iOS camera app via the
+        // <input type="file" capture> + the change event reliably
+        // delivers the recorded mp4 to the uploader.
+        if (iosCapture && btnStart) {
+            setupIosNativeCamera(btnStart);
         }
 
         /**
@@ -307,13 +362,12 @@ define([
         }
 
         btnStart.addEventListener('click', function() {
+            // On iOS the overlay <input type="file" capture> sits on
+            // top of this button; the tap reaches the input first so
+            // it opens the system camera app, and this click handler
+            // is a no-op fallback (in case the overlay was somehow
+            // not installed).
             if (iosCapture) {
-                // Native iOS path: hand off to the camera app and
-                // let its recording UI handle preview / pause / stop.
-                // The file lands back in our input.onchange and is
-                // uploaded through the same uploader as the desktop
-                // RecordRTC flow.
-                openIosNativeCamera();
                 return;
             }
 
