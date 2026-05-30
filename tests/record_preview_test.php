@@ -376,6 +376,58 @@ final class record_preview_test extends \basic_testcase {
      *
      * @coversNothing
      */
+    /**
+     * Moodle's moodleform::_validate_files() walks $_FILES on the
+     * first validation pass and unset()s any entry whose registered
+     * form element type is not 'file' — and the 'video' element is
+     * registered as a 'filemanager'. So the RecordRTC / iOS XHR file
+     * is destroyed by `$form->get_data()` before the upload branch
+     * can read it. view_upload_video() must snapshot the upload BEFORE
+     * the form is constructed and use the snapshot inside the
+     * isRecordVideo branch.
+     *
+     * @coversNothing
+     */
+    public function test_view_upload_video_snapshots_files_before_form(): void {
+        $src = file_get_contents(__DIR__ . '/../classes/va.php');
+        // Snapshot variable must be initialised before $form = new ...
+        $snapshotpos = strpos($src, '$recordedfile = null;');
+        $formpos = strpos($src, '$form = new form\\video_upload(');
+        $this->assertNotFalse(
+            $snapshotpos,
+            'view_upload_video must snapshot $_FILES into a local '
+                . '$recordedfile variable so moodleform::_validate_files() '
+                . 'cannot consume it before the record branch runs.'
+        );
+        $this->assertNotFalse($formpos);
+        $this->assertLessThan(
+            $formpos,
+            $snapshotpos,
+            'The $_FILES snapshot must happen BEFORE the moodleform is '
+                . 'constructed, otherwise validate_files() unsets the '
+                . 'entry on the first validation pass.'
+        );
+        // And the record branch must use the snapshot, not $_FILES.
+        $recordbranch = substr(
+            $src,
+            strpos($src, "optional_param('isRecordVideo', 0, PARAM_INT) == 1) {")
+        );
+        $recordbranch = substr($recordbranch, 0, strpos($recordbranch, 'echo json_encode'));
+        $this->assertStringContainsString(
+            '$recordedfile',
+            $recordbranch,
+            'The isRecordVideo branch must read the snapshotted file, '
+                . 'not $_FILES["video"] (which is destroyed by validation).'
+        );
+        $this->assertStringNotContainsString(
+            "\$_FILES['video']",
+            $recordbranch,
+            'The isRecordVideo branch must not read $_FILES["video"] '
+                . 'directly — that array is already unset by the time '
+                . 'get_data() returns.'
+        );
+    }
+
     public function test_video_upload_validation_skips_mobile_on_record_path(): void {
         $src = file_get_contents(__DIR__ . '/../classes/form/video_upload.php');
         $this->assertMatchesRegularExpression(

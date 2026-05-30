@@ -422,6 +422,30 @@ class va {
 
         $o = '';
 
+        // Snapshot the uploaded recording BEFORE the form runs so it
+        // survives moodleform validation. moodleform::_validate_files()
+        // walks $_FILES on the first validation pass and unset()s any
+        // entry whose registered element type is not 'file' — and the
+        // 'video' element is registered as a 'filemanager', so the
+        // RecordRTC / iOS XHR file is destroyed before the upload
+        // branch below ever runs. Capture it here, then read from the
+        // local snapshot when the record path executes.
+        $recordedfile = null;
+        $mobilevideofile = null;
+        if (optional_param('isRecordVideo', 0, PARAM_INT) == 1
+            && !empty($_FILES['video'])
+            && isset($_FILES['video']['tmp_name'])
+            && is_uploaded_file($_FILES['video']['tmp_name'])
+            && (int)($_FILES['video']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $recordedfile = $_FILES['video'];
+        }
+        if (!empty($_FILES['mobilevideo'])
+            && isset($_FILES['mobilevideo']['tmp_name'])
+            && is_uploaded_file($_FILES['mobilevideo']['tmp_name'])
+            && (int)($_FILES['mobilevideo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $mobilevideofile = $_FILES['mobilevideo'];
+        }
+
         $form = new form\video_upload(null, (object) ['va' => $this]);
 
         if ($data = $form->get_data()) {
@@ -471,22 +495,30 @@ class va {
             } else {
                 if (optional_param('isRecordVideo', 0, PARAM_INT) == 1) {
                     $upload = new \videoassessment_bulkupload($this->cm->id);
-                    $fileidx = 'video';
+                    if ($recordedfile === null) {
+                        // The XHR uploader did not post a usable file
+                        // (e.g. iOS native camera was cancelled, or
+                        // moodleform::_validate_files() unset the entry
+                        // before view_upload_video was reached because
+                        // we forgot to snapshot it at the top of the
+                        // function).
+                        throw new \moodle_exception('invaliduploadedfile', self::VA);
+                    }
                     // If the JS uploader did not pass a `video-filename`
-                    // field, fall back to the uploaded $_FILES name so
+                    // field, fall back to the uploaded file name so
                     // we never insert NULL into
                     // videoassessment_videos.originalname (NOT NULL).
                     $filename = optional_param('video-filename', null, PARAM_FILE);
-                    if (empty($filename) && !empty($_FILES[$fileidx]['name'])) {
-                        $filename = clean_param($_FILES[$fileidx]['name'], PARAM_FILE);
+                    if (empty($filename) && !empty($recordedfile['name'])) {
+                        $filename = clean_param($recordedfile['name'], PARAM_FILE);
                     }
                     if (empty($filename)) {
                         $filename = 'recording.webm';
                     }
-                    $tempname = $upload->get_temp_name($_FILES[$fileidx]['name']);
+                    $tempname = $upload->get_temp_name($recordedfile['name']);
                     $upload->create_temp_dirs();
                     $tmppath = $upload->get_tempdir() . '/upload/' . $tempname;
-                    if (!move_uploaded_file($_FILES[$fileidx]['tmp_name'], $tmppath)) {
+                    if (!move_uploaded_file($recordedfile['tmp_name'], $tmppath)) {
                         throw new \moodle_exception('invaliduploadedfile', self::VA);
                     }
                     $videoid = $upload->video_data_add($tempname, $filename);
@@ -512,17 +544,17 @@ class va {
                     die;
                 } else {
                     if (!empty($data->mobile)) {
-                        if (empty($_FILES['mobilevideo'])) {
+                        if ($mobilevideofile === null) {
                             throw new \moodle_exception('erroruploadvideo', self::VA);
                         }
                         $upload->create_temp_dirs();
-                        $tmpname = $upload->get_temp_name($_FILES['mobilevideo']['name']);
+                        $tmpname = $upload->get_temp_name($mobilevideofile['name']);
                         $tmppath = $upload->get_tempdir() . '/upload/' . $tmpname;
-                        if (!move_uploaded_file($_FILES['mobilevideo']['tmp_name'], $tmppath)) {
+                        if (!move_uploaded_file($mobilevideofile['tmp_name'], $tmppath)) {
                             throw new \moodle_exception('invaliduploadedfile', self::VA);
                         }
 
-                        $videoid = $upload->video_data_add($tmpname, $_FILES['mobilevideo']['name']);
+                        $videoid = $upload->video_data_add($tmpname, $mobilevideofile['name']);
 
                         $upload->convert($tmpname);
                         $action = "";
