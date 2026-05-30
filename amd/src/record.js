@@ -38,33 +38,58 @@ define([
 
     /**
      * Pick a MediaRecorder mimeType the running browser can actually
-     * encode. iOS Safari and macOS Safari do not support `video/webm`,
-     * so passing it to RecordRTC silently fails the underlying
-     * MediaRecorder.start() — the recorder stays in state 'inactive'
-     * and a subsequent tap that the UI thinks is "Stop" starts a
-     * second recording instead, leaving the learner unable to submit.
-     * Fall back to `video/mp4` (Safari) when webm is unsupported, and
-     * to whatever the browser will accept as a last resort.
+     * encode.
      *
-     * @returns {string} A mimeType string that MediaRecorder accepts.
+     * iOS Safari MUST get `video/mp4` (H.264/AAC) — its
+     * MediaRecorder.isTypeSupported('video/webm') can return truthy
+     * but start() then fails silently, the recorder stays in state
+     * 'inactive', no chunks are emitted, and stopRecording() returns
+     * a 0-byte blob to the upload path. Try MP4 first on Safari and
+     * skip webm entirely on iOS; fall back to an empty string (which
+     * lets MediaRecorder choose its own default) rather than the
+     * known-broken 'video/webm' so any future Safari quirk degrades
+     * to "the browser picks" instead of "we force a bad codec".
+     *
+     * @returns {string} A mimeType string MediaRecorder accepts (may be empty).
      */
     function pickSupportedVideoMime() {
         if (typeof window.MediaRecorder === 'undefined'
             || typeof MediaRecorder.isTypeSupported !== 'function') {
-            return 'video/webm';
+            return '';
         }
-        var candidates = [
-            'video/webm',
-            'video/webm;codecs=vp8,opus',
-            'video/mp4',
-            'video/mp4;codecs=h264,aac'
-        ];
+        var ua = navigator.userAgent || '';
+        var isIOS = /iPhone|iPad|iPod/i.test(ua);
+        var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+        // On iOS skip webm entirely — isTypeSupported lies about it.
+        // On macOS Safari prefer mp4 but allow webm as a last resort.
+        // On Chromium/Firefox keep the historical webm-first order
+        // because their mp4 support is more recent and uneven.
+        var candidates;
+        if (isIOS) {
+            candidates = ['video/mp4;codecs=h264,aac', 'video/mp4'];
+        } else if (isSafari) {
+            candidates = [
+                'video/mp4;codecs=h264,aac',
+                'video/mp4',
+                'video/webm;codecs=vp8,opus',
+                'video/webm'
+            ];
+        } else {
+            candidates = [
+                'video/webm;codecs=vp8,opus',
+                'video/webm',
+                'video/mp4;codecs=h264,aac',
+                'video/mp4'
+            ];
+        }
         for (var i = 0; i < candidates.length; i++) {
             if (MediaRecorder.isTypeSupported(candidates[i])) {
                 return candidates[i];
             }
         }
-        return 'video/webm';
+        // Last resort: let MediaRecorder pick its own default rather
+        // than passing a literal we already know does not work.
+        return '';
     }
 
     /**
@@ -160,6 +185,24 @@ define([
         }
 
         /**
+         * Reset the UI to its pre-recording state so the learner can
+         * retry instead of being stranded on a "Stop recording" button
+         * that no longer does anything.
+         */
+        function resetRecordingUi() {
+            isRecording = false;
+            clearAutoStop();
+            teardownPreview();
+            if (btnStart) {
+                btnStart.textContent = M.str.videoassessment.startrecoding;
+            }
+            if (btnPause) {
+                btnPause.style.display = 'none';
+                btnPause.textContent = M.str.videoassessment.pause;
+            }
+        }
+
+        /**
          *
          */
         function finishRecording() {
@@ -177,14 +220,22 @@ define([
                 // finally to the type we asked the recorder to produce.
                 var mimeType = (blob && blob.type)
                     ? blob.type
-                    : (recorder.mimeType || 'video/webm');
+                    : (recorder.mimeType || '');
                 teardownPreview();
                 // Guard against 0-byte blobs (a sign that
                 // MediaRecorder.start() was rejected silently). Surface
-                // an alert so the learner is not stuck on a screen
-                // where "stop" appears to do nothing.
+                // an alert WITH diagnostic context so the learner can
+                // report what happened, and reset the UI so they can
+                // retry without reloading the page.
                 if (!blob || !blob.size) {
-                    window.alert(M.str.videoassessment.errorcapturingmedia);
+                    var detail = blob
+                        ? (blob.size + ' bytes, type=' + (blob.type || 'n/a'))
+                        : 'null';
+                    window.alert(
+                        M.str.videoassessment.errorcapturingmedia
+                        + ' (blob ' + detail + ', mime=' + (mimeType || 'auto') + ')'
+                    );
+                    resetRecordingUi();
                     return;
                 }
                 uploader.upload(blob, mimeType);
@@ -223,8 +274,29 @@ define([
                 // unbounded blobs that fail to upload.
                 clearAutoStop();
                 autoStopTimer = window.setTimeout(finishRecording, MAX_LENGTH_MS);
+
+                // Safari "silent start" watchdog: if MediaRecorder did
+                // not actually enter the 'recording' state within
+                // ~2.5 s, the codec was rejected at runtime even though
+                // isTypeSupported() said yes. Surface that instead of
+                // letting the learner record two minutes of nothing.
+                window.setTimeout(function() {
+                    if (!isRecording || !recorder) {
+                        return;
+                    }
+                    var state = (typeof recorder.getState === 'function')
+                        ? recorder.getState()
+                        : null;
+                    if (state && state !== 'recording') {
+                        window.alert(
+                            M.str.videoassessment.errorcapturingmedia
+                            + ' (recorder failed to start: ' + mimeType + ', state=' + state + ')'
+                        );
+                        resetRecordingUi();
+                    }
+                }, 2500);
             }, function(err) {
-                window.alert(M.str.videoassessment.errorcapturingmedia + ' ' + err.message);
+                window.alert(M.str.videoassessment.errorcapturingmedia + ' ' + (err && err.message ? err.message : ''));
             });
         });
 

@@ -206,4 +206,106 @@ final class record_preview_test extends \basic_testcase {
                 . 'the learner instead of uploading 0 bytes.'
         );
     }
+
+    /**
+     * iOS Safari's isTypeSupported() lies about `video/webm`, so the
+     * mimeType picker must try MP4 BEFORE webm on Safari/iOS and
+     * skip webm entirely on iOS. Pin this ordering so a future
+     * refactor cannot regress us back to silent webm failures.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_prefers_mp4_on_ios_safari(): void {
+        $js = $this->read_record_js();
+        // The Safari/iOS UA branches must list mp4 before webm.
+        $this->assertStringContainsString(
+            'iPhone|iPad|iPod',
+            $js,
+            'record.js must detect iOS via a UA test and special-case '
+                . 'mimeType selection there.'
+        );
+        // Extract the iOS branch's candidates array literal.
+        $iospattern = "~isIOS\\s*\\)\\s*\\{[^{}]*?candidates\\s*=\\s*\\[([^\\]]*)\\]~";
+        $this->assertSame(
+            1,
+            preg_match($iospattern, $js, $iosmatch),
+            'pickSupportedVideoMime must have an isIOS branch with a candidates array.'
+        );
+        $this->assertStringContainsString(
+            'video/mp4',
+            $iosmatch[1],
+            'The iOS branch of pickSupportedVideoMime must use mp4.'
+        );
+        $this->assertStringNotContainsString(
+            'video/webm',
+            $iosmatch[1],
+            'The iOS branch must NOT list video/webm — Safari mobile '
+                . 'cannot actually encode it even when isTypeSupported '
+                . 'returns truthy.'
+        );
+        // Extract the macOS Safari branch's candidates array literal.
+        $safaripattern = "~isSafari\\s*\\)\\s*\\{[^{}]*?candidates\\s*=\\s*\\[([^\\]]*)\\]~";
+        $this->assertSame(
+            1,
+            preg_match($safaripattern, $js, $safarimatch),
+            'pickSupportedVideoMime must have a macOS Safari branch with a candidates array.'
+        );
+        $mp4pos = strpos($safarimatch[1], 'video/mp4');
+        $webmpos = strpos($safarimatch[1], 'video/webm');
+        $this->assertNotFalse($mp4pos);
+        $this->assertNotFalse($webmpos);
+        $this->assertLessThan(
+            $webmpos,
+            $mp4pos,
+            'The macOS Safari branch of pickSupportedVideoMime must '
+                . 'try mp4 before webm.'
+        );
+    }
+
+    /**
+     * If MediaRecorder reports a non-'recording' state ~2.5s after
+     * startRecording(), the encoder was rejected silently. The
+     * watchdog surfaces this rather than leaving the learner to
+     * record two minutes of nothing.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_has_silent_start_watchdog(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~recorder failed to start~',
+            $js,
+            'record.js must include a watchdog that alerts when '
+                . 'MediaRecorder failed to enter the recording state.'
+        );
+        $this->assertMatchesRegularExpression(
+            "~getState\\(\\)~",
+            $js,
+            'The watchdog must consult recorder.getState() to detect '
+                . 'the silent-failure case.'
+        );
+    }
+
+    /**
+     * After any failure path that does not upload (empty blob,
+     * watchdog hit), the UI must be reset so the learner can retry
+     * without reloading the page.
+     *
+     * @coversNothing
+     */
+    public function test_record_js_resets_ui_after_failure(): void {
+        $js = $this->read_record_js();
+        $this->assertMatchesRegularExpression(
+            '~resetRecordingUi\s*\(\s*\)~',
+            $js,
+            'record.js must reset the recording UI after a failure so '
+                . 'the Start/Stop button reverts to its initial label.'
+        );
+        $this->assertMatchesRegularExpression(
+            '~btnStart\.textContent\s*=\s*M\.str\.videoassessment\.startrecoding~',
+            $js,
+            'resetRecordingUi must restore the Start label on the '
+                . 'primary record button.'
+        );
+    }
 }
