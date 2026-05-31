@@ -653,3 +653,86 @@
        so the rubric stays reachable below it. */
     max-height: 50vh;
 }
+
+/* -----------------------------------------------------------------
+ * Mobile-portrait assess tab switcher (動画 / 採点).
+ *
+ * Replaces the stacked video-on-top-of-rubric layout on portrait
+ * phones with a two-tab interface so a portrait recording does not
+ * push the criteria off-screen. Driven by amd/src/assess_mobile_tabs
+ * which toggles body classes; the tab bar itself is hidden on
+ * desktop and landscape so the existing side-by-side layout is kept.
+ * ----------------------------------------------------------------- */
+.vam-assess-tabs {
+    display: none;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+    .vam-assess-tabs {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+        margin: 0 0 8px 0;
+    }
+    .vam-assess-tab {
+        flex: 1 1 50%;
+        padding: 14px 0;
+        font-size: 1em;
+        font-weight: 600;
+        background: #f5f5f5;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #555;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    .vam-assess-tab.vam-assess-tab-active,
+    .vam-assess-tab[aria-selected="true"] {
+        background: #fff;
+        color: #0f6cbf;
+        border-bottom-color: #0f6cbf;
+    }
+
+    /* Video tab active: hide grading. */
+    body.vam-assess-tab-video-active .gradingform_rubric,
+    body.vam-assess-tab-video-active form.gradingform {
+        display: none !important;
+    }
+    /* Video tab active: give the video the full content area. */
+    body.vam-assess-tab-video-active .assess-form-videos,
+    body.vam-assess-tab-video-active .path-mod-videoassessment .assess-form-videos {
+        position: static;
+        float: none;
+        width: 100%;
+        height: auto;
+        max-height: 85vh;
+        margin: 0;
+    }
+    body.vam-assess-tab-video-active .assess-form-videos video,
+    body.vam-assess-tab-video-active .assess-form-videos iframe,
+    body.vam-assess-tab-video-active .assess-form-videos object,
+    body.vam-assess-tab-video-active .assess-form-videos embed,
+    body.vam-assess-tab-video-active .assess-form-videos .mediaplugin {
+        width: 100%;
+        max-width: 100%;
+        max-height: 85vh;
+        height: auto;
+        object-fit: contain;
+    }
+
+    /* Grading tab active: hide video. */
+    body.vam-assess-tab-grading-active .assess-form-videos {
+        display: none !important;
+    }
+    /* Grading tab active: full-width rubric. */
+    body.vam-assess-tab-grading-active form.gradingform,
+    body.vam-assess-tab-grading-active .gradingform_rubric {
+        width: 100%;
+        float: none;
+    }
+}
+

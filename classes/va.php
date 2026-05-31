@@ -214,6 +214,10 @@ class va {
             // Used by AMD module mod_videoassessment/uploader to label
             // the "uploading…" full-screen spinner overlay.
             'uploadingvideonotice',
+            // Used by AMD module mod_videoassessment/assess_mobile_tabs
+            // for the portrait-phone tab switcher on the assess screen.
+            'tabvideo',
+            'tabgrading',
         ], 'videoassessment');
 
         $PAGE->requires->strings_for_js(['all'], 'moodle');
@@ -1604,6 +1608,11 @@ class va {
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'assessInit');
         // Item #13 (2026-04 fix programme): live rubric total display.
         $PAGE->requires->js_call_amd('mod_videoassessment/live_grade_total', 'init');
+        // Portrait-phone tab switcher so a tall recording does not
+        // push the criteria off-screen on the assess view. Driven by
+        // body-class CSS so desktop / landscape stay on the stacked
+        // layout untouched.
+        $PAGE->requires->js_call_amd('mod_videoassessment/assess_mobile_tabs', 'init');
 
         // Add inline script with immediate functionality for remark textarea hide/show.
         $PAGE->requires->js_amd_inline("

@@ -474,6 +474,63 @@ final class record_preview_test extends \basic_testcase {
     }
 
     /**
+     * Static-contract guard for the mobile-portrait assess tabs added
+     * to give a tall recording the full viewport without burying the
+     * rubric. The AMD module must build a .vam-assess-tabs bar and
+     * toggle body classes; the CSS must hide one section per active
+     * tab inside the phone-portrait media query.
+     *
+     * @coversNothing
+     */
+    public function test_assess_mobile_tabs_contract(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/assess_mobile_tabs.js');
+        $this->assertStringContainsString(
+            'vam-assess-tabs',
+            $js,
+            'assess_mobile_tabs.js must build a .vam-assess-tabs '
+                . 'element so view.css can style it.'
+        );
+        $this->assertStringContainsString(
+            'vam-assess-tab-video-active',
+            $js,
+            'assess_mobile_tabs.js must toggle the '
+                . 'vam-assess-tab-video-active body class.'
+        );
+        $this->assertStringContainsString(
+            'vam-assess-tab-grading-active',
+            $js,
+            'assess_mobile_tabs.js must toggle the '
+                . 'vam-assess-tab-grading-active body class.'
+        );
+        $this->assertStringContainsString(
+            'tabvideo',
+            $js,
+            'assess_mobile_tabs.js must look up M.str.videoassessment'
+                . '.tabvideo for the Video tab label.'
+        );
+        $css = file_get_contents(__DIR__ . '/../assess.css');
+        $this->assertMatchesRegularExpression(
+            '~@media[^{]*max-width:\s*768px[\s\S]*?vam-assess-tab-video-active[^{]*\.gradingform~',
+            $css,
+            'assess.css must hide the rubric inside the phone-portrait '
+                . 'media query when the video tab is active.'
+        );
+        $this->assertMatchesRegularExpression(
+            '~@media[^{]*max-width:\s*768px[\s\S]*?vam-assess-tab-grading-active[^{]*\.assess-form-videos~',
+            $css,
+            'assess.css must hide the video band inside the phone-'
+                . 'portrait media query when the grading tab is active.'
+        );
+        $vaphp = file_get_contents(__DIR__ . '/../classes/va.php');
+        $this->assertStringContainsString(
+            "'mod_videoassessment/assess_mobile_tabs'",
+            $vaphp,
+            'view_assess must queue the assess_mobile_tabs AMD module '
+                . 'so the tab bar is wired up on the assess action.'
+        );
+    }
+
+    /**
      * Static-contract guard for the "uploading…" overlay: the uploader
      * must build a `.vam-upload-overlay` element with a spinner and
      * the localised `uploadingvideonotice` label before sending the
