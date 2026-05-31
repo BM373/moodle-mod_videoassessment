@@ -24,6 +24,60 @@
  */
 
 define(['mod_videoassessment/utils'], function(utils) {
+
+    /**
+     * Show the full-screen "uploading…" overlay with a spinning
+     * indicator centred over a translucent grey backdrop. Marked as
+     * an aria-live region so assistive technology announces it.
+     */
+    function showUploadOverlay() {
+        if (document.getElementById('vam-upload-overlay')) {
+            return;
+        }
+        const label = (M && M.str && M.str.videoassessment
+            && M.str.videoassessment.uploadingvideonotice)
+            || 'Uploading…';
+        const overlay = document.createElement('div');
+        overlay.id = 'vam-upload-overlay';
+        overlay.className = 'vam-upload-overlay';
+        overlay.setAttribute('role', 'status');
+        overlay.setAttribute('aria-live', 'polite');
+        overlay.setAttribute('aria-busy', 'true');
+
+        const box = document.createElement('div');
+        box.className = 'vam-upload-overlay-box';
+
+        const spinner = document.createElement('span');
+        spinner.className = 'vam-upload-overlay-spinner';
+        // Font Awesome shipped by every Moodle theme; same icon the
+        // form-side spinner used before this overlay. Build the icon
+        // with createElement rather than innerHTML so a future change
+        // to this file cannot accidentally introduce XSS via the label.
+        const icon = document.createElement('i');
+        icon.className = 'fa fa-circle-o-notch fa-spin fa-3x';
+        icon.setAttribute('aria-hidden', 'true');
+        spinner.appendChild(icon);
+
+        const message = document.createElement('div');
+        message.className = 'vam-upload-overlay-message';
+        message.textContent = label;
+
+        box.appendChild(spinner);
+        box.appendChild(message);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    }
+
+    /**
+     * Remove the upload overlay if it is currently displayed.
+     */
+    function hideUploadOverlay() {
+        const overlay = document.getElementById('vam-upload-overlay');
+        if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+        }
+    }
+
     return {
 
         /**
@@ -101,6 +155,7 @@ define(['mod_videoassessment/utils'], function(utils) {
                     // Surface a visible error rather than leaving the
                     // learner staring at a frozen "Stop recording"
                     // screen.
+                    hideUploadOverlay();
                     window.alert(failureMessage + ' (HTTP ' + xhr.status + ')');
                     return;
                 }
@@ -117,9 +172,13 @@ define(['mod_videoassessment/utils'], function(utils) {
                     parsed = null;
                 }
                 if (parsed && typeof parsed.action !== 'undefined') {
+                    // Leave the overlay visible while the page navigates
+                    // away — hiding it now causes a brief blank screen
+                    // before the redirect lands.
                     window.location.href = `${url}?id=${id}`;
                     return;
                 }
+                hideUploadOverlay();
                 const snippet = (xhr.responseText || '')
                     .replace(/<[^>]+>/g, '')
                     .replace(/\s+/g, ' ')
@@ -133,8 +192,15 @@ define(['mod_videoassessment/utils'], function(utils) {
                 );
             };
             xhr.onerror = () => {
+                hideUploadOverlay();
                 window.alert(failureMessage);
             };
+            // Show the "uploading…" spinner just before the network
+            // request leaves the browser. iOS native-camera uploads can
+            // take several seconds for a two-minute clip; without this
+            // feedback the page just sits silent and the learner taps
+            // again or navigates away.
+            showUploadOverlay();
             xhr.send(formData);
         }
     };

@@ -503,7 +503,7 @@ $string['uploadingvideo_help'] = 'You can share your recorded performance for as
 <br />1) Upload your file to YouTube or another hosting service and post a URL link to that video. Note: Youtube "Shorts" cannot be used.
 <br />2) Upload a single file of your video performance from your device. Set your camera to its lowest resolution for smaller file size and faster upload times. Note: options 2 and 3 are only available to students if the default for "Students can upload videos" under "Video submissions" in the Settings menu is kept at "Yes", and the site admin has not disabled video uploads. Additionally, teachers can bulk upload video files from an SD card in "Bulk upload videos" under "Advanced options" in the Settings menu.
 <br />3) Record a new video directly using your device camera and upload it here.';
-$string['uploadingvideonotice'] = 'Uploading... please wait a few minutes';
+$string['uploadingvideonotice'] = 'Uploading now, please wait a moment';
 $string['uploadmessage'] = 'Your video file is over 500MB. Please retake the video at a lower resolution or re-upload a smaller file';
 $string['uploadmimetype'] = 'Type';
 $string['uploadprogress'] = 'Progress';

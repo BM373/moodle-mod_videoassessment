@@ -211,6 +211,9 @@ class va {
             'pause',
             'resumerecording',
             'errorcapturingmedia',
+            // Used by AMD module mod_videoassessment/uploader to label
+            // the "uploading…" full-screen spinner overlay.
+            'uploadingvideonotice',
         ], 'videoassessment');
 
         $PAGE->requires->strings_for_js(['all'], 'moodle');

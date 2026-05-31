@@ -474,6 +474,69 @@ final class record_preview_test extends \basic_testcase {
     }
 
     /**
+     * Static-contract guard for the "uploading…" overlay: the uploader
+     * must build a `.vam-upload-overlay` element with a spinner and
+     * the localised `uploadingvideonotice` label before sending the
+     * XHR, and tear it down on failure paths.
+     *
+     * @coversNothing
+     */
+    public function test_uploader_shows_upload_overlay(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/uploader.js');
+        $this->assertMatchesRegularExpression(
+            '~showUploadOverlay\s*\(\s*\)~',
+            $js,
+            'uploader.js must define and call showUploadOverlay() to '
+                . 'cover the page while the upload XHR is in flight.'
+        );
+        $this->assertStringContainsString(
+            'vam-upload-overlay',
+            $js,
+            'uploader.js must place a .vam-upload-overlay element so '
+                . 'view.css can backdrop and centre it.'
+        );
+        $this->assertStringContainsString(
+            'uploadingvideonotice',
+            $js,
+            'uploader.js must label the overlay with the localised '
+                . 'uploadingvideonotice string (visible to the learner).'
+        );
+        $this->assertMatchesRegularExpression(
+            '~hideUploadOverlay\s*\(\s*\)~',
+            $js,
+            'uploader.js must hide the overlay on the failure / non-2xx '
+                . 'paths so the learner is not stuck on a grey screen.'
+        );
+        // The overlay must not assign to .innerHTML — build with
+        // createElement so a future string change cannot introduce
+        // XSS. Match an assignment specifically so the explanatory
+        // comment ("rather than innerHTML") does not trip the guard.
+        $this->assertDoesNotMatchRegularExpression(
+            '~\.innerHTML\s*=~',
+            $js,
+            'uploader.js must build overlay nodes via createElement, '
+                . 'not innerHTML, to avoid XSS exposure on the label.'
+        );
+        // The CSS rules backing the overlay must ship in view.css.
+        $css = file_get_contents(__DIR__ . '/../view.css');
+        $this->assertStringContainsString(
+            '.vam-upload-overlay',
+            $css,
+            'view.css must style .vam-upload-overlay with the grey '
+                . 'backdrop and centred card the JS overlay expects.'
+        );
+        // strings_for_js must pre-load the label so M.str.* is defined.
+        $vaphp = file_get_contents(__DIR__ . '/../classes/va.php');
+        $this->assertStringContainsString(
+            "'uploadingvideonotice'",
+            $vaphp,
+            'classes/va.php must pre-load uploadingvideonotice via '
+                . '$PAGE->requires->strings_for_js() so the overlay '
+                . 'label resolves on first paint.'
+        );
+    }
+
+    /**
      * Static-contract guard for the JSON response validation added
      * after the iOS upload silently redirected on non-JSON failures.
      *
