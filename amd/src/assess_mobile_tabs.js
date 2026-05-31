@@ -172,28 +172,42 @@ define(['core/str'], function(Str) {
     }
 
     /**
-     * Apply the chosen tab — toggle the body classes (so the
-     * @media-scoped CSS hides the other section), restyle the buttons,
-     * and pause the video if leaving the video tab.
+     * Apply the chosen tab — toggle inline display on the video and
+     * grading containers (the body-class CSS path proved unreliable
+     * on the device), restyle the buttons, pause the video if
+     * leaving the video tab.
      *
      * @param {string} tab Either 'video' or 'grading'.
      * @param {object} refs Tab references from buildTabBar.
      * @param {Element} videoContainer The .assess-form-videos element.
+     * @param {Element} gradingContainer The form.gradingform / rubric element.
      */
-    function setActive(tab, refs, videoContainer) {
+    function setActive(tab, refs, videoContainer, gradingContainer) {
         const isVideo = (tab === 'video');
+        // Keep the body classes for any future CSS hook (and for the
+        // PHPUnit contract test) but do not rely on them for the
+        // actual hide/show — drive that from inline display so theme
+        // and cache cannot eat it.
         document.body.classList.toggle('vam-assess-tab-video-active', isVideo);
         document.body.classList.toggle('vam-assess-tab-grading-active', !isVideo);
         refs.btnVideo.setAttribute('aria-selected', isVideo ? 'true' : 'false');
         refs.btnGrading.setAttribute('aria-selected', isVideo ? 'false' : 'true');
         styleTab(refs.btnVideo, isVideo);
         styleTab(refs.btnGrading, !isVideo);
+        // Inline display drives the actual show/hide. setProperty
+        // with 'important' so theme rules cannot resurrect the
+        // hidden container.
+        if (isVideo) {
+            videoContainer.style.setProperty('display', 'block', 'important');
+            gradingContainer.style.setProperty('display', 'none', 'important');
+        } else {
+            videoContainer.style.setProperty('display', 'none', 'important');
+            gradingContainer.style.setProperty('display', 'block', 'important');
+            pauseAllVideos(videoContainer);
+        }
         // Body padding-top so the breadcrumb / Moodle nav under the
         // fixed bar is not eaten by it.
         document.body.style.paddingTop = '50px';
-        if (!isVideo) {
-            pauseAllVideos(videoContainer);
-        }
         try {
             window.sessionStorage.setItem(STORAGE_KEY, tab);
         } catch (e) {
@@ -216,6 +230,18 @@ define(['core/str'], function(Str) {
         document.body.classList.remove('vam-assess-tab-video-active');
         document.body.classList.remove('vam-assess-tab-grading-active');
         document.body.style.paddingTop = '';
+        // Restore the inline display we set on the two containers so
+        // the side-by-side desktop / landscape layout returns to its
+        // normal state when orientation changes.
+        const videoContainer = document.querySelector('.assess-form-videos');
+        const gradingContainer = document.querySelector('form.gradingform')
+            || document.querySelector('.gradingform_rubric');
+        if (videoContainer) {
+            videoContainer.style.removeProperty('display');
+        }
+        if (gradingContainer) {
+            gradingContainer.style.removeProperty('display');
+        }
     }
 
     /**
@@ -248,10 +274,10 @@ define(['core/str'], function(Str) {
         }
         const refs = buildTabBar(labelVideo, labelGrading);
         refs.btnVideo.addEventListener('click', function() {
-            setActive('video', refs, videoContainer);
+            setActive('video', refs, videoContainer, gradingContainer);
         });
         refs.btnGrading.addEventListener('click', function() {
-            setActive('grading', refs, videoContainer);
+            setActive('grading', refs, videoContainer, gradingContainer);
         });
 
         // Restore the last-picked tab so reloads (e.g. after saving a
@@ -265,7 +291,7 @@ define(['core/str'], function(Str) {
         } catch (e) {
             initial = 'video';
         }
-        setActive(initial, refs, videoContainer);
+        setActive(initial, refs, videoContainer, gradingContainer);
     }
 
     /**
