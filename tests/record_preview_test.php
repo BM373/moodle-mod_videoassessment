@@ -582,7 +582,7 @@ final class record_preview_test extends \basic_testcase {
             'view.css must style .vam-upload-overlay with the grey '
                 . 'backdrop and centred card the JS overlay expects.'
         );
-        // strings_for_js must pre-load the label so M.str.* is defined.
+        // The strings_for_js call must pre-load the label so M.str.* is defined.
         $vaphp = file_get_contents(__DIR__ . '/../classes/va.php');
         $this->assertStringContainsString(
             "'uploadingvideonotice'",
