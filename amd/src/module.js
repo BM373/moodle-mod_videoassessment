@@ -33,6 +33,25 @@ define(['jquery', 'core/log', 'jqueryui'], function($, log) {
         },
 
         videosInit(users, assocs) {
+            // Prefer the JSON payload embedded by va.php in
+            // #vam-videos-data over arguments. Passing the full users
+            // + assocs list as js_call_amd() arguments overflows
+            // Moodle's 1024-char limit and trips a DEBUG_DEVELOPER
+            // notice. Falling back to the args keeps the function
+            // working if a caller still hands them in.
+            if (typeof users === 'undefined' || typeof assocs === 'undefined') {
+                const el = document.getElementById('vam-videos-data');
+                if (el) {
+                    try {
+                        const payload = JSON.parse(el.textContent || '{}');
+                        users = payload.users || users || [];
+                        assocs = payload.assocs || assocs || [];
+                    } catch (e) {
+                        users = users || [];
+                        assocs = assocs || [];
+                    }
+                }
+            }
             this.users = users;
             this.assocs = assocs;
             this.initVideoPreview();

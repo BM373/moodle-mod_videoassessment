@@ -1068,7 +1068,23 @@ class va {
             $groupuser->userpicture = $user->userpicture;
         });
 
-        $PAGE->requires->js_call_amd('mod_videoassessment/module', 'videosInit', [$groupusers, $assocdata]);
+        // Embed the videos+associations payload as JSON in a non-
+        // executable <script> tag rather than passing it as a JS
+        // argument to js_call_amd(). Once the JSON-encoded argument
+        // string is longer than 1024 chars Moodle raises a
+        // DEBUG_DEVELOPER notice from
+        // page_requirements_manager::js_call_amd() recommending
+        // exactly this pattern (data attributes / inline JSON). The
+        // AMD module reads from #vam-videos-data on init.
+        $o .= \html_writer::tag(
+            'script',
+            json_encode(
+                ['users' => $groupusers, 'assocs' => $assocdata],
+                JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            ),
+            ['type' => 'application/json', 'id' => 'vam-videos-data']
+        );
+        $PAGE->requires->js_call_amd('mod_videoassessment/module', 'videosInit', []);
         $PAGE->requires->strings_for_js([
             'liststudents',
             'unassociated',
