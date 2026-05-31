@@ -156,5 +156,5 @@ define([], function() {
         setActive(initial, refs, videoContainer);
     }
 
-    return { init: init };
+    return {init: init};
 });
