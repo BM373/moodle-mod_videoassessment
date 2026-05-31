@@ -2052,26 +2052,7 @@ class va {
                 // Item #10: emit a fine-grained logstore event for each
                 // rubric save so analytics layers can distinguish teacher
                 // grading from self / peer reviews.
-                $eventother = [
-                    'videoassessmentid' => $this->va->id,
-                    'gradertype' => $gradertype,
-                    'timing' => $timing,
-                ];
-                if ($gradertype === 'teacher') {
-                    \mod_videoassessment\event\grade_assigned::create([
-                        'context' => $this->context,
-                        'objectid' => $grade->id,
-                        'relateduserid' => $user->id,
-                        'other' => $eventother,
-                    ])->trigger();
-                } else {
-                    \mod_videoassessment\event\peer_review_submitted::create([
-                        'context' => $this->context,
-                        'objectid' => $grade->id,
-                        'relateduserid' => $user->id,
-                        'other' => $eventother,
-                    ])->trigger();
-                }
+                $this->emit_grade_save_event((int)$grade->id, (int)$user->id, $gradertype, $timing);
             }
 
             $this->aggregate_grades($user->id);
@@ -2178,6 +2159,43 @@ class va {
         $o .= \html_writer::end_tag('div');
 
         return $o;
+    }
+
+    /**
+     * Emit the fine-grained logstore event that records a rubric save.
+     *
+     * Extracted from view_assess() so analytics-event integration tests
+     * can verify the right event class is dispatched for each grader
+     * type without having to drive a full assess-form POST through the
+     * view dispatcher (which depends on session, request and form
+     * state that is awkward to fake in PHPUnit).
+     *
+     * @param int $gradeid The videoassessment_grades.id just saved.
+     * @param int $relateduserid The user being graded.
+     * @param string $gradertype One of 'teacher', 'peer', 'self'.
+     * @param string $timing One of 'before', 'after'.
+     */
+    private function emit_grade_save_event(int $gradeid, int $relateduserid, string $gradertype, string $timing): void {
+        $other = [
+            'videoassessmentid' => $this->va->id,
+            'gradertype' => $gradertype,
+            'timing' => $timing,
+        ];
+        if ($gradertype === 'teacher') {
+            \mod_videoassessment\event\grade_assigned::create([
+                'context' => $this->context,
+                'objectid' => $gradeid,
+                'relateduserid' => $relateduserid,
+                'other' => $other,
+            ])->trigger();
+        } else {
+            \mod_videoassessment\event\peer_review_submitted::create([
+                'context' => $this->context,
+                'objectid' => $gradeid,
+                'relateduserid' => $relateduserid,
+                'other' => $other,
+            ])->trigger();
+        }
     }
 
     /**
