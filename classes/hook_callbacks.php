@@ -31,9 +31,15 @@ namespace mod_videoassessment;
  */
 class hook_callbacks {
     /**
-     * Inject the "Finish making rubric → Go to Assess" button on the
+     * Inject the "Finish making rubric -> Go to Assess" button on the
      * rubric edit page when the page belongs to a mod_videoassessment
      * activity. Item #12 of the 2026-04 fix programme.
+     *
+     * The matching is delegated to
+     * {@see rubric_navigation::videoassessment_cmid_from_page()} which
+     * uses `$PAGE->pagetype` + `$PAGE->context` rather than the URL
+     * query string (the core edit page only carries `?areaid=N` on
+     * `$PAGE->url`, so URL-only matching never fires).
      *
      * @param \core\hook\output\before_footer_html_generation $hook
      * @return void
@@ -42,20 +48,14 @@ class hook_callbacks {
         \core\hook\output\before_footer_html_generation $hook
     ): void {
         global $PAGE;
-        $url = $PAGE->url->out(false);
-        if (!rubric_navigation::is_videoassessment_rubric_edit_url($url)) {
+        $cmid = rubric_navigation::videoassessment_cmid_from_page(
+            (string) $PAGE->pagetype,
+            $PAGE->context
+        );
+        if ($cmid === null) {
             return;
         }
-        $params = $PAGE->url->params();
-        $contextid = isset($params['contextid']) ? (int) $params['contextid'] : 0;
-        if ($contextid <= 0) {
-            return;
-        }
-        $context = \context::instance_by_id($contextid, IGNORE_MISSING);
-        if (!$context || $context->contextlevel !== CONTEXT_MODULE) {
-            return;
-        }
-        $assessurl = rubric_navigation::finish_rubric_url((int) $context->instanceid);
+        $assessurl = rubric_navigation::finish_rubric_url($cmid);
         $PAGE->requires->js_call_amd(
             'mod_videoassessment/finish_rubric_button',
             'init',

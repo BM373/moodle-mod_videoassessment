@@ -25,50 +25,79 @@
 namespace mod_videoassessment;
 
 /**
- * Navigation helper for the rubric → assess flow.
+ * Navigation helper for the rubric -> assess flow.
  *
  * Item #12 of the 2026-04 fix programme. The customer asked for a
- * one-click "Finish making rubric → Go to Assess" button on the
- * rubric edit page. The page is owned by Moodle core
- * (`/grade/grading/form/rubric/edit.php`); we cannot edit its template,
- * so the button is injected via the Moodle 4.5+ hook system (see
- * `db/hooks.php` and `\mod_videoassessment\hook_callbacks::inject_finish_rubric_button`).
+ * one-click "Finish making rubric -> Go to Assess" button on the
+ * rubric edit page. That page is owned by Moodle core
+ * (`/grade/grading/form/rubric/edit.php`); we cannot edit its
+ * template, so the button is injected via the Moodle 4.5+ hook system
+ * (see `db/hooks.php` and
+ * `\mod_videoassessment\hook_callbacks::inject_finish_rubric_button`).
  *
- * To keep the JavaScript tiny and the URL detection unit-testable, the
- * matching logic and URL builder are factored into this class.
+ * The core edit page calls
+ * `$PAGE->set_url(new moodle_url('/grade/grading/form/rubric/edit.php',
+ * ['areaid' => $areaid]))` so the only query parameter that actually
+ * reaches `$PAGE->url` is `areaid`. We therefore cannot detect "this
+ * is our plugin's rubric" by reading the URL string; instead we use
+ * the `$PAGE->pagetype` and `$PAGE->context` that Moodle sets at the
+ * same time as the URL.
+ *
+ * Both the page-type matcher and the URL builder are factored into
+ * this class so they can be unit-tested in isolation.
  */
 final class rubric_navigation {
     /**
-     * Decide whether a URL points to the rubric edit form for an
-     * activity owned by mod_videoassessment.
+     * The page-type Moodle assigns to the rubric edit form.
      *
-     * @param string $url Either an absolute URL or a Moodle relative
-     *                    path with optional `?query` string.
+     * @var string
+     */
+    const RUBRIC_EDIT_PAGETYPE = 'grade-grading-form-rubric-edit';
+
+    /**
+     * Decide whether a pagetype identifies the rubric edit form.
+     *
+     * @param string $pagetype Value of `$PAGE->pagetype`.
      * @return bool
      */
-    public static function is_videoassessment_rubric_edit_url(string $url): bool {
-        if ($url === '') {
-            return false;
+    public static function is_rubric_edit_pagetype(string $pagetype): bool {
+        return $pagetype === self::RUBRIC_EDIT_PAGETYPE;
+    }
+
+    /**
+     * Decide whether the current page is the rubric edit form for a
+     * mod_videoassessment activity, and return the matching cmid.
+     *
+     * Combines the pagetype check with a context-level / modname check
+     * so the button is injected only when:
+     *
+     * - The page is the rubric edit form
+     *   (`grade-grading-form-rubric-edit`).
+     * - The page context is a course-module context.
+     * - The course-module behind that context belongs to a
+     *   videoassessment activity (not mod_assign, mod_forum, etc.).
+     *
+     * Returns `null` when any check fails so the caller can early-exit
+     * without ever calling `$PAGE->requires->js_call_amd()`.
+     *
+     * @param string $pagetype Value of `$PAGE->pagetype`.
+     * @param \context|null $context Value of `$PAGE->context`.
+     * @return int|null The cmid of the videoassessment activity that
+     *                  owns this rubric, or null when the button must
+     *                  not be injected.
+     */
+    public static function videoassessment_cmid_from_page(string $pagetype, ?\context $context): ?int {
+        if (!self::is_rubric_edit_pagetype($pagetype)) {
+            return null;
         }
-        $parts = parse_url($url);
-        if ($parts === false || empty($parts['path'])) {
-            return false;
+        if (!$context || $context->contextlevel !== CONTEXT_MODULE) {
+            return null;
         }
-        // The page is /grade/grading/form/rubric/edit.php (or any
-        // wwwroot prefix in front). We check for the path tail.
-        if (
-            substr($parts['path'], -strlen('/grade/grading/form/rubric/edit.php'))
-            !== '/grade/grading/form/rubric/edit.php'
-        ) {
-            return false;
+        $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, IGNORE_MISSING);
+        if (!$cm || $cm->modname !== 'videoassessment') {
+            return null;
         }
-        // The component=mod_videoassessment query parameter scopes the
-        // edit form to a specific Moodle component.
-        $query = [];
-        if (!empty($parts['query'])) {
-            parse_str($parts['query'], $query);
-        }
-        return ($query['component'] ?? '') === 'mod_videoassessment';
+        return (int) $cm->id;
     }
 
     /**
