@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable no-restricted-properties */
 /**
  * Mobile-portrait tab switcher for the assess screen.
  *
@@ -69,7 +70,7 @@ define([], function() {
         tabBar.appendChild(btnGrading);
         videoContainer.parentNode.insertBefore(tabBar, videoContainer);
 
-        return { tabBar, btnVideo, btnGrading };
+        return {tabBar, btnVideo, btnGrading};
     }
 
     /**
