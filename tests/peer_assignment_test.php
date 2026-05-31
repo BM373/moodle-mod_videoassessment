@@ -236,16 +236,14 @@ final class peer_assignment_test extends \basic_testcase {
         }
     }
 
-    // -----------------------------------------------------------------
     // Boundary value tests added in response to Brendon's spreadsheet
-    // feedback. The legacy algorithm produced
-    //   stu001(2) stu002(1) stu003(6) stu004(1) stu005(0)
-    //   stu006(2) stu007(2) stu008(1) stu009(4) stu010(1)
-    // — max-min = 6, stu005 was never chosen, stu003 was chosen three
-    // times more than expected. These tests pin every boundary of the
-    // new load-balancing algorithm so a regression at any of them is
-    // caught locally before reaching the demo site.
-    // -----------------------------------------------------------------
+    // feedback. The legacy algorithm produced stu001(2), stu002(1),
+    // stu003(6), stu004(1), stu005(0), stu006(2), stu007(2), stu008(1),
+    // stu009(4), stu010(1): max-min = 6, stu005 was never chosen,
+    // stu003 was chosen three times more than expected. These tests
+    // pin every boundary of the new load-balancing algorithm so a
+    // regression at any of them is caught locally before reaching the
+    // demo site.
 
     /**
      * Run the algorithm and return the chosencount distribution.
@@ -604,7 +602,7 @@ final class peer_assignment_test extends \basic_testcase {
         $iterations = 50;
         for ($i = 0; $i < $iterations; $i++) {
             $chosen = $this->chosen_count($userids, $numpeers, $va);
-            // ±1 bound must always hold.
+            // Spread must always stay within the ±1 bound.
             $this->assertLessThanOrEqual(
                 1,
                 max($chosen) - min($chosen),
