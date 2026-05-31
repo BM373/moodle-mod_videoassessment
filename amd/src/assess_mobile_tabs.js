@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/* eslint-disable no-restricted-properties */
 /**
  * Mobile-portrait tab switcher for the assess screen.
  *
@@ -233,6 +232,15 @@ define(['core/str'], function(Str) {
         return targets;
     }
 
+    /**
+     * Apply the chosen tab — hide the inactive section via setHidden,
+     * restyle the buttons, persist the choice.
+     *
+     * @param {string} tab Either 'video' or 'grading'.
+     * @param {object} refs Tab references from buildTabBar.
+     * @param {Element} videoContainer The .assess-form-videos element.
+     * @param {Element} gradingContainer The rubric / grading form element.
+     */
     function setActive(tab, refs, videoContainer, gradingContainer) {
         const isVideo = (tab === 'video');
         // Keep the body classes for any future CSS hook (and for the
