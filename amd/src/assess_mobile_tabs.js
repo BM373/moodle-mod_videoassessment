@@ -182,27 +182,75 @@ define(['core/str'], function(Str) {
      * @param {Element} videoContainer The .assess-form-videos element.
      * @param {Element} gradingContainer The form.gradingform / rubric element.
      */
+    /**
+     * Apply a hide / show to an element via a *stack* of inline
+     * properties: display:none is the obvious one, but iOS Safari has
+     * been observed leaving an inert element painted when another
+     * stylesheet wins display, so back it up with visibility, height,
+     * max-height, and overflow. Either one alone takes the element
+     * out of the visual flow.
+     *
+     * @param {Element} el Target element.
+     * @param {boolean} hide True to hide, false to restore.
+     */
+    function setHidden(el, hide) {
+        if (!el) {
+            return;
+        }
+        if (hide) {
+            el.style.setProperty('display', 'none', 'important');
+            el.style.setProperty('visibility', 'hidden', 'important');
+            el.style.setProperty('height', '0', 'important');
+            el.style.setProperty('max-height', '0', 'important');
+            el.style.setProperty('overflow', 'hidden', 'important');
+            el.setAttribute('aria-hidden', 'true');
+        } else {
+            el.style.removeProperty('display');
+            el.style.removeProperty('visibility');
+            el.style.removeProperty('height');
+            el.style.removeProperty('max-height');
+            el.style.removeProperty('overflow');
+            el.removeAttribute('aria-hidden');
+        }
+    }
+
+    /**
+     * Collect every plausible video-area container on the assess
+     * page. view_assess() emits `.assess-form-videos` but inline
+     * embeds (iframes, mediaplugin wrappers, vimeo / YouTube
+     * containers) can also appear in `.video-wrap` siblings, so hide
+     * all of them when the grading tab is active.
+     *
+     * @returns {Element[]}
+     */
+    function collectVideoTargets() {
+        const targets = [];
+        document.querySelectorAll(
+            '.assess-form-videos, .video-wrap, .path-mod-videoassessment .mediaplugin'
+        ).forEach(function(el) {
+            targets.push(el);
+        });
+        return targets;
+    }
+
     function setActive(tab, refs, videoContainer, gradingContainer) {
         const isVideo = (tab === 'video');
         // Keep the body classes for any future CSS hook (and for the
-        // PHPUnit contract test) but do not rely on them for the
-        // actual hide/show — drive that from inline display so theme
-        // and cache cannot eat it.
+        // PHPUnit contract test).
         document.body.classList.toggle('vam-assess-tab-video-active', isVideo);
         document.body.classList.toggle('vam-assess-tab-grading-active', !isVideo);
         refs.btnVideo.setAttribute('aria-selected', isVideo ? 'true' : 'false');
         refs.btnGrading.setAttribute('aria-selected', isVideo ? 'false' : 'true');
         styleTab(refs.btnVideo, isVideo);
         styleTab(refs.btnGrading, !isVideo);
-        // Inline display drives the actual show/hide. setProperty
-        // with 'important' so theme rules cannot resurrect the
-        // hidden container.
-        if (isVideo) {
-            videoContainer.style.setProperty('display', 'block', 'important');
-            gradingContainer.style.setProperty('display', 'none', 'important');
-        } else {
-            videoContainer.style.setProperty('display', 'none', 'important');
-            gradingContainer.style.setProperty('display', 'block', 'important');
+        // Multi-layered hide so theme rules cannot resurrect the
+        // hidden container. Hide every plausible video wrapper, not
+        // just the primary one — some pages have multiple.
+        collectVideoTargets().forEach(function(el) {
+            setHidden(el, !isVideo);
+        });
+        setHidden(gradingContainer, isVideo);
+        if (!isVideo) {
             pauseAllVideos(videoContainer);
         }
         // Body padding-top so the breadcrumb / Moodle nav under the
@@ -230,18 +278,15 @@ define(['core/str'], function(Str) {
         document.body.classList.remove('vam-assess-tab-video-active');
         document.body.classList.remove('vam-assess-tab-grading-active');
         document.body.style.paddingTop = '';
-        // Restore the inline display we set on the two containers so
-        // the side-by-side desktop / landscape layout returns to its
-        // normal state when orientation changes.
-        const videoContainer = document.querySelector('.assess-form-videos');
+        // Restore the inline overrides we layered on every video
+        // wrapper + the rubric container so the side-by-side
+        // desktop / landscape layout returns to its normal state.
+        collectVideoTargets().forEach(function(el) {
+            setHidden(el, false);
+        });
         const gradingContainer = document.querySelector('form.gradingform')
             || document.querySelector('.gradingform_rubric');
-        if (videoContainer) {
-            videoContainer.style.removeProperty('display');
-        }
-        if (gradingContainer) {
-            gradingContainer.style.removeProperty('display');
-        }
+        setHidden(gradingContainer, false);
     }
 
     /**
