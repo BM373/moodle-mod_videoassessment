@@ -675,14 +675,27 @@
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         width: 100% !important;
-        position: sticky;
-        top: 0;
-        z-index: 1001;
-        background: #fff;
-        border-bottom: 1px solid #ddd;
-        margin: 0 0 8px 0;
-        padding: 0;
-        box-sizing: border-box;
+        /* Fixed (rather than sticky) so the tab bar always stays at
+         * the top of the viewport — iOS Safari was dropping the
+         * sticky position once the page scrolled past the original
+         * insertion point. */
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1001 !important;
+        background: #fff !important;
+        border-bottom: 1px solid #ddd !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    /* Push the page content down so the fixed tab bar does not cover
+     * the breadcrumb / task-link nav under it. ~50px = the tab bar
+     * height (14+14 padding + ~22 font line-height). */
+    body.vam-assess-tab-video-active,
+    body.vam-assess-tab-grading-active {
+        padding-top: 50px;
     }
     body .vam-assess-tabs .vam-assess-tab,
     .path-mod-videoassessment .vam-assess-tabs .vam-assess-tab {
