@@ -3231,6 +3231,59 @@ class va {
             }
         }
 
+        // Post-pass balancing. The greedy main pass guarantees max-min
+        // <= 2 in worst cases (a user processed last in the shuffle can
+        // end up with chosencount two below the maximum; for example
+        // with 3 users x 1 peer the unlucky shuffle leaves one user
+        // chosen zero times). One swap reduces the spread by 2, so a
+        // small loop of swaps tightens the bound to max-min <= 1.
+        $safetylimit = count($userids) * 3 + 1;
+        for ($attempt = 0; $attempt < $safetylimit; $attempt++) {
+            $maxcount = max($chosencount);
+            $mincount = min($chosencount);
+            if ($maxcount - $mincount <= 1) {
+                break;
+            }
+            $over = [];
+            $under = [];
+            foreach ($chosencount as $uid => $cnt) {
+                if ($cnt === $maxcount) {
+                    $over[] = $uid;
+                } else if ($cnt === $mincount) {
+                    $under[] = $uid;
+                }
+            }
+            shuffle($over);
+            shuffle($under);
+            $swapped = false;
+            foreach ($over as $overuid) {
+                foreach ($under as $underuid) {
+                    foreach ($peers as $ownerid => $list) {
+                        if ($ownerid === $underuid) {
+                            continue;
+                        }
+                        if (!in_array($overuid, $list, true)) {
+                            continue;
+                        }
+                        if (in_array($underuid, $list, true)) {
+                            continue;
+                        }
+                        $idx = array_search($overuid, $list, true);
+                        $peers[$ownerid][$idx] = $underuid;
+                        $chosencount[$overuid]--;
+                        $chosencount[$underuid]++;
+                        $swapped = true;
+                        break 3;
+                    }
+                }
+            }
+            if (!$swapped) {
+                // Topologically impossible to swap further with the
+                // current peer-list shape; accept the residual spread.
+                break;
+            }
+        }
+
         return $peers;
     }
 
