@@ -68,7 +68,18 @@ define([], function() {
 
         tabBar.appendChild(btnVideo);
         tabBar.appendChild(btnGrading);
-        videoContainer.parentNode.insertBefore(tabBar, videoContainer);
+        // Mount the tab bar as a direct child of <body>, NOT next to
+        // .assess-form-videos. iOS Safari follows the CSS spec where
+        // `position: fixed` is contained by any ancestor with a
+        // transform / filter / will-change / perspective property —
+        // and the boost theme's column / wrapper around the assess
+        // form has transforms, so fixing relative to the viewport
+        // only works when the tab bar lives under <body>. Without
+        // this, the bar appears in document flow at the insertion
+        // point with the wrapping column's width (i.e. small and
+        // inline-looking), which is exactly the regression Brendon
+        // reported.
+        document.body.insertBefore(tabBar, document.body.firstChild);
 
         return {tabBar, btnVideo, btnGrading};
     }
