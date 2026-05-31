@@ -39,12 +39,11 @@ define([], function() {
     const STORAGE_KEY = 'vam-assess-tab';
 
     /**
-     * Build the tab bar element and insert it above the video band.
+     * Build the tab bar element and mount it directly under <body>.
      *
-     * @param {Element} videoContainer The .assess-form-videos element.
      * @returns {object} { tabBar, btnVideo, btnGrading } references.
      */
-    function buildTabBar(videoContainer) {
+    function buildTabBar() {
         const tabBar = document.createElement('div');
         tabBar.className = 'vam-assess-tabs';
         tabBar.setAttribute('role', 'tablist');
@@ -145,7 +144,7 @@ define([], function() {
         if (!videoContainer || !gradingContainer) {
             return;
         }
-        const refs = buildTabBar(videoContainer);
+        const refs = buildTabBar();
         refs.btnVideo.addEventListener('click', function() {
             setActive('video', refs, videoContainer);
         });
