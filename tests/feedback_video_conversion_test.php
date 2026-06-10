@@ -27,31 +27,13 @@ namespace mod_videoassessment;
 use mod_videoassessment\task\convert_feedback_video;
 
 /**
- * Test double: replaces the FFmpeg invocation with a file copy so the
- * full execute() pipeline (file storage + HTML rewrite + DB update)
- * can run inside PHPUnit.
- */
-final class testable_convert_feedback_video extends convert_feedback_video {
-    /**
-     * Pretend-conversion: write a fake MP4 instead of spawning FFmpeg.
-     *
-     * @param string $src WebM source path.
-     * @param string $dst MP4 destination path.
-     * @return bool Always true.
-     */
-    protected function convert_file(string $src, string $dst): bool {
-        return (bool) file_put_contents($dst, 'fake-mp4-derived-from:' . md5_file($src));
-    }
-}
-
-/**
  * Item #6 of the 2026-06 feedback round: teacher feedback videos
  * (editor recordings, WebM) play on desktop but not on iPhone, because
  * iOS WebKit does not decode the editor's WebM output.
  *
  * The contract pinned here:
  * - replace_filename_references() rewrites both the rawurlencoded
- *   @@PLUGINFILE@@ URL spelling and the visible link text.
+ *   PLUGINFILE-placeholder URL spelling and the visible link text.
  * - queue_if_needed() queues exactly when a WebM without an MP4
  *   counterpart exists in the grade's submissioncomment filearea.
  * - execute() stores the MP4 next to the WebM, rewrites the saved
@@ -59,6 +41,31 @@ final class testable_convert_feedback_video extends convert_feedback_video {
  * - The grade-save flow in va.php calls queue_if_needed().
  */
 final class feedback_video_conversion_test extends \advanced_testcase {
+    /**
+     * Build the task under test with the FFmpeg invocation replaced by
+     * a fake file write, so the full execute() pipeline (file storage,
+     * HTML rewrite, DB update) can run inside PHPUnit.
+     *
+     * @param int $contextid Module context id.
+     * @param int $gradeid Grade id.
+     * @return convert_feedback_video
+     */
+    private function make_fake_converter_task(int $contextid, int $gradeid): convert_feedback_video {
+        $task = new class extends convert_feedback_video {
+            /**
+             * Pretend-conversion: write a fake MP4 instead of FFmpeg.
+             *
+             * @param string $src WebM source path.
+             * @param string $dst MP4 destination path.
+             * @return bool Always true.
+             */
+            protected function convert_file(string $src, string $dst): bool {
+                return (bool) file_put_contents($dst, 'fake-mp4-derived-from:' . md5_file($src));
+            }
+        };
+        $task->set_custom_data((object) ['contextid' => $contextid, 'gradeid' => $gradeid]);
+        return $task;
+    }
     /**
      * Create course + activity and a grade row owning a feedback
      * filearea.
@@ -191,8 +198,7 @@ final class feedback_video_conversion_test extends \advanced_testcase {
         ['gradeid' => $gradeid, 'context' => $context] = $this->make_grade_fixture($html);
         $this->store_feedback_file($context, $gradeid, 'recording.webm');
 
-        $task = new testable_convert_feedback_video();
-        $task->set_custom_data((object) ['contextid' => $context->id, 'gradeid' => $gradeid]);
+        $task = $this->make_fake_converter_task((int) $context->id, $gradeid);
         $task->execute();
 
         $this->assertTrue(
@@ -227,8 +233,7 @@ final class feedback_video_conversion_test extends \advanced_testcase {
         $this->resetAfterTest();
         ['gradeid' => $gradeid, 'context' => $context] = $this->make_grade_fixture('<p>text only</p>');
 
-        $task = new testable_convert_feedback_video();
-        $task->set_custom_data((object) ['contextid' => $context->id, 'gradeid' => $gradeid]);
+        $task = $this->make_fake_converter_task((int) $context->id, $gradeid);
         $task->execute();
 
         $this->assertSame(

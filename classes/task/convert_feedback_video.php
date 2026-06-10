@@ -37,7 +37,7 @@ namespace mod_videoassessment\task;
  * This adhoc task transcodes WebM attachments in a grade's
  * `submissioncomment` filearea to MP4 (using the same admin-configured
  * FFmpeg command template the student-video pipeline uses), stores the
- * MP4 next to the original, and rewrites the @@PLUGINFILE@@ references
+ * MP4 next to the original, and rewrites the PLUGINFILE-placeholder references
  * inside the saved comment HTML so every subsequent render serves the
  * iOS-playable file.
  */
@@ -101,7 +101,7 @@ class convert_feedback_video extends \core\task\adhoc_task {
      * Swap every reference to a feedback file name inside the saved
      * comment HTML for the converted name.
      *
-     * The editor stores @@PLUGINFILE@@ URLs with the filename
+     * The editor stores PLUGINFILE-placeholder URLs with the filename
      * rawurlencoded, while the visible link text usually carries the
      * raw name, so both spellings are replaced.
      *
