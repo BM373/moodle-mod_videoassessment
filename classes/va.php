@@ -1327,9 +1327,30 @@ class va {
      * @return void
      */
     private function assign_random_peers() {
+        $peermode = required_param('peermode', PARAM_ALPHA);
+        $this->randomize_peer_assignments($peermode);
+        $this->view_redirect('peers');
+    }
+
+    /**
+     * Replace this activity's random peer assignments.
+     *
+     * Item #5 follow-up (2026-06 feedback round): the table is wiped
+     * once per run before new rows are inserted. The previous
+     * implementation deleted rows per mapped user only, which (a) left
+     * rows from older runs behind forever — teachers chosen before the
+     * role filter existed, users that since unenrolled, members of
+     * since-deleted groups — distorting the "(N)" counts the teachers
+     * see on the peers page, and (b) in group mode wiped a multi-group
+     * student's first-group rows while processing their second group.
+     *
+     * @param string $peermode 'group' to assign within each course
+     *                         group, anything else assigns across the
+     *                         whole class.
+     */
+    private function randomize_peer_assignments(string $peermode): void {
         global $DB;
 
-        $peermode = required_param('peermode', PARAM_ALPHA);
         if ($peermode == 'group') {
             $groups = groups_get_all_groups($this->course->id);
             $groupids = array_keys($groups);
@@ -1355,6 +1376,10 @@ class va {
             'id'
         );
         $excluderoleids = array_keys($excluderoles);
+
+        // Wipe the whole table for this activity up front so rows from
+        // older runs cannot survive and distort the per-student counts.
+        $DB->delete_records('videoassessment_peers', ['videoassessment' => $this->instance]);
 
         foreach ($groupids as $groupid) {
             // Always filter teachers: use get_enrolled_users with capability check, then filter by role.
@@ -1391,12 +1416,17 @@ class va {
             $mappings = $this->get_random_peers_for_users($userids, $this->va->usedpeers);
 
             foreach ($mappings as $id => $peers) {
-                $DB->delete_records(
-                    'videoassessment_peers',
-                    ['videoassessment' => $this->instance, 'userid' => $id]
-                );
-
                 foreach ($peers as $peer) {
+                    // Overlapping groups can produce the same pairing
+                    // twice; keep the table free of duplicate rows.
+                    $exists = $DB->record_exists('videoassessment_peers', [
+                        'videoassessment' => $this->instance,
+                        'userid' => $id,
+                        'peerid' => $peer,
+                    ]);
+                    if ($exists) {
+                        continue;
+                    }
                     $row = new \stdClass();
                     $row->videoassessment = $this->instance;
                     $row->userid = $id;
@@ -1405,8 +1435,6 @@ class va {
                 }
             }
         }
-
-        $this->view_redirect('peers');
     }
 
     /**
