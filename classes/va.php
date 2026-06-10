@@ -3308,10 +3308,53 @@ class va {
 
         // Item #5 (2026-04 fix programme): the previous algorithm picked
         // the first available peer for each round, which left some users
-        // chosen as a peer many more times than others. Replace it with
-        // a load-balancing pass that tracks how often each user has
-        // already been chosen and always picks the candidate with the
-        // lowest count (random tiebreak via the initial shuffle).
+        // chosen as a peer many more times than others. The average
+        // chosen-count is always exactly numpeers, so a max-min spread
+        // of <= 1 is mathematically equivalent to "everyone is chosen
+        // exactly numpeers times" — which is the contract the teachers
+        // expect. The greedy + swap pass below achieves that in almost
+        // every run; the rare run it cannot fix (the remaining swap is
+        // topologically blocked) is retried, and as a final
+        // deterministic fallback a shuffled ring assignment — which is
+        // perfectly balanced by construction — is used.
+        for ($generation = 0; $generation < 4; $generation++) {
+            [$peers, $chosencount] = $this->generate_balanced_peers($userids, $numpeers);
+            if (max($chosencount) - min($chosencount) <= 1) {
+                return $peers;
+            }
+        }
+
+        // Shuffled ring: user i is assessed by the numpeers users that
+        // follow them in a randomly shuffled circle. Every user appears
+        // in exactly numpeers lists, no self-pairing, no duplicates.
+        $ring = array_values($userids);
+        shuffle($ring);
+        $count = count($ring);
+        $peers = array_fill_keys($userids, []);
+        for ($i = 0; $i < $count; $i++) {
+            for ($offset = 1; $offset <= $numpeers; $offset++) {
+                $peers[$ring[$i]][] = $ring[($i + $offset) % $count];
+            }
+        }
+        return $peers;
+    }
+
+    /**
+     * One generation attempt of the load-balancing peer picker:
+     * greedy lowest-chosen-count selection followed by a swap-based
+     * post-pass.
+     *
+     * @param array $userids Candidate user ids (count > numpeers).
+     * @param int $numpeers Peers to assign per user.
+     * @return array{0: array<int, int[]>, 1: array<int, int>} The
+     *         mapping of userid => peer ids and the chosen-count per
+     *         user.
+     */
+    private function generate_balanced_peers(array $userids, $numpeers): array {
+        $peers = [];
+        foreach ($userids as $userid) {
+            $peers[$userid] = [];
+        }
         $chosencount = array_fill_keys($userids, 0);
 
         // Process users in random order so the first user does not
@@ -3402,12 +3445,13 @@ class va {
             }
             if (!$swapped) {
                 // Topologically impossible to swap further with the
-                // current peer-list shape; accept the residual spread.
+                // current peer-list shape; the caller regenerates (and
+                // ultimately falls back to the ring construction).
                 break;
             }
         }
 
-        return $peers;
+        return [$peers, $chosencount];
     }
 
     /**

@@ -583,6 +583,35 @@ final class peer_assignment_test extends \basic_testcase {
     }
 
     /**
+     * Exactness guarantee: the average chosen-count is always exactly
+     * numpeers, so a max-min spread of <= 1 forces every user to be
+     * chosen exactly numpeers times. 6 users x 2 peers is the
+     * configuration where the swap post-pass alone proved
+     * insufficient (the remaining swap can be topologically blocked,
+     * caught as a 1-in-many flake by the full-suite run); the
+     * regenerate-then-ring-fallback added afterwards makes the
+     * guarantee unconditional. 200 iterations pin it.
+     *
+     * @covers \mod_videoassessment\va::get_random_peers_for_users
+     */
+    public function test_six_users_two_peers_always_exact(): void {
+        $va = $this->make_stub_va();
+        $userids = range(1, 6);
+        for ($i = 0; $i < 200; $i++) {
+            $chosen = $this->chosen_count($userids, 2, $va);
+            foreach ($userids as $uid) {
+                $this->assertSame(
+                    2,
+                    $chosen[$uid],
+                    "Iteration {$i}: user {$uid} chosen {$chosen[$uid]} "
+                        . 'times; 6x2 must always be exactly 2 each. '
+                        . json_encode($chosen)
+                );
+            }
+        }
+    }
+
+    /**
      * Even-distribution invariant for divisible totals: when
      * count × numpeers is divisible by count (which it always is on
      * the normal path, since avg = numpeers), the ideal spread is 0
