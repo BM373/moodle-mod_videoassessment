@@ -770,9 +770,21 @@
         object-fit: contain;
     }
 
-    /* Grading tab active: hide video. */
+    /* Grading tab active: park the video band off-screen instead of
+       display:none so audio keeps playing while the user scores the
+       rubric (the "listen while grading" workflow from the 2026-06
+       feedback round). Must match the inline technique applied by
+       assess_mobile_tabs.js setHidden(). */
     body.vam-assess-tab-grading-active .assess-form-videos {
-        display: none !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: -10000px !important;
+        width: 1px !important;
+        height: 1px !important;
+        max-height: 1px !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
     /* Grading tab active: full-width rubric. */
     body.vam-assess-tab-grading-active form.gradingform,

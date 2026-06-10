@@ -531,6 +531,53 @@ final class record_preview_test extends \basic_testcase {
     }
 
     /**
+     * Audio-continuity contract for the assess tabs (item #7, 2026-06
+     * feedback round): students listen to the recording while they
+     * fill in the rubric, so switching to the grading tab must NOT
+     * stop playback. The video pane is parked off-screen at 1x1px
+     * instead of display:none, and nothing may call pause() on the
+     * players during a tab switch.
+     *
+     * @coversNothing
+     */
+    public function test_assess_tabs_keep_audio_playing_contract(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/assess_mobile_tabs.js');
+        $this->assertStringNotContainsString(
+            'pauseAllVideos',
+            $js,
+            'assess_mobile_tabs.js must not pause playback on tab '
+                . 'switch — audio keeps playing while the user grades.'
+        );
+        $this->assertStringNotContainsString(
+            ".setProperty('display'",
+            $js,
+            'assess_mobile_tabs.js must not hide panes via '
+                . 'display:none — some mobile browsers stall media in '
+                . 'display:none subtrees. Park the pane off-screen.'
+        );
+        $this->assertStringContainsString(
+            "'-10000px'",
+            $js,
+            'assess_mobile_tabs.js must park hidden panes off-screen '
+                . 'so the media element keeps playing.'
+        );
+        $css = file_get_contents(__DIR__ . '/../assess.css');
+        $this->assertDoesNotMatchRegularExpression(
+            '~vam-assess-tab-grading-active\s+\.assess-form-videos\s*\{[^}]*display\s*:\s*none~',
+            $css,
+            'assess.css must not display:none the video band when the '
+                . 'grading tab is active — the CSS backup rule must use '
+                . 'the same audio-safe off-screen technique as the JS.'
+        );
+        $this->assertMatchesRegularExpression(
+            '~vam-assess-tab-grading-active\s+\.assess-form-videos\s*\{[^}]*left\s*:\s*-10000px~',
+            $css,
+            'assess.css must park the video band off-screen when the '
+                . 'grading tab is active.'
+        );
+    }
+
+    /**
      * Static-contract guard for the "uploading…" overlay: the uploader
      * must build a `.vam-upload-overlay` element with a spinner and
      * the localised `uploadingvideonotice` label before sending the

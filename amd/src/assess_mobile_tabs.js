@@ -149,45 +149,20 @@ define(['core/str'], function(Str) {
     }
 
     /**
-     * Pause every <video> element inside the assess video band. Used
-     * when the learner switches to the grading tab so audio does not
-     * keep playing while the video element is display:none.
+     * Apply a hide / show to an element WITHOUT pausing any media
+     * playing inside it.
      *
-     * @param {Element} videoContainer
-     */
-    function pauseAllVideos(videoContainer) {
-        const players = videoContainer.querySelectorAll('video');
-        players.forEach(function(v) {
-            if (typeof v.pause === 'function' && !v.paused) {
-                try {
-                    v.pause();
-                } catch (e) {
-                    // Pausing can throw if the element is mid-load on
-                    // some Safari builds; the next gesture will retry.
-                    return;
-                }
-            }
-        });
-    }
-
-    /**
-     * Apply the chosen tab — toggle inline display on the video and
-     * grading containers (the body-class CSS path proved unreliable
-     * on the device), restyle the buttons, pause the video if
-     * leaving the video tab.
-     *
-     * @param {string} tab Either 'video' or 'grading'.
-     * @param {object} refs Tab references from buildTabBar.
-     * @param {Element} videoContainer The .assess-form-videos element.
-     * @param {Element} gradingContainer The form.gradingform / rubric element.
-     */
-    /**
-     * Apply a hide / show to an element via a *stack* of inline
-     * properties: display:none is the obvious one, but iOS Safari has
-     * been observed leaving an inert element painted when another
-     * stylesheet wins display, so back it up with visibility, height,
-     * max-height, and overflow. Either one alone takes the element
-     * out of the visual flow.
+     * The customers' core workflow is "listen to the recording while
+     * filling in the rubric": audio MUST keep playing after switching
+     * to the grading tab (Don / Brendon / Matt, 2026-06 feedback
+     * round). display:none is the obvious way to hide a pane but it
+     * carries playback risk — some mobile browsers throttle or stall
+     * media inside display:none subtrees, and an earlier build paused
+     * playback explicitly. Instead the pane is kept rendered but
+     * parked off-screen at 1×1px and fully transparent: every player
+     * type on the assess page (HTML5 video, YouTube iframe, Vimeo
+     * iframe) keeps playing under this treatment because the element
+     * never leaves the DOM and never becomes display:none.
      *
      * @param {Element} el Target element.
      * @param {boolean} hide True to hide, false to restore.
@@ -197,18 +172,30 @@ define(['core/str'], function(Str) {
             return;
         }
         if (hide) {
-            el.style.setProperty('display', 'none', 'important');
-            el.style.setProperty('visibility', 'hidden', 'important');
-            el.style.setProperty('height', '0', 'important');
-            el.style.setProperty('max-height', '0', 'important');
+            el.style.setProperty('position', 'fixed', 'important');
+            el.style.setProperty('top', '0', 'important');
+            el.style.setProperty('left', '-10000px', 'important');
+            el.style.setProperty('width', '1px', 'important');
+            el.style.setProperty('height', '1px', 'important');
+            el.style.setProperty('max-height', '1px', 'important');
             el.style.setProperty('overflow', 'hidden', 'important');
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('pointer-events', 'none', 'important');
             el.setAttribute('aria-hidden', 'true');
         } else {
-            el.style.removeProperty('display');
-            el.style.removeProperty('visibility');
+            el.style.removeProperty('position');
+            el.style.removeProperty('top');
+            el.style.removeProperty('left');
+            el.style.removeProperty('width');
             el.style.removeProperty('height');
             el.style.removeProperty('max-height');
             el.style.removeProperty('overflow');
+            el.style.removeProperty('opacity');
+            el.style.removeProperty('pointer-events');
+            // Legacy properties from the previous display:none-based
+            // implementation; harmless to clear unconditionally.
+            el.style.removeProperty('display');
+            el.style.removeProperty('visibility');
             el.removeAttribute('aria-hidden');
         }
     }
@@ -233,15 +220,16 @@ define(['core/str'], function(Str) {
     }
 
     /**
-     * Apply the chosen tab — hide the inactive section via setHidden,
-     * restyle the buttons, persist the choice.
+     * Apply the chosen tab — park the inactive section off-screen via
+     * setHidden (deliberately NOT pausing playback: see setHidden's
+     * doc — students keep listening while they score), restyle the
+     * buttons, persist the choice.
      *
      * @param {string} tab Either 'video' or 'grading'.
      * @param {object} refs Tab references from buildTabBar.
-     * @param {Element} videoContainer The .assess-form-videos element.
      * @param {Element} gradingContainer The rubric / grading form element.
      */
-    function setActive(tab, refs, videoContainer, gradingContainer) {
+    function setActive(tab, refs, gradingContainer) {
         const isVideo = (tab === 'video');
         // Keep the body classes for any future CSS hook (and for the
         // PHPUnit contract test).
@@ -251,16 +239,12 @@ define(['core/str'], function(Str) {
         refs.btnGrading.setAttribute('aria-selected', isVideo ? 'false' : 'true');
         styleTab(refs.btnVideo, isVideo);
         styleTab(refs.btnGrading, !isVideo);
-        // Multi-layered hide so theme rules cannot resurrect the
-        // hidden container. Hide every plausible video wrapper, not
-        // just the primary one — some pages have multiple.
+        // Park every plausible video wrapper, not just the primary
+        // one — some pages have multiple.
         collectVideoTargets().forEach(function(el) {
             setHidden(el, !isVideo);
         });
         setHidden(gradingContainer, isVideo);
-        if (!isVideo) {
-            pauseAllVideos(videoContainer);
-        }
         // Body padding-top so the breadcrumb / Moodle nav under the
         // fixed bar is not eaten by it.
         document.body.style.paddingTop = '50px';
@@ -327,10 +311,10 @@ define(['core/str'], function(Str) {
         }
         const refs = buildTabBar(labelVideo, labelGrading);
         refs.btnVideo.addEventListener('click', function() {
-            setActive('video', refs, videoContainer, gradingContainer);
+            setActive('video', refs, gradingContainer);
         });
         refs.btnGrading.addEventListener('click', function() {
-            setActive('grading', refs, videoContainer, gradingContainer);
+            setActive('grading', refs, gradingContainer);
         });
 
         // Restore the last-picked tab so reloads (e.g. after saving a
@@ -344,7 +328,7 @@ define(['core/str'], function(Str) {
         } catch (e) {
             initial = 'video';
         }
-        setActive(initial, refs, videoContainer, gradingContainer);
+        setActive(initial, refs, gradingContainer);
     }
 
     /**
