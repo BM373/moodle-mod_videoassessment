@@ -22,15 +22,19 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// This endpoint is invoked server-to-server by
+// videoassessment_bulkupload::async_http_get(), a raw cookieless
+// fire-and-forget GET. There is no user session to authenticate:
+// requiring login here (as an earlier sniff-appeasing revision did)
+// redirected the cookieless request to the login page and the FFmpeg
+// conversion silently never ran. Authentication is the md5 token
+// derived from the site identifier, checked below.
+define('NO_MOODLE_COOKIES', true);
+
+// phpcs:disable moodle.Files.RequireLogin -- Token-authenticated server-to-server callback; no user session exists by design.
 require_once(__DIR__ . '/../../../config.php');
 
 require_once(__DIR__ . '/lib.php');
-
-// Item #8 of the 2026-04 fix programme: explicit site-level login
-// gate so the moodle.Files.RequireLogin sniff sees a require_login()
-// call in this entry point. The downstream code re-runs require_login()
-// with the correct course / cm context once those are available.
-require_login();
 
 try {
     $cmid = required_param('cmid', PARAM_INT);

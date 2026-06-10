@@ -493,6 +493,7 @@ $string['videoassessment:view'] = 'ビデオアセスメントを表示';
 $string['videoassessment:viewcomments'] = '評価コメントを表示';
 $string['videoassessmentname'] = 'ビデオアセスメント名';
 $string['videoassessmentnotfound'] = 'ビデオアセスメントが見つかりません。';
+$string['videoconverting'] = 'アップロードされた動画は現在バックグラウンドで変換処理中です。処理が完了すると自動的に表示されます。再アップロードの必要はありません。';
 $string['videoformat'] = 'ビデオ形式';
 $string['videoformatdesc'] = 'ビデオ形式';
 $string['videonotfound'] = 'ビデオが見つかりません。';

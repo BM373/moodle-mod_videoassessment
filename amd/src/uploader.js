@@ -174,8 +174,16 @@ define(['mod_videoassessment/utils'], function(utils) {
                 if (parsed && typeof parsed.action !== 'undefined') {
                     // Leave the overlay visible while the page navigates
                     // away — hiding it now causes a brief blank screen
-                    // before the redirect lands.
+                    // before the redirect lands. The FFmpeg conversion
+                    // runs in the background on the server (item #3),
+                    // so this response arrives as soon as the file is
+                    // saved instead of after the whole conversion.
                     window.location.href = `${url}?id=${id}`;
+                    // Watchdog: if the navigation stalls, do not strand
+                    // the learner behind an endless spinner — reveal
+                    // the page again after 15s. The timer dies with
+                    // the page when the navigation succeeds.
+                    setTimeout(hideUploadOverlay, 15000);
                     return;
                 }
                 hideUploadOverlay();

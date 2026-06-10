@@ -533,7 +533,10 @@ class va {
                         throw new \moodle_exception('invaliduploadedfile', self::VA);
                     }
                     $videoid = $upload->video_data_add($tempname, $filename);
-                    $upload->convert($tempname);
+                    // Item #3: convert in the background so this POST
+                    // (and the learner's "uploading…" overlay) is not
+                    // held open for the whole FFmpeg run.
+                    $upload->dispatch_async_convert($tempname);
                     $action = "";
                     if ($this->is_teacher()) {
                         if (empty($data->user) || empty($data->timing)) {
@@ -567,7 +570,8 @@ class va {
 
                         $videoid = $upload->video_data_add($tmpname, $mobilevideofile['name']);
 
-                        $upload->convert($tmpname);
+                        // Item #3: background conversion (see above).
+                        $upload->dispatch_async_convert($tmpname);
                         $action = "";
                         if ($this->is_teacher()) {
                             if (empty($data->user) || empty($data->timing)) {
@@ -602,7 +606,8 @@ class va {
 
                             $videoid = $upload->video_data_add($tmpname, $file->get_filename());
 
-                            $upload->convert($tmpname);
+                            // Item #3: background conversion (see above).
+                            $upload->dispatch_async_convert($tmpname);
 
                             if ($this->is_teacher()) {
                                 if (empty($data->user) || empty($data->timing)) {
@@ -621,6 +626,21 @@ class va {
                             }
                         }
                     }
+                }
+            }
+        }
+        // Item #3: if this user's previous upload is still converting
+        // in the background, say so above the form — otherwise the
+        // page looks like the earlier upload never happened.
+        if (!$this->is_teacher()) {
+            foreach (['before', 'after'] as $timing) {
+                if ($this->has_converting_video($USER->id, $timing)) {
+                    $o .= $OUTPUT->notification(
+                        self::str('videoconverting'),
+                        \core\output\notification::NOTIFY_INFO,
+                        false
+                    );
+                    break;
                 }
             }
         }
@@ -1231,6 +1251,41 @@ class va {
     }
 
     /**
+     * Detect an associated video whose FFmpeg conversion has not
+     * finished yet.
+     *
+     * Item #3 (2026-06 feedback round): conversions now run in the
+     * background, so right after an upload the association exists but
+     * the converted file is not in the file storage yet — exactly the
+     * state get_associated_video() reports as "no video". Without a
+     * distinct signal the learner sees the bare upload form again and
+     * assumes the upload failed.
+     *
+     * @param int $userid The user the video is associated with.
+     * @param string $timing 'before' or 'after'.
+     * @return bool True when a conversion is still pending.
+     */
+    public function has_converting_video($userid, $timing) {
+        global $DB;
+
+        $assocs = $DB->get_records('videoassessment_video_assocs', [
+            'videoassessment' => $this->instance,
+            'timing' => $timing,
+            'associationid' => $userid,
+        ]);
+        if (!$assocs) {
+            return false;
+        }
+        $assoc = reset($assocs);
+        $data = $DB->get_record('videoassessment_videos', ['id' => $assoc->videoid]);
+        if (!$data || $data->tmpname == 'Youtube') {
+            return false;
+        }
+        $video = new video($this->context, $data);
+        return !$video->ready;
+    }
+
+    /**
      * Determine grader type for the current user relative to graded user.
      *
      * @param int $gradeduserid The user being graded
@@ -1569,6 +1624,19 @@ class va {
             );
             $o .= $gradetable->print_teacher_grade_table();
         } else {
+            // Item #3: conversions run in the background now, so tell
+            // the learner their fresh upload is being processed rather
+            // than letting the page look as if nothing was uploaded.
+            foreach (['before', 'after'] as $timing) {
+                if ($this->has_converting_video($USER->id, $timing)) {
+                    $o .= $OUTPUT->notification(
+                        self::str('videoconverting'),
+                        \core\output\notification::NOTIFY_INFO,
+                        false
+                    );
+                    break;
+                }
+            }
             $trainingpassed = $DB->get_field('videoassessment_aggregation', 'passtraining', [
                 'videoassessment' => $this->va->id,
                 'userid' => $USER->id,

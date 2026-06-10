@@ -538,6 +538,7 @@ $string['videoassessment:view'] = 'View video assessment';
 $string['videoassessment:viewcomments'] = 'View assessment comments';
 $string['videoassessmentname'] = 'Video assessment name';
 $string['videoassessmentnotfound'] = 'Video assessment not found';
+$string['videoconverting'] = 'Your uploaded video is being converted in the background. It will appear automatically once processing finishes — you do not need to upload it again.';
 $string['videoformat'] = 'Video format';
 $string['videoformatdesc'] = 'Video format';
 $string['videonotfound'] = 'Video not found.';

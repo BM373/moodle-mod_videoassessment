@@ -146,14 +146,58 @@ class videoassessment_bulkupload {
         @unlink("$path.err");
         @unlink("$path.log");
 
+        $this->dispatch_async_convert($name);
+
+        return self::encode_filename($name);
+    }
+
+    /**
+     * Build the token-authenticated callback URL that runs the FFmpeg
+     * conversion for an already-registered temp file in a separate
+     * request.
+     *
+     * @param string $name Temp filename inside <tempdir>/upload/.
+     * @return moodle_url
+     */
+    public function build_async_convert_url($name) {
         $url = new moodle_url('/mod/videoassessment/bulkupload/async.php');
         $url->param('cmid', $this->cm->id);
         $url->param('file', $name);
-        $token = md5($name . get_site_identifier());
-        $url->param('token', $token);
-        self::async_http_get($url->out(false));
+        $url->param('token', md5($name . get_site_identifier()));
+        return $url;
+    }
 
-        return self::encode_filename($name);
+    /**
+     * Kick off the FFmpeg conversion of an uploaded temp file in the
+     * background and return immediately.
+     *
+     * Item #3 follow-up (2026-06 feedback round): the single-video
+     * upload paths used to call convert() synchronously inside the
+     * upload POST, so the learner stared at a "never-ending uploading
+     * circle" for the whole multi-minute FFmpeg run even though the
+     * upload itself had long finished. Dispatching the conversion to
+     * async.php (the same mechanism the bulk uploader has always used)
+     * lets the POST respond as soon as the file is saved.
+     *
+     * If the fire-and-forget HTTP dispatch fails (e.g. the web server
+     * cannot reach its own wwwroot), fall back to the old synchronous
+     * conversion: slow, but the video is never silently left
+     * unconverted.
+     *
+     * @param string $name Temp filename inside <tempdir>/upload/.
+     * @return void
+     */
+    public function dispatch_async_convert($name) {
+        try {
+            self::async_http_get($this->build_async_convert_url($name)->out(false));
+        } catch (Exception $ex) {
+            debugging(
+                'Async convert dispatch failed, converting synchronously: '
+                    . $ex->getMessage(),
+                DEBUG_DEVELOPER
+            );
+            $this->convert($name);
+        }
     }
 
     /**
