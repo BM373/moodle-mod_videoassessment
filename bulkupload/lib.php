@@ -603,7 +603,7 @@ class videoassessment_bulkupload {
      * @return string Fixed command string
      * @throws \Exception If command template is invalid
      */
-    private static function fix_ffmpeg_options($command, $format) {
+    public static function fix_ffmpeg_options($command, $format) {
         if (
             strpos($command, '{INPUT}') <= stripos($command, 'ffmpeg') ||
             strpos($command, '{OUTPUT}') <= stripos($command, 'ffmpeg')
@@ -707,7 +707,7 @@ class videoassessment_bulkupload {
      * @param string $cmdline Command line to execute
      * @return int Command exit code
      */
-    private static function exec_nolimit($cmdline) {
+    public static function exec_nolimit($cmdline) {
         ignore_user_abort(true);
         set_time_limit(0);
         $output = [];

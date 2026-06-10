@@ -2145,6 +2145,15 @@ class va {
                 $grade->timemarked = time();
                 $DB->update_record('videoassessment_grades', $grade);
 
+                // Item #6: feedback recorded with the editor's recorder
+                // arrives as WebM, which iPhones cannot play. Schedule a
+                // background MP4 transcode (no-op when there is nothing
+                // to convert).
+                task\convert_feedback_video::queue_if_needed(
+                    (int) $this->context->id,
+                    (int) $grade->id
+                );
+
                 // Item #10: emit a fine-grained logstore event for each
                 // rubric save so analytics layers can distinguish teacher
                 // grading from self / peer reviews.
