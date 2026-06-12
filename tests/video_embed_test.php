@@ -134,7 +134,7 @@ final class video_embed_test extends \advanced_testcase {
      */
     public static function platform_provider(): array {
         return [
-            // --- PeerTube (host-agnostic): the customer's live example.
+            // PeerTube (host-agnostic): the customer's live example.
             'peertube /w/ shortid' => [
                 'https://exquisite.tube/w/5P2RS53HxeMyVQ3n3wSGvu',
                 'peertube',
@@ -168,7 +168,7 @@ final class video_embed_test extends \advanced_testcase {
                 null,
                 null,
             ],
-            // --- Esup-Pod (host-agnostic, id starts with digits).
+            // Esup-Pod (host-agnostic, id starts with digits).
             'esup-pod canonical' => [
                 'https://pod.esup-portail.org/video/0001-ma-video/',
                 'esuppod',
@@ -196,7 +196,7 @@ final class video_embed_test extends \advanced_testcase {
                 null,
                 null,
             ],
-            // --- Dailymotion.
+            // Dailymotion.
             'dailymotion watch' => [
                 'https://www.dailymotion.com/video/x9ekanc',
                 'dailymotion',
@@ -222,7 +222,7 @@ final class video_embed_test extends \advanced_testcase {
                 'dailymotion',
                 'https://geo.dailymotion.com/player.html?video=x9ekanc',
             ],
-            // --- Opencast players (host-agnostic pass-through).
+            // Opencast players (host-agnostic pass-through).
             'opencast /play/' => [
                 'https://opencast.univ.fr/play/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
                 'opencast',
@@ -238,7 +238,7 @@ final class video_embed_test extends \advanced_testcase {
                 'opencast',
                 'https://opencast.univ.fr/engage/theodul/ui/core.html?id=8d6a3c0f',
             ],
-            // --- Generic embed pass-through (Canal-U / Ubicast share
+            // Generic embed pass-through (Canal-U / Ubicast share
             // dialog URLs and friends). HTTPS only.
             'generic /embed/ path (canal-u style)' => [
                 'https://www.canal-u.tv/embed/12345',
