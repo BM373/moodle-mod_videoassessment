@@ -470,10 +470,16 @@ $string['uploadvideo'] = '動画をアップロード / リンク';
 $string['uploadvideo_help'] = 'ここで教師はリンクをクリックして単一のビデオファイルをアップロードできます。ファイルには1人の学生のパフォーマンスが含まれている必要があります。各パフォーマンスのビデオは別々に録画してください。ビデオアップロード中、ファイルは元のサイズの10%に圧縮されます。';
 $string['uploadvideos'] = 'ビデオをアップロード';
 $string['uploadyoutube'] = '外部動画リンクを挿入';
-$string['uploadyoutube_help'] = 'より良いパフォーマンスのために、ビデオを個人のYouTubeアカウントまたは他のビデオ共有サイトにアップロードしてください。その後、リンクをコピーしてそのリンクのボックスに貼り付けてください。YouTubeファイルにリンクする場合、評価画面にサムネイル写真は表示されません。ビデオを再生するだけで表示されます。';
+$string['uploadyoutube_help'] = '動画を動画プラットフォームにアップロードし、そのリンクをここに貼り付けてください。対応プラットフォーム:
+<br />• YouTube(Shorts含む)・Vimeo — 通常の動画リンクを貼り付け
+<br />• PeerTube系インスタンス(例: tubes.apps.education.fr)— /w/ を含む動画リンクを貼り付け
+<br />• Esup-Pod系インスタンス — /video/ を含む動画ページのリンクを貼り付け
+<br />• Dailymotion — 動画リンクまたは dai.ly 短縮リンクを貼り付け
+<br />• Opencast・Canal-U・Ubicast Nudgis 等 — プラットフォームの「共有」「埋め込み」ダイアログに表示される埋め込みアドレス(/embed/ を含む、または /iframe/ で終わるアドレス)を貼り付け
+<br />サーバ側の設定は不要で、リンクを貼るだけで利用できます。リンク動画は評価画面にサムネイルが表示されませんが、再生すると表示されます。';
 $string['url'] = 'URL';
-$string['url_error'] = '正しいYouTube URLを入力してください';
-$string['url_help'] = 'これはYouTube URLです';
+$string['url_error'] = '有効な動画リンクを入力してください(YouTube、Vimeo、PeerTube、Esup-Pod、Dailymotion、または各プラットフォームの埋め込みリンク)';
+$string['url_help'] = 'YouTube・Vimeo・PeerTube系・Esup-Pod系・Dailymotionの動画リンク、または他の動画プラットフォームの共有ダイアログで表示される埋め込みリンクです。';
 $string['usedpeers'] = 'ピア評価数';
 $string['usedpeers_help'] = '教師はピア評価数を0〜3に設定できます。評価メニューで、教師はピアを自動または手動で割り当てることができます。デフォルトは常に「0」ピアですが、ピア評価のパーセンテージが0%を超えて割り当てられた場合は、デフォルトが「1」になり、1〜3で手動で再設定できます。';
 $string['video'] = 'ビデオ';

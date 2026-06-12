@@ -514,10 +514,16 @@ $string['uploadvideo'] = 'Upload / link a video';
 $string['uploadvideo_help'] = 'Here a teacher can click a link and upload a single video file. The file should contain the performance of one student. Record the video of each performance separately. During video upload the file is compressed to 10% of the original size.';
 $string['uploadvideos'] = 'Upload videos';
 $string['uploadyoutube'] = 'Insert External Video Link';
-$string['uploadyoutube_help'] = 'For better performance, upload your video into your personal YouTube account or another video sharing site. Then copy the link and paste the link into the box for that link. When you link to a Youtube file, there is no thumbnail photo showing on the assessment screen. Just play the video and it will appear.';
+$string['uploadyoutube_help'] = 'For better performance, upload your video to a video platform and paste its link here. Supported platforms:
+<br />• YouTube (including Shorts) and Vimeo — paste the normal video link.
+<br />• PeerTube instances such as Tubes (tubes.apps.education.fr) — paste the video link (the address containing /w/).
+<br />• Esup-Pod instances — paste the video page link (the address containing /video/).
+<br />• Dailymotion — paste the video link or a dai.ly short link.
+<br />• Opencast, Canal-U, Ubicast Nudgis and other platforms — open the platform\'s "Share" or "Embed" dialog and paste the embed address it shows (an address containing /embed/ or ending in /iframe/).
+<br />No server configuration is needed — pasting the link is enough. There is no thumbnail for linked videos on the assessment screen; just play the video and it will appear.';
 $string['url'] = 'URL';
-$string['url_error'] = 'Please enter the correct Youtube URL';
-$string['url_help'] = 'This is a Youtube URL';
+$string['url_error'] = 'Please enter a valid video link (YouTube, Vimeo, PeerTube, Esup-Pod, Dailymotion, or a platform embed link)';
+$string['url_help'] = 'A link to a video hosted on YouTube, Vimeo, a PeerTube or Esup-Pod instance, Dailymotion, or the embed link from any other video platform\'s share dialog.';
 $string['usedpeers'] = 'Number of Peer Assessors';
 $string['usedpeers_help'] = 'Enter the number of peer assessors (0 or more). In Assign Peer Assessors below, the teacher can then assign the peer automatically or manually. The default is 2 peer assessors.';
 $string['usedpeerserror'] = 'Number of Peer Assessors must be a non-negative integer (0 or greater).';

@@ -473,14 +473,27 @@ class va {
                 // the dedicated helper so that `/shorts/ID` and `youtu.be/ID`
                 // forms are accepted alongside the legacy `?v=ID`.
                 $youtubeid = youtube_url::extract_id($url);
-                if ($youtubeid === null) {
+                if ($youtubeid !== null) {
+                    $ytinfo = $this->videoassessment_get_youtube_info($youtubeid);
+                } else if (($embed = video_embed::resolve($url, false)) !== null) {
+                    // 2026-06 platform-support request: PeerTube,
+                    // Esup-Pod, Dailymotion, Opencast and generic embed
+                    // URLs. Label the entry with the provider + host so
+                    // the videos list stays readable; no remote
+                    // thumbnail (the i.ytimg fallback only exists for
+                    // YouTube ids).
+                    $host = parse_url($url, PHP_URL_HOST) ?: 'external';
+                    $ytinfo = [
+                        'title' => ucfirst($embed['provider']) . ' video (' . $host . ')',
+                        'thumbnail_url' => '',
+                    ];
+                } else {
                     // Fall back to the legacy split for non-canonical URLs to
                     // preserve behaviour for hand-edited inputs that already
                     // worked before this refactor.
                     $urlarr = explode('=', $url);
-                    $youtubeid = $urlarr[1] ?? '';
+                    $ytinfo = $this->videoassessment_get_youtube_info($urlarr[1] ?? '');
                 }
-                $ytinfo = $this->videoassessment_get_youtube_info($youtubeid);
                 $videoid = $upload->youtube_video_data_add(
                     '/',
                     $ytinfo['title'],
@@ -1808,9 +1821,17 @@ class va {
         $PAGE->requires->js_call_amd('mod_videoassessment/assess', 'videoassessmentAssess', []);
         $o = '';
 
-        // Item #4: the educator landscape-recording reminder is rendered
-        // by view_main() at the activity entry point so teachers see it
-        // without having to drill into a specific student's assess view.
+        // Item #4: the educator landscape-recording reminder. Also
+        // rendered by view_main() at the activity entry point; Brendon
+        // could not find it there, so repeat it where educators
+        // actually spend their time — the assess view.
+        if ($this->is_teacher()) {
+            $o .= $OUTPUT->notification(
+                self::str('educatornote_landscape'),
+                \core\output\notification::NOTIFY_INFO,
+                false
+            );
+        }
 
         $user = $DB->get_record('user', ['id' => optional_param('userid', 0, PARAM_INT)]);
 

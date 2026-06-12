@@ -126,6 +126,212 @@ final class video_embed_test extends \advanced_testcase {
         $this->assertNull(video_embed::resolve('', true));
     }
 
+    /**
+     * Provider matrix for the 2026-06 platform-support extension:
+     * input URL -> expected provider + embed src (GDPR off).
+     *
+     * @return array<string, array{string, ?string, ?string}>
+     */
+    public static function platform_provider(): array {
+        return [
+            // --- PeerTube (host-agnostic): the customer's live example.
+            'peertube /w/ shortid' => [
+                'https://exquisite.tube/w/5P2RS53HxeMyVQ3n3wSGvu',
+                'peertube',
+                'https://exquisite.tube/videos/embed/5P2RS53HxeMyVQ3n3wSGvu',
+            ],
+            'peertube Tubes (education ministry)' => [
+                'https://tubes.apps.education.fr/w/abc123XYZ',
+                'peertube',
+                'https://tubes.apps.education.fr/videos/embed/abc123XYZ',
+            ],
+            'peertube legacy /videos/watch/ uuid' => [
+                'https://exquisite.tube/videos/watch/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
+                'peertube',
+                'https://exquisite.tube/videos/embed/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
+            ],
+            'peertube embed pass-through' => [
+                'https://exquisite.tube/videos/embed/5P2RS53HxeMyVQ3n3wSGvu',
+                'peertube',
+                'https://exquisite.tube/videos/embed/5P2RS53HxeMyVQ3n3wSGvu',
+            ],
+            'peertube watch URL with query' => [
+                'https://exquisite.tube/w/5P2RS53HxeMyVQ3n3wSGvu?start=10s',
+                'peertube',
+                'https://exquisite.tube/videos/embed/5P2RS53HxeMyVQ3n3wSGvu',
+            ],
+            // Boundary: /w/ path with characters outside the id charset
+            // (e.g. MediaWiki /w/index.php) must NOT be treated as
+            // PeerTube.
+            'not peertube: wiki /w/index.php' => [
+                'https://en.wikipedia.org/w/index.php?title=Video',
+                null,
+                null,
+            ],
+            // --- Esup-Pod (host-agnostic, id starts with digits).
+            'esup-pod canonical' => [
+                'https://pod.esup-portail.org/video/0001-ma-video/',
+                'esuppod',
+                'https://pod.esup-portail.org/video/0001-ma-video/?is_iframe=true',
+            ],
+            'esup-pod without trailing slash' => [
+                'https://pod.univ.fr/video/123-titre',
+                'esuppod',
+                'https://pod.univ.fr/video/123-titre/?is_iframe=true',
+            ],
+            'esup-pod with existing query' => [
+                'https://pod.univ.fr/video/123-titre/?start=5',
+                'esuppod',
+                'https://pod.univ.fr/video/123-titre/?start=5&is_iframe=true',
+            ],
+            'esup-pod is_iframe already present' => [
+                'https://pod.univ.fr/video/123-titre/?is_iframe=true',
+                'esuppod',
+                'https://pod.univ.fr/video/123-titre/?is_iframe=true',
+            ],
+            // Boundary: /video/{non-digit} is not Pod (Pod ids are
+            // numeric-prefixed slugs).
+            'not esup-pod: alpha slug' => [
+                'https://example.com/video/watch-me/',
+                null,
+                null,
+            ],
+            // --- Dailymotion.
+            'dailymotion watch' => [
+                'https://www.dailymotion.com/video/x9ekanc',
+                'dailymotion',
+                'https://geo.dailymotion.com/player.html?video=x9ekanc',
+            ],
+            'dailymotion watch with slug suffix' => [
+                'https://www.dailymotion.com/video/x9ekanc_some-title-here',
+                'dailymotion',
+                'https://geo.dailymotion.com/player.html?video=x9ekanc',
+            ],
+            'dailymotion short link' => [
+                'https://dai.ly/x9ekanc',
+                'dailymotion',
+                'https://geo.dailymotion.com/player.html?video=x9ekanc',
+            ],
+            'dailymotion legacy embed normalised to geo player' => [
+                'https://www.dailymotion.com/embed/video/x9ekanc',
+                'dailymotion',
+                'https://geo.dailymotion.com/player.html?video=x9ekanc',
+            ],
+            'dailymotion geo player pass-through' => [
+                'https://geo.dailymotion.com/player.html?video=x9ekanc',
+                'dailymotion',
+                'https://geo.dailymotion.com/player.html?video=x9ekanc',
+            ],
+            // --- Opencast players (host-agnostic pass-through).
+            'opencast /play/' => [
+                'https://opencast.univ.fr/play/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
+                'opencast',
+                'https://opencast.univ.fr/play/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
+            ],
+            'opencast paella player' => [
+                'https://opencast.univ.fr/paella/ui/watch.html?id=8d6a3c0f-25e7-4f6f',
+                'opencast',
+                'https://opencast.univ.fr/paella/ui/watch.html?id=8d6a3c0f-25e7-4f6f',
+            ],
+            'opencast theodul player' => [
+                'https://opencast.univ.fr/engage/theodul/ui/core.html?id=8d6a3c0f',
+                'opencast',
+                'https://opencast.univ.fr/engage/theodul/ui/core.html?id=8d6a3c0f',
+            ],
+            // --- Generic embed pass-through (Canal-U / Ubicast share
+            // dialog URLs and friends). HTTPS only.
+            'generic /embed/ path (canal-u style)' => [
+                'https://www.canal-u.tv/embed/12345',
+                'embed',
+                'https://www.canal-u.tv/embed/12345',
+            ],
+            'generic ubicast permalink iframe' => [
+                'https://uni.ubicast.tv/permalink/v1263abc/iframe/',
+                'embed',
+                'https://uni.ubicast.tv/permalink/v1263abc/iframe/',
+            ],
+            'generic is_iframe query' => [
+                'https://media.example.edu/page?is_iframe=true',
+                'embed',
+                'https://media.example.edu/page?is_iframe=true',
+            ],
+            // Boundary: plain http is rejected for the generic
+            // pass-through (it becomes an iframe src on our pages).
+            'generic embed rejected over http' => [
+                'http://www.canal-u.tv/embed/12345',
+                null,
+                null,
+            ],
+            // Boundary: ordinary watch pages of unsupported platforms
+            // still fall through to null.
+            'canal-u watch page is not auto-embeddable' => [
+                'https://www.canal-u.tv/chaines/unit/some-video',
+                null,
+                null,
+            ],
+        ];
+    }
+
+    /**
+     * Each supported platform URL resolves to its documented embed
+     * form; lookalikes and unsupported forms fall through to null.
+     *
+     * @dataProvider platform_provider
+     * @param string $url Input URL.
+     * @param string|null $provider Expected provider key (null = no match).
+     * @param string|null $src Expected embed src.
+     * @covers \mod_videoassessment\video_embed::resolve
+     */
+    public function test_resolve_platforms(string $url, ?string $provider, ?string $src): void {
+        $result = video_embed::resolve($url, false);
+        if ($provider === null) {
+            $this->assertNull($result, "URL must not resolve: {$url}");
+            return;
+        }
+        $this->assertNotNull($result, "URL must resolve: {$url}");
+        $this->assertSame($provider, $result['provider']);
+        $this->assertSame($src, $result['src']);
+        $this->assertFalse($result['shorts']);
+    }
+
+    /**
+     * GDPR mode appends p2p=0 to PeerTube embeds (stops the player
+     * sharing the viewer's IP address with other viewers over WebRTC)
+     * and leaves the other new providers untouched.
+     *
+     * @covers \mod_videoassessment\video_embed::resolve
+     */
+    public function test_resolve_peertube_gdpr(): void {
+        $on = video_embed::resolve('https://exquisite.tube/w/5P2RS53HxeMyVQ3n3wSGvu', true);
+        $this->assertSame(
+            'https://exquisite.tube/videos/embed/5P2RS53HxeMyVQ3n3wSGvu?p2p=0',
+            $on['src']
+        );
+
+        $pod = video_embed::resolve('https://pod.univ.fr/video/123-titre/', true);
+        $this->assertSame('https://pod.univ.fr/video/123-titre/?is_iframe=true', $pod['src']);
+
+        $dm = video_embed::resolve('https://dai.ly/x9ekanc', true);
+        $this->assertSame('https://geo.dailymotion.com/player.html?video=x9ekanc', $dm['src']);
+    }
+
+    /**
+     * Regression: the platform extension must not change how YouTube
+     * (incl. Shorts) and Vimeo resolve.
+     *
+     * @covers \mod_videoassessment\video_embed::resolve
+     */
+    public function test_resolve_platform_extension_regressions(): void {
+        $yt = video_embed::resolve('https://www.youtube.com/watch?v=dQw4w9WgXcQ', false);
+        $this->assertSame('youtube', $yt['provider']);
+
+        $shorts = video_embed::resolve('https://www.youtube.com/shorts/dQw4w9WgXcQ', false);
+        $this->assertTrue($shorts['shorts']);
+
+        $vimeo = video_embed::resolve('https://vimeo.com/123456789', false);
+        $this->assertSame('vimeo', $vimeo['provider']);
+    }
+
     // Tests for video_embed::gdpr_enabled.
 
     /**
