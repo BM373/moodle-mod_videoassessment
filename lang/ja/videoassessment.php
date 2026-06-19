@@ -45,8 +45,8 @@ $string['afterpeer'] = '後 - ピア';
 $string['afterself'] = '後 - 自己';
 $string['afterteacher'] = '後 - 教師';
 $string['aftervideo'] = '後ビデオ';
-$string['allowexternallinks'] = '外部動画リンクを許可(例: YouTube)';
-$string['allowexternallinks_help'] = 'サイト全体で有効にすると、各活動の管理者は学生・教師に対して外部にホストされた動画(YouTube、Vimeo、esup-portail/Pod 等)の URL 貼り付けを許可できます。';
+$string['allowexternallinks'] = '外部動画リンクを許可';
+$string['allowexternallinks_help'] = 'サイト全体で有効にすると、各活動の管理者は学生・教師に対して外部にホストされた動画の URL 貼り付けを許可できます。対応プラットフォーム: YouTube、Vimeo、PeerTube系(Tubes 等)、Esup-Pod、Dailymotion、Opencast、Canal-U、Ubicast Nudgis、その他共有ダイアログで埋め込みリンクを提供するプラットフォーム。';
 $string['allowstudentpeerselection'] = '学生がピアを選択できるようにする';
 $string['allowstudentpeerselection_help'] = '有効にすると、学生は自分でピアパートナーを選択できます。';
 $string['allowstudentupload'] = '学生がビデオをアップロードできる';
@@ -55,8 +55,8 @@ $string['allowvideorecording'] = '動画の録画を許可';
 $string['allowvideorecording_help'] = 'サイト全体で有効にすると、各活動の管理者は学生・教師にブラウザでの直接録画機能を許可できます。';
 $string['allowvideouploads'] = '動画ファイルのアップロードを許可';
 $string['allowvideouploads_help'] = 'サイト全体で有効にすると、各活動の管理者は学生・教師に動画ファイルの直接アップロードを許可できます。';
-$string['allowyoutube'] = '外部動画リンクを許可(例: YouTube)';
-$string['allowyoutube_help'] = '有効にすると、学生と教師は YouTube・Vimeo・esup-portail/Pod など外部にホストされた動画の URL を貼り付けて評価対象にできます。';
+$string['allowyoutube'] = '外部動画リンクを許可';
+$string['allowyoutube_help'] = '有効にすると、学生と教師は外部にホストされた動画の URL を貼り付けて評価対象にできます。対応プラットフォーム: YouTube、Vimeo、PeerTube系(Tubes 等)、Esup-Pod、Dailymotion、Opencast、Canal-U、Ubicast Nudgis、その他共有ダイアログで埋め込みリンクを提供するプラットフォーム。サーバ側の個別設定は不要で、リンクを貼るだけで利用できます。';
 $string['allparticipants'] = 'すべての参加者';
 $string['allscores'] = '</span><span class="red">自己、</span> <span class="blue">ピア、</span> <span class="green">教師、</span> <span class="orange">クラス</span>スコア';
 $string['assess'] = '評価';
@@ -357,6 +357,7 @@ $string['readyforuse'] = '使用準備完了';
 $string['reallydeletevideo'] = 'このビデオを削除してもよろしいですか？';
 $string['reallyresetallpeers'] = 'ピア割り当てをリセットしてランダムに再割り当てします。続行しますか？';
 $string['recordnewvideo'] = '新しい動画を録画(最大録画時間: 2分)';
+$string['recordnewvideo_help'] = 'この場で、このデバイスのカメラを使って新しい動画を直接録画します。別のアプリやファイルは不要です。このオプションを選ぶと、ブラウザがカメラとマイクの使用許可を求めるので許可し、表示される録画・停止ボタンを使ってください。録画は2分までに制限されており、ファイルを小さく保ちアップロードを速くします。停止すると、自動的にアップロードと変換が行われます。スマートフォンでは横向き(水平)で持つと最良の結果が得られます。';
 $string['recordradios'] = '新しいビデオを録画';
 $string['recordradios_help'] = '新しいビデオを録画は、評価のためにビデオを直接録画するためのものです。
 この機能は、コンピューターまたは携帯電話のカメラにアクセスしてビデオ録画を開始します。
@@ -453,14 +454,14 @@ $string['upload'] = 'アップロード';
 $string['uploadedat'] = 'アップロード日時';
 $string['uploadedtime'] = 'アップロード時刻';
 $string['uploadfile'] = 'ビデオファイルをアップロード';
-$string['uploadfile_help'] = '2つの段階があります：ファイルのアップロード、そしてファイルの変換です。変換プロセスはファイルを1/10のサイズに圧縮します。時には長い時間がかかります—10分以上。カメラが4Kに設定されていないか確認してください。これは高すぎるので、解像度とfpsを下げてください。VGAまたは720HD、30fpsが良いです。';
+$string['uploadfile_help'] = 'デバイスに保存済みの動画ファイルをアップロードします。たとえばスマートフォンのカメラやデジタルビデオカメラで撮影し、このデバイスに転送した動画です。処理には2つの段階があります: ファイルのアップロードと変換です。変換ではファイルを約1/10のサイズに圧縮し、バックグラウンドで実行されるため、完了を待たずに画面を離れられます。変換が遅い場合はカメラが4Kに設定されている可能性があります。これは高すぎるので解像度とフレームレートを下げてください。VGAまたは720p HD、30fpsが適しています。';
 $string['uploadfilename'] = 'ファイル名';
 $string['uploadfilesize'] = 'サイズ';
 $string['uploadingvideo'] = '動画のアップロード / リンク';
 $string['uploadingvideo_help'] = '評価のために録画したパフォーマンスを3つの方法で共有できます。この画面では、学生と教師は以下ができます：
-<br />1）ここにビデオパフォーマンスの単一ファイルをアップロードするか
-<br />2）ファイルをYouTubeにアップロードしてそのビデオにリンクする。高速応答のためにカメラを最低解像度に設定してください。デバイスで単一のビデオファイルを録画してここにアップロードしてください。さらに、教師は以下ができます：
-<br />3）一括アップロード用にSDカードに録画する。そのプロセスには「ビデオ管理」>>「一括アップロード」に移動してください。注意：この画面は「学生のビデオアップロードを許可」のデフォルトが「はい」に保たれている場合のみ学生に利用可能です。';
+<br />1) 動画プラットフォーム(YouTube、Vimeo、PeerTube系・Esup-Pod系インスタンス、Dailymotion、Opencast、Canal-U、Ubicast Nudgis など)にすでにある動画のリンクを貼り付ける。縦向き(Shorts形式)の動画にも対応しています。
+<br />2) デバイスから単一の動画ファイルをアップロードする。ファイルを小さくしアップロードを速くするため、カメラを最低解像度に設定してください。注意: オプション2と3は、「ビデオ提出」の「学生のビデオアップロードを許可」のデフォルトが「はい」に保たれ、サイト管理者が動画アップロードを無効にしていない場合のみ学生に利用可能です。また教師は「詳細オプション」内の「動画の一括アップロード」でSDカードから一括アップロードできます。
+<br />3) このデバイスのカメラで新しい動画を直接録画してアップロードする。';
 $string['uploadingvideonotice'] = 'ただいまアップロード中です。しばらくお待ちください';
 $string['uploadmessage'] = 'あなたのビデオファイルは500MBを超えています。低い解像度でビデオを撮り直すか、小さいファイルを再アップロードしてください。';
 $string['uploadmimetype'] = 'タイプ';

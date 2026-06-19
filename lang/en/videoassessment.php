@@ -47,8 +47,8 @@ $string['afterpeer'] = 'After - peer';
 $string['afterself'] = 'After - self';
 $string['afterteacher'] = 'After - teacher';
 $string['aftervideo'] = 'After video';
-$string['allowexternallinks'] = 'Allow external video links (e.g. YouTube)';
-$string['allowexternallinks_help'] = 'When enabled site-wide, activity admins may allow students and teachers to paste links to externally-hosted videos (YouTube, Vimeo, esup-portail/Pod or any other public URL).';
+$string['allowexternallinks'] = 'Allow external video links';
+$string['allowexternallinks_help'] = 'When enabled site-wide, activity admins may allow students and teachers to paste links to externally-hosted videos. Supported platforms include YouTube, Vimeo, PeerTube instances (such as Tubes), Esup-Pod, Dailymotion, Opencast, Canal-U and Ubicast Nudgis, plus any platform whose share dialog gives an embed link.';
 $string['allowstudentpeerselection'] = 'Allow students to select peers';
 $string['allowstudentpeerselection_help'] = 'If enabled, students can select peer partners by themselves.';
 $string['allowstudentupload'] = 'Students can upload videos';
@@ -61,8 +61,8 @@ $string['allowvideoupload'] = 'Allow video uploads';
 $string['allowvideoupload_help'] = 'If enabled, students and teachers can upload video files directly to the system.';
 $string['allowvideouploads'] = 'Allow video uploads';
 $string['allowvideouploads_help'] = 'When enabled site-wide, activity admins may allow students and teachers to upload video files directly to the activity.';
-$string['allowyoutube'] = 'Allow external video links (e.g. YouTube)';
-$string['allowyoutube_help'] = 'If enabled, students and teachers can paste a link to an externally-hosted video (YouTube, Vimeo, esup-portail/Pod or any other public URL) for assessment.';
+$string['allowyoutube'] = 'Allow external video links';
+$string['allowyoutube_help'] = 'If enabled, students and teachers can paste a link to an externally-hosted video for assessment. Supported platforms include YouTube, Vimeo, PeerTube instances (such as Tubes), Esup-Pod, Dailymotion, Opencast, Canal-U and Ubicast Nudgis, plus any platform whose share dialog gives an embed link. No per-server configuration is needed — pasting the link is enough.';
 $string['allparticipants'] = 'All participants';
 $string['allscores'] = '</span><span class="red">Self,</span> <span class="blue">Peer,</span> <span class="green">Teacher,</span> <span class="orange"> and Class</span> Scores';
 $string['assess'] = 'Assess';
@@ -391,7 +391,7 @@ $string['readyforuse'] = 'Ready for use';
 $string['reallydeletevideo'] = 'Are you sure you want to delete this video?';
 $string['reallyresetallpeers'] = 'This will reset peer assignments and re-assign randomly. Continue?';
 $string['recordnewvideo'] = 'Record New Video (max. length 2 minutes)';
-$string['recordnewvideo_help'] = 'Select "Insert External Video Link" to paste a URL to a video hosted on YouTube, Vimeo, esup-portail/Pod or any other public service (YouTube "Shorts" are supported). Select "Upload Video File" to upload a video file from your device. Select "Record New Video" to record directly with your device camera.';
+$string['recordnewvideo_help'] = 'Record a new video here and now, directly with this device\'s camera — no separate app or file is needed. When you choose this option the browser will ask for permission to use your camera and microphone; allow it, then use the record and stop controls that appear. Recordings are limited to two minutes, which keeps the file small and the upload fast. After you stop, the clip is uploaded and converted automatically. For the best result on a phone, hold it in landscape (horizontal) orientation.';
 $string['recordradios'] = 'Record New Video';
 $string['recordradios_help'] = 'Record New Video is for directly recording a video for assessment.
 This function accesses the camera on your computer or mobile phone and starts a video recording.
@@ -497,13 +497,13 @@ $string['upload'] = 'Upload video';
 $string['uploadedat'] = 'Uploaded at';
 $string['uploadedtime'] = 'Uploaded time';
 $string['uploadfile'] = 'Upload Video File';
-$string['uploadfile_help'] = 'There are two stages: Uploading the file, and then converting the file. The converting process compresses the file to 1/10th the size. Sometimes this takes a long time—over ten minutes. Please check if your camera is set on 4K, which is too high, and lower the resolution and lower the fps. VGA or 720hd, 30fps is better.';
+$string['uploadfile_help'] = 'Upload a video file already saved on your device — for example a clip recorded with your mobile phone camera or with a digital video camera, then transferred to this device. There are two stages: uploading the file, and then converting it. The converting process compresses the file to about 1/10th of its size and runs in the background, so you can leave the page while it finishes. If conversion is slow, your camera may be set to 4K, which is too high — lower the resolution and frame rate. VGA or 720p HD at 30fps works well.';
 $string['uploadfilename'] = 'Filename';
 $string['uploadfilesize'] = 'Size';
 $string['uploadingvideo'] = 'Upload / link video';
 $string['uploadingvideo_help'] = 'You can share your recorded performance for assessment with three methods. In this screen, students and teachers can:
-<br />1) Upload your file to YouTube or another hosting service and post a URL link to that video. Note: Youtube "Shorts" cannot be used.
-<br />2) Upload a single file of your video performance from your device. Set your camera to its lowest resolution for smaller file size and faster upload times. Note: options 2 and 3 are only available to students if the default for "Students can upload videos" under "Video submissions" in the Settings menu is kept at "Yes", and the site admin has not disabled video uploads. Additionally, teachers can bulk upload video files from an SD card in "Bulk upload videos" under "Advanced options" in the Settings menu.
+<br />1) Paste a link to a video already hosted on a video platform (YouTube, Vimeo, a PeerTube or Esup-Pod instance, Dailymotion, Opencast, Canal-U, Ubicast Nudgis, and more). Portrait "Shorts"-style videos are supported.
+<br />2) Upload a single video file from your device. Set your camera to its lowest resolution for a smaller file and a faster upload. Note: options 2 and 3 are only available to students if the default for "Students can upload videos" under "Video submissions" in the Settings menu is kept at "Yes", and the site admin has not disabled video uploads. Additionally, teachers can bulk upload video files from an SD card in "Bulk upload videos" under "Advanced options" in the Settings menu.
 <br />3) Record a new video directly using your device camera and upload it here.';
 $string['uploadingvideonotice'] = 'Uploading now, please wait a moment';
 $string['uploadmessage'] = 'Your video file is over 500MB. Please retake the video at a lower resolution or re-upload a smaller file';
