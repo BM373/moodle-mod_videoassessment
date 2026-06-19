@@ -431,7 +431,7 @@ final class video_embed_test extends \advanced_testcase {
      */
     public function test_default_allowlist_covers_named_platforms(): void {
         set_config('trustedembedhosts', video_embed::default_trusted_hosts(), 'videoassessment');
-        foreach ([
+        $namedhosts = [
             'www.youtube.com',
             'player.vimeo.com',
             'geo.dailymotion.com',
@@ -439,7 +439,8 @@ final class video_embed_test extends \advanced_testcase {
             'tubes.apps.education.fr',
             'pod.esup-portail.org',
             'exquisite.tube',
-        ] as $host) {
+        ];
+        foreach ($namedhosts as $host) {
             $this->assertTrue(
                 video_embed::host_is_trusted($host),
                 "The default allowlist should trust {$host}."
