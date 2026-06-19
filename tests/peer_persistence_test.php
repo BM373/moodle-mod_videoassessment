@@ -87,15 +87,13 @@ final class peer_persistence_test extends \advanced_testcase {
     }
 
     /**
-     * Invoke the private randomize_peer_assignments() production method.
+     * Invoke the randomize_peer_assignments() production method.
      *
      * @param va $va Activity wrapper.
      * @param string $peermode 'class' or 'group'.
      */
     private function randomize(va $va, string $peermode): void {
-        $reflect = new \ReflectionMethod($va, 'randomize_peer_assignments');
-        $reflect->setAccessible(true);
-        $reflect->invoke($va, $peermode);
+        $va->randomize_peer_assignments($peermode);
     }
 
     /**
@@ -277,6 +275,33 @@ final class peer_persistence_test extends \advanced_testcase {
             count($pairs),
             count(array_unique($pairs)),
             'No (userid, peerid) pair may be persisted twice.'
+        );
+    }
+
+    /**
+     * Static wiring guard: the activity-settings "quick setup" path in
+     * modedit.php must delegate to randomize_peer_assignments(), not
+     * keep its own inline loop. The old inline copy assigned peers by a
+     * bare submit-capability check (so a teacher with that capability
+     * was added as a peer) and deleted only the rows for users in the
+     * new mapping (so stale rows survived) — the exact bugs the unified
+     * method fixes.
+     *
+     * @coversNothing
+     */
+    public function test_modedit_quick_setup_delegates_to_unified_method(): void {
+        $source = file_get_contents(__DIR__ . '/../modedit.php');
+        $this->assertStringContainsString(
+            'randomize_peer_assignments(',
+            $source,
+            'modedit.php quick setup must call randomize_peer_assignments() '
+                . 'so it shares the student-role filter and full-table wipe.'
+        );
+        $this->assertStringNotContainsString(
+            "get_enrolled_users(\$context, 'mod/videoassessment:submit'",
+            $source,
+            'modedit.php must not build the peer pool from a bare '
+                . 'submit-capability check — that re-includes teachers.'
         );
     }
 }

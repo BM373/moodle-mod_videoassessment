@@ -158,28 +158,19 @@ if ($mform->is_cancelled()) {
     $url = new moodle_url("/course/modedit.php", ['update' => $fromform->coursemodule, 'return' => 1]);
     $isquicksetup = required_param('isquickSetup', PARAM_INT);
     if ($isquicksetup == 1) {
-        $users = get_enrolled_users($context, 'mod/videoassessment:submit', 0, 'u.id');
-        $userids = array_keys($users);
         if (empty($cm)) {
             $cm = get_coursemodule_from_instance('videoassessment', $fromform->id);
         }
+        // Item #5 follow-up (2026-06 feedback round): route the quick
+        // setup through the same code as the peers-page "Course" link
+        // so it gets the student-role filter and the full-table wipe.
+        // The old inline loop here used a bare submit-capability check
+        // (so a teacher with the submit capability was assigned as a
+        // peer) and only deleted rows for users in the new mapping (so
+        // stale rows survived) — the exact bugs fixed for the peers
+        // page would otherwise live on here.
         $va = new mod_videoassessment\va(context_module::instance($fromform->coursemodule), $cm, $course);
-        $mappings = $va->get_random_peers_for_users($userids, $fromform->usedpeers);
-
-        foreach ($mappings as $id => $peers) {
-            $DB->delete_records(
-                'videoassessment_peers',
-                ['videoassessment' => $fromform->instance, 'userid' => $id]
-            );
-
-            foreach ($peers as $peer) {
-                $row = new \stdClass();
-                $row->videoassessment = $fromform->instance;
-                $row->userid = $id;
-                $row->peerid = $peer;
-                $DB->insert_record('videoassessment_peers', $row);
-            }
-        }
+        $va->randomize_peer_assignments('course');
     }
     redirect($url);
     exit;

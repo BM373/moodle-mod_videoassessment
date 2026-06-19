@@ -1412,11 +1412,17 @@ class va {
      * see on the peers page, and (b) in group mode wiped a multi-group
      * student's first-group rows while processing their second group.
      *
+     * Public so the activity-settings "quick setup" path
+     * (mod/videoassessment/modedit.php) shares the exact same logic —
+     * student-role filtering and full-table wipe included — instead of
+     * its own divergent copy that re-introduced the teacher-inclusion
+     * and stale-row bugs.
+     *
      * @param string $peermode 'group' to assign within each course
      *                         group, anything else assigns across the
      *                         whole class.
      */
-    private function randomize_peer_assignments(string $peermode): void {
+    public function randomize_peer_assignments(string $peermode): void {
         global $DB;
 
         if ($peermode == 'group') {
