@@ -49,7 +49,7 @@ final class upload_help_strings_test extends \basic_testcase {
      */
     private function load_strings(string $lang): array {
         $string = [];
-        require __DIR__ . "/../lang/{$lang}/videoassessment.php";
+        require(__DIR__ . "/../lang/{$lang}/videoassessment.php");
         return $string;
     }
 

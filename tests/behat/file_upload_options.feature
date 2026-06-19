@@ -10,10 +10,10 @@ Feature: Site-admin File Uploads / Links three-way option (#2)
   Scenario: All three independent site-level upload toggles are visible
     Given I log in as "admin"
     When I navigate to "Plugins > Activity modules > Video Assessment" in site administration
-    Then I should see "Allow external video links (e.g. YouTube)"
+    Then I should see "Allow external video links"
     And I should see "Allow video uploads"
     And I should see "Allow video recording"
-    And the field "Allow external video links (e.g. YouTube)" matches value "1"
+    And the field "Allow external video links" matches value "1"
     And the field "Allow video uploads" matches value "1"
     And the field "Allow video recording" matches value "1"
 
@@ -34,5 +34,5 @@ Feature: Site-admin File Uploads / Links three-way option (#2)
       | videoassessment | Speaking task | C1     | va1      |
     When I am on the "Speaking task" "videoassessment activity editing" page logged in as teacher1
     Then the "Allow video uploads" "field" should be disabled
-    And the "Allow external video links (e.g. YouTube)" "field" should be enabled
+    And the "Allow external video links" "field" should be enabled
     And the "Allow video recording" "field" should be enabled
