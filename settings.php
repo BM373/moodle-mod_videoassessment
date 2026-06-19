@@ -218,4 +218,22 @@ if ($ADMIN->fulltree) {
             1
         )
     );
+    // Security: external links are turned into <iframe> embeds that
+    // teachers and peers load while grading. The fixed-host platforms
+    // (YouTube / Vimeo / Dailymotion) always emit a known player host,
+    // but the self-hostable platforms (PeerTube / Esup-Pod / Opencast)
+    // and the generic share-link pass-through reflect the submitter's
+    // host into the iframe. This allowlist gates those so a learner
+    // cannot embed a phishing / clickjacking page; unlisted hosts fall
+    // back to a plain link. Add your institution's own video-server
+    // hosts here.
+    $settings->add(
+        new admin_setting_configtextarea(
+            'videoassessment/trustedembedhosts',
+            new lang_string('trustedembedhosts', 'videoassessment'),
+            new lang_string('trustedembedhosts_help', 'videoassessment'),
+            \mod_videoassessment\video_embed::default_trusted_hosts(),
+            PARAM_RAW
+        )
+    );
 }

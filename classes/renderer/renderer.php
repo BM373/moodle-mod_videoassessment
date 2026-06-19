@@ -217,9 +217,23 @@ class renderer extends plugin_renderer_base {
                         'width' => $iframewidth,
                         'height' => $iframeheight,
                         'frameborder' => 0,
-                        'allow' => 'accelerometer; autoplay; clipboard-write; encrypted-media; '
-                            . 'gyroscope; picture-in-picture; web-share',
-                        'referrerpolicy' => 'strict-origin-when-cross-origin',
+                        // Grant only the feature permissions a video
+                        // player needs. Clipboard and cross-document
+                        // sharing permissions are withheld as they aid
+                        // phishing and are not needed for playback.
+                        'allow' => 'accelerometer; autoplay; encrypted-media; '
+                            . 'gyroscope; picture-in-picture; fullscreen',
+                        // Sandbox the embed: an external link is
+                        // ultimately user-supplied, so stop a hostile
+                        // page from navigating the parent window,
+                        // submitting a phishing form, opening pop-ups
+                        // or showing modal dialogs. allow-scripts +
+                        // allow-same-origin are what the players need;
+                        // allow-forms / allow-top-navigation /
+                        // allow-popups / allow-modals are withheld.
+                        'sandbox' => 'allow-scripts allow-same-origin allow-presentation',
+                        // Do not leak the Moodle page URL to the embed.
+                        'referrerpolicy' => 'no-referrer',
                         'allowfullscreen' => 'allowfullscreen',
                         'class' => 'mod-videoassessment-youtube-embed'
                             . ($embed['shorts'] ? ' shorts' : ''),

@@ -36,6 +36,29 @@ namespace mod_videoassessment;
  * decision so the renderer (which is hard to unit test) stays thin.
  */
 final class video_embed_test extends \advanced_testcase {
+    /**
+     * Trust every host the resolution-matrix tests use, so those tests
+     * exercise the URL -> embed-src logic independently of the
+     * security allowlist (which has its own dedicated tests below).
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+        set_config('trustedembedhosts', implode("\n", [
+            'youtube.com',
+            'vimeo.com',
+            'dailymotion.com',
+            'dai.ly',
+            'canal-u.tv',
+            'tubes.apps.education.fr',
+            'pod.esup-portail.org',
+            'exquisite.tube',
+            'univ.fr',
+            'ubicast.tv',
+            'example.edu',
+        ]), 'videoassessment');
+    }
+
     // Tests for the vimeo_url helper.
 
     /**
@@ -330,6 +353,151 @@ final class video_embed_test extends \advanced_testcase {
 
         $vimeo = video_embed::resolve('https://vimeo.com/123456789', false);
         $this->assertSame('vimeo', $vimeo['provider']);
+    }
+
+    // Tests for the trusted-host security allowlist.
+
+    /**
+     * A host-agnostic embed (PeerTube / Esup-Pod / Opencast / generic)
+     * whose host is NOT on the allowlist must resolve to null, so a
+     * learner cannot turn the assess screen into an iframe pointing at
+     * an arbitrary (phishing / clickjacking) host. The link then
+     * degrades to filter_mediaplugin (a plain link).
+     *
+     * @covers \mod_videoassessment\video_embed::resolve
+     * @covers \mod_videoassessment\video_embed::host_is_trusted
+     */
+    public function test_untrusted_host_is_rejected(): void {
+        set_config('trustedembedhosts', "tubes.apps.education.fr", 'videoassessment');
+
+        // PeerTube on an untrusted host: rejected.
+        $this->assertNull(
+            video_embed::resolve('https://evil.example.com/w/abcdef', false),
+            'A PeerTube link on a non-allowlisted host must not embed.'
+        );
+        // Generic /embed/ pass-through on an untrusted host: rejected —
+        // this is the broadest, most dangerous matcher.
+        $this->assertNull(
+            video_embed::resolve('https://phish.example.com/embed/login', false),
+            'A generic embed link on a non-allowlisted host must not embed.'
+        );
+        // The one allowlisted host still works.
+        $ok = video_embed::resolve('https://tubes.apps.education.fr/w/abcdef', false);
+        $this->assertSame('peertube', $ok['provider']);
+    }
+
+    /**
+     * An allowlist entry also covers sub-domains, but only on a dotted
+     * boundary, so "youtube.com" must never trust "evilyoutube.com".
+     *
+     * @covers \mod_videoassessment\video_embed::host_is_trusted
+     */
+    public function test_host_is_trusted_boundaries(): void {
+        set_config('trustedembedhosts', "univ.fr\n# a comment line\n\npod.esup-portail.org", 'videoassessment');
+
+        $this->assertTrue(video_embed::host_is_trusted('univ.fr'));
+        $this->assertTrue(video_embed::host_is_trusted('media.univ.fr'));
+        $this->assertTrue(video_embed::host_is_trusted('MEDIA.UNIV.FR'), 'matching is case-insensitive');
+        $this->assertTrue(video_embed::host_is_trusted('pod.esup-portail.org'));
+
+        $this->assertFalse(video_embed::host_is_trusted('univ.fr.evil.com'));
+        $this->assertFalse(video_embed::host_is_trusted('notuniv.fr'), 'suffix must break on a dot');
+        $this->assertFalse(video_embed::host_is_trusted('evilunivxfr'));
+        $this->assertFalse(video_embed::host_is_trusted(''));
+    }
+
+    /**
+     * An empty / unset allowlist trusts nothing, so host-agnostic
+     * embeds never render (fail closed).
+     *
+     * @covers \mod_videoassessment\video_embed::host_is_trusted
+     */
+    public function test_empty_allowlist_trusts_nothing(): void {
+        unset_config('trustedembedhosts', 'videoassessment');
+        $this->assertFalse(video_embed::host_is_trusted('tubes.apps.education.fr'));
+        $this->assertNull(
+            video_embed::resolve('https://tubes.apps.education.fr/w/abcdef', false),
+            'With no allowlist configured, even a real PeerTube host must not embed.'
+        );
+    }
+
+    /**
+     * The shipped default allowlist must already cover every public
+     * platform named in the feature request, so they work out of the
+     * box; only self-hosted instances need an admin entry.
+     *
+     * @covers \mod_videoassessment\video_embed::default_trusted_hosts
+     * @covers \mod_videoassessment\video_embed::host_is_trusted
+     */
+    public function test_default_allowlist_covers_named_platforms(): void {
+        set_config('trustedembedhosts', video_embed::default_trusted_hosts(), 'videoassessment');
+        foreach ([
+            'www.youtube.com',
+            'player.vimeo.com',
+            'geo.dailymotion.com',
+            'www.canal-u.tv',
+            'tubes.apps.education.fr',
+            'pod.esup-portail.org',
+            'exquisite.tube',
+        ] as $host) {
+            $this->assertTrue(
+                video_embed::host_is_trusted($host),
+                "The default allowlist should trust {$host}."
+            );
+        }
+        // A random unrelated host is still not trusted by default.
+        $this->assertFalse(video_embed::host_is_trusted('evil.example.com'));
+    }
+
+    /**
+     * Fixed-host providers (YouTube / Vimeo / Dailymotion) emit a known
+     * player host and must resolve even when the allowlist is empty —
+     * the gate applies only to the host-agnostic providers.
+     *
+     * @covers \mod_videoassessment\video_embed::resolve
+     */
+    public function test_fixed_host_providers_bypass_allowlist(): void {
+        unset_config('trustedembedhosts', 'videoassessment');
+        $this->assertSame(
+            'youtube',
+            video_embed::resolve('https://www.youtube.com/watch?v=dQw4w9WgXcQ', false)['provider']
+        );
+        $this->assertSame(
+            'vimeo',
+            video_embed::resolve('https://vimeo.com/123456789', false)['provider']
+        );
+        $this->assertSame(
+            'dailymotion',
+            video_embed::resolve('https://dai.ly/x9ekanc', false)['provider']
+        );
+    }
+
+    /**
+     * Static guard: the renderer must sandbox the external embed iframe
+     * and not leak the referrer. A regression here re-opens the
+     * clickjacking / phishing surface the allowlist narrows.
+     *
+     * @coversNothing
+     */
+    public function test_embed_iframe_is_hardened(): void {
+        $renderer = file_get_contents(__DIR__ . '/../classes/renderer/renderer.php');
+        $this->assertStringContainsString(
+            "'sandbox' => 'allow-scripts allow-same-origin allow-presentation'",
+            $renderer,
+            'The external embed iframe must be sandboxed without '
+                . 'allow-forms / allow-top-navigation / allow-popups.'
+        );
+        $this->assertStringContainsString(
+            "'referrerpolicy' => 'no-referrer'",
+            $renderer,
+            'The external embed iframe must not leak the Moodle page URL.'
+        );
+        $this->assertStringNotContainsString(
+            'clipboard-write',
+            $renderer,
+            'clipboard-write is a phishing aid and is not needed for '
+                . 'video playback.'
+        );
     }
 
     // Tests for video_embed::gdpr_enabled.

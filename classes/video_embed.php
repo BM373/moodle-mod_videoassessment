@@ -85,7 +85,112 @@ final class video_embed {
             ?? self::resolve_opencast($url)
             ?? self::resolve_generic_embed($url);
 
+        if ($resolved === null) {
+            return null;
+        }
+
+        // Security gate: the host-agnostic providers reflect the user-
+        // supplied host straight into an iframe src that other users
+        // (teachers grading, peer reviewers) then load. A student with
+        // the submit capability could otherwise embed a phishing or
+        // clickjacking page on the assess screen. Require the host to
+        // be on the admin trusted-host allowlist; an untrusted host
+        // resolves to null so the link degrades to Moodle's
+        // filter_mediaplugin (a plain link, never an arbitrary iframe).
+        // The fixed-host providers (youtube / vimeo / dailymotion)
+        // always emit a known-safe player host, so they are exempt.
+        $hostagnostic = ['peertube', 'esuppod', 'opencast', 'embed'];
+        if (in_array($resolved['provider'], $hostagnostic, true)) {
+            $host = (string) parse_url($resolved['src'], PHP_URL_HOST);
+            if (!self::host_is_trusted($host)) {
+                return null;
+            }
+        }
+
         return $resolved;
+    }
+
+    /**
+     * Decide whether a host is on the admin trusted-embed allowlist.
+     *
+     * The allowlist is the `trustedembedhosts` site setting: one host
+     * per line (blank lines and `#` comments ignored). A host matches
+     * an entry when it equals the entry or is a sub-domain of it, so
+     * `media.univ.fr` matches an entry of `univ.fr`. Matching is
+     * case-insensitive. An empty / unset list trusts nothing (the
+     * host-agnostic providers then never embed) — the shipped default
+     * covers the public platforms, so admins only edit it to add their
+     * own self-hosted instances.
+     *
+     * @param string $host Host component of the candidate iframe src.
+     * @return bool
+     */
+    public static function host_is_trusted(string $host): bool {
+        $host = strtolower(trim($host));
+        if ($host === '') {
+            return false;
+        }
+        $raw = (string) get_config('videoassessment', 'trustedembedhosts');
+        foreach (preg_split('~\R~', $raw) as $line) {
+            $entry = strtolower(trim($line));
+            if ($entry === '' || $entry[0] === '#') {
+                continue;
+            }
+            // Tolerate entries pasted as full URLs or with a leading dot.
+            if (strpos($entry, '//') !== false) {
+                $entry = (string) parse_url($entry, PHP_URL_HOST);
+            }
+            $entry = ltrim($entry, '.');
+            if ($entry === '') {
+                continue;
+            }
+            if ($host === $entry || self::str_ends_with_suffix($host, '.' . $entry)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Suffix test (str_ends_with is PHP 8.0+, but kept explicit so the
+     * dotted-boundary intent is obvious and host "evilyoutube.com"
+     * never matches a ".youtube.com" suffix by accident).
+     *
+     * @param string $haystack
+     * @param string $needle
+     * @return bool
+     */
+    private static function str_ends_with_suffix(string $haystack, string $needle): bool {
+        $len = strlen($needle);
+        if ($len === 0 || strlen($haystack) < $len) {
+            return false;
+        }
+        return substr($haystack, -$len) === $needle;
+    }
+
+    /**
+     * The shipped default trusted-embed host list: the public platforms
+     * named in the 2026-06 feature request. Self-hosted PeerTube /
+     * Esup-Pod / Opencast instances are added by the site admin.
+     *
+     * @return string Newline-separated host list for the setting default.
+     */
+    public static function default_trusted_hosts(): string {
+        return implode("\n", [
+            '# One host per line. A host also matches its sub-domains',
+            '# (an entry of "univ.fr" trusts "media.univ.fr"). Add your',
+            '# institution\'s PeerTube / Esup-Pod / Opencast host here.',
+            'youtube.com',
+            'youtube-nocookie.com',
+            'youtu.be',
+            'vimeo.com',
+            'dailymotion.com',
+            'dai.ly',
+            'canal-u.tv',
+            'tubes.apps.education.fr',
+            'pod.esup-portail.org',
+            'exquisite.tube',
+        ]);
     }
 
     /**
