@@ -31,24 +31,33 @@ define([], function() {
     /**
      * Build the three-star icon used in place of the core pix icon.
      *
+     * Deliberately does NOT use the core `.icon` class: that class
+     * constrains the wrapper to a 16px box, which would force the three
+     * (larger) stars to wrap onto separate lines and overlap the label.
+     * Instead the wrapper is a full-width block that holds the stars in
+     * a single centred, non-wrapping row sitting above the label, the
+     * same way the core pix icons sit above their text.
+     *
      * @returns {HTMLElement}
      */
     function buildStars() {
         var wrap = document.createElement('span');
-        wrap.className = 'icon vassmt-finish-rubric-stars';
-        // Match the block layout / centring of the core action icons.
+        wrap.className = 'vassmt-finish-rubric-stars';
         wrap.style.display = 'block';
+        wrap.style.width = '100%';
         wrap.style.textAlign = 'center';
+        wrap.style.whiteSpace = 'nowrap';
         wrap.style.lineHeight = '1';
-        wrap.style.margin = '0 auto';
+        wrap.style.marginBottom = '0.6rem';
         for (var i = 0; i < 3; i++) {
             var star = document.createElement('i');
             star.className = 'fa fa-star';
             star.setAttribute('aria-hidden', 'true');
+            star.style.display = 'inline-block';
             star.style.color = STAR_COLOUR;
-            star.style.fontSize = '1.6rem';
+            star.style.fontSize = '2rem';
             // Small gap between the stars.
-            star.style.margin = '0 0.08em';
+            star.style.margin = '0 0.1em';
             wrap.appendChild(star);
         }
         return wrap;
