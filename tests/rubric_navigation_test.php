@@ -254,4 +254,126 @@ final class rubric_navigation_test extends \advanced_testcase {
         $params = $url->params();
         $this->assertSame('2147483647', (string) $params['id']);
     }
+
+    // Advanced-grading management page (the Edit / Delete action boxes).
+
+    /**
+     * The manage-page matcher fires only on the manage pagetype, for a
+     * videoassessment module context.
+     *
+     * @covers \mod_videoassessment\rubric_navigation::is_grading_manage_pagetype
+     * @covers \mod_videoassessment\rubric_navigation::videoassessment_cmid_for_manage_page
+     */
+    public function test_manage_page_matcher_happy_path(): void {
+        $this->resetAfterTest();
+        ['cm' => $cm, 'context' => $context] = $this->make_va_activity();
+
+        $this->assertTrue(rubric_navigation::is_grading_manage_pagetype('grade-grading-manage'));
+        $this->assertSame(
+            (int) $cm->id,
+            rubric_navigation::videoassessment_cmid_for_manage_page('grade-grading-manage', $context)
+        );
+    }
+
+    /**
+     * The manage matcher must not fire on the rubric edit pagetype, on
+     * a course-level context, or on a non-videoassessment module — the
+     * action box belongs only on our activity's manage page.
+     *
+     * @covers \mod_videoassessment\rubric_navigation::videoassessment_cmid_for_manage_page
+     */
+    public function test_manage_page_matcher_negatives(): void {
+        $this->resetAfterTest();
+        ['context' => $context] = $this->make_va_activity();
+
+        // Wrong pagetype (the edit form) -> null.
+        $this->assertNull(
+            rubric_navigation::videoassessment_cmid_for_manage_page('grade-grading-form-rubric-edit', $context)
+        );
+
+        // Course-level context -> null.
+        $course = $this->getDataGenerator()->create_course();
+        $this->assertNull(
+            rubric_navigation::videoassessment_cmid_for_manage_page(
+                'grade-grading-manage',
+                \context_course::instance($course->id)
+            )
+        );
+
+        // Null context -> null (no TypeError).
+        $this->assertNull(
+            rubric_navigation::videoassessment_cmid_for_manage_page('grade-grading-manage', null)
+        );
+
+        // A different activity (mod_assign) -> null.
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $assigncm = get_coursemodule_from_instance('assign', $assign->id, $course->id, false, MUST_EXIST);
+        $this->assertNull(
+            rubric_navigation::videoassessment_cmid_for_manage_page(
+                'grade-grading-manage',
+                \context_module::instance($assigncm->id)
+            )
+        );
+    }
+
+    /**
+     * The management-page action box links to the plain activity view
+     * (view.php?id=cmid, no action), as specified.
+     *
+     * @covers \mod_videoassessment\rubric_navigation::activity_view_url
+     */
+    public function test_activity_view_url(): void {
+        $url = rubric_navigation::activity_view_url(2);
+        $this->assertStringContainsString('/mod/videoassessment/view.php', $url->out_as_local_url(false));
+        $params = $url->params();
+        $this->assertSame('2', (string) $params['id']);
+        $this->assertArrayNotHasKey(
+            'action',
+            $params,
+            'The manage-page box goes to the plain activity view, not the assess action.'
+        );
+    }
+
+    /**
+     * Static wiring guards: the hook injects the manage-page AMD module
+     * with the plain-view URL + short label, and the AMD module builds
+     * a three-star action box inserted into the core .actions row.
+     *
+     * @coversNothing
+     */
+    public function test_manage_button_wiring(): void {
+        $hook = file_get_contents(__DIR__ . '/../classes/hook_callbacks.php');
+        $this->assertStringContainsString(
+            "'mod_videoassessment/finish_rubric_manage_button'",
+            $hook,
+            'The hook must queue the manage-page AMD module.'
+        );
+        $this->assertStringContainsString(
+            'activity_view_url(',
+            $hook,
+            'The manage box must navigate to the plain activity view.'
+        );
+        $this->assertStringContainsString(
+            "get_string('finishmakingrubricaction'",
+            $hook,
+            'The manage box must use the short "Finish making rubric" label.'
+        );
+
+        $js = file_get_contents(__DIR__ . '/../amd/src/finish_rubric_manage_button.js');
+        $this->assertStringContainsString(
+            "querySelector('#region-main .actions')",
+            $js,
+            'The box must be inserted into the core grading .actions row.'
+        );
+        $this->assertStringContainsString(
+            'fa fa-star',
+            $js,
+            'The icon must be three stars.'
+        );
+        $this->assertStringContainsString(
+            'action btn btn-lg',
+            $js,
+            'The box must reuse the core action-box classes so the card style matches.'
+        );
+    }
 }

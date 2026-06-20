@@ -164,6 +164,7 @@ $string['fileuploadlinks'] = 'ファイルアップロード / リンク';
 $string['finalscore'] = '最終スコア';
 $string['finalscorefortable'] = '最終スコア';
 $string['finishmakingrubric'] = 'ルーブリック編集を終えて評価画面へ';
+$string['finishmakingrubricaction'] = 'ルーブリック作成を完了する';
 $string['firstassess'] = '【初回評価】';
 $string['firstassessmentbystudent'] = '学生による初回評価';
 $string['firstassessmentbyteacher'] = '教師による初回評価';

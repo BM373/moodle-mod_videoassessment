@@ -48,18 +48,32 @@ class hook_callbacks {
         \core\hook\output\before_footer_html_generation $hook
     ): void {
         global $PAGE;
-        $cmid = rubric_navigation::videoassessment_cmid_from_page(
-            (string) $PAGE->pagetype,
-            $PAGE->context
-        );
-        if ($cmid === null) {
+        $pagetype = (string) $PAGE->pagetype;
+
+        // Rubric edit form: the "Finish making rubric -> Go to Assess"
+        // button at the top of the form (item #12).
+        $cmid = rubric_navigation::videoassessment_cmid_from_page($pagetype, $PAGE->context);
+        if ($cmid !== null) {
+            $assessurl = rubric_navigation::finish_rubric_url($cmid);
+            $PAGE->requires->js_call_amd(
+                'mod_videoassessment/finish_rubric_button',
+                'init',
+                [$assessurl->out(false), get_string('finishmakingrubric', 'mod_videoassessment')]
+            );
             return;
         }
-        $assessurl = rubric_navigation::finish_rubric_url($cmid);
-        $PAGE->requires->js_call_amd(
-            'mod_videoassessment/finish_rubric_button',
-            'init',
-            [$assessurl->out(false), get_string('finishmakingrubric', 'mod_videoassessment')]
-        );
+
+        // Advanced-grading management page: a "Finish making rubric"
+        // action box alongside the core Edit / Delete boxes, taking the
+        // teacher straight back to the activity (2026-06 request).
+        $managecmid = rubric_navigation::videoassessment_cmid_for_manage_page($pagetype, $PAGE->context);
+        if ($managecmid !== null) {
+            $viewurl = rubric_navigation::activity_view_url($managecmid);
+            $PAGE->requires->js_call_amd(
+                'mod_videoassessment/finish_rubric_manage_button',
+                'init',
+                [$viewurl->out(false), get_string('finishmakingrubricaction', 'mod_videoassessment')]
+            );
+        }
     }
 }

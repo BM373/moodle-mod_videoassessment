@@ -55,6 +55,15 @@ final class rubric_navigation {
     const RUBRIC_EDIT_PAGETYPE = 'grade-grading-form-rubric-edit';
 
     /**
+     * The page-type Moodle assigns to the advanced-grading management
+     * page (`/grade/grading/manage.php`), where the rubric Edit /
+     * Delete action boxes live.
+     *
+     * @var string
+     */
+    const GRADING_MANAGE_PAGETYPE = 'grade-grading-manage';
+
+    /**
      * Decide whether a pagetype identifies the rubric edit form.
      *
      * @param string $pagetype Value of `$PAGE->pagetype`.
@@ -62,6 +71,36 @@ final class rubric_navigation {
      */
     public static function is_rubric_edit_pagetype(string $pagetype): bool {
         return $pagetype === self::RUBRIC_EDIT_PAGETYPE;
+    }
+
+    /**
+     * Decide whether a pagetype identifies the advanced-grading
+     * management page.
+     *
+     * @param string $pagetype Value of `$PAGE->pagetype`.
+     * @return bool
+     */
+    public static function is_grading_manage_pagetype(string $pagetype): bool {
+        return $pagetype === self::GRADING_MANAGE_PAGETYPE;
+    }
+
+    /**
+     * Resolve a course-module context to the cmid of the
+     * videoassessment activity that owns it, or null.
+     *
+     * @param \context|null $context Page context.
+     * @return int|null cmid, or null when the context is not a
+     *                  videoassessment course-module context.
+     */
+    private static function videoassessment_cmid_from_context(?\context $context): ?int {
+        if (!$context || $context->contextlevel !== CONTEXT_MODULE) {
+            return null;
+        }
+        $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, IGNORE_MISSING);
+        if (!$cm || $cm->modname !== 'videoassessment') {
+            return null;
+        }
+        return (int) $cm->id;
     }
 
     /**
@@ -90,14 +129,24 @@ final class rubric_navigation {
         if (!self::is_rubric_edit_pagetype($pagetype)) {
             return null;
         }
-        if (!$context || $context->contextlevel !== CONTEXT_MODULE) {
+        return self::videoassessment_cmid_from_context($context);
+    }
+
+    /**
+     * Same as {@see videoassessment_cmid_from_page()} but for the
+     * advanced-grading management page (where the Edit / Delete action
+     * boxes are), so the "Finish making rubric" action box can be added
+     * alongside them.
+     *
+     * @param string $pagetype Value of `$PAGE->pagetype`.
+     * @param \context|null $context Value of `$PAGE->context`.
+     * @return int|null cmid, or null when the box must not be injected.
+     */
+    public static function videoassessment_cmid_for_manage_page(string $pagetype, ?\context $context): ?int {
+        if (!self::is_grading_manage_pagetype($pagetype)) {
             return null;
         }
-        $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, IGNORE_MISSING);
-        if (!$cm || $cm->modname !== 'videoassessment') {
-            return null;
-        }
-        return (int) $cm->id;
+        return self::videoassessment_cmid_from_context($context);
     }
 
     /**
@@ -111,5 +160,17 @@ final class rubric_navigation {
             '/mod/videoassessment/view.php',
             ['id' => $cmid, 'action' => 'assess']
         );
+    }
+
+    /**
+     * Build the URL of the activity's main view page for a given
+     * course-module id (no action), used by the management-page
+     * "Finish making rubric" action box.
+     *
+     * @param int $cmid Course-module id of the videoassessment activity.
+     * @return \moodle_url
+     */
+    public static function activity_view_url(int $cmid): \moodle_url {
+        return new \moodle_url('/mod/videoassessment/view.php', ['id' => $cmid]);
     }
 }
