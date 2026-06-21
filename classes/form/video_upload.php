@@ -91,8 +91,47 @@ class video_upload extends \moodleform {
 
         // YouTube URL option (first).
         if ($allowyoutube) {
+            global $PAGE;
             $mform->addElement('radio', 'upload', get_string('uploadyoutube', 'videoassessment'), '', 1);
             $mform->addHelpButton('upload', 'uploadyoutube', 'videoassessment');
+
+            // Service selector (2026-06 request). It does not change how
+            // the link is resolved (the backend auto-detects the
+            // service); it just shows an example of the video URL to
+            // paste, because users pasted platform home pages instead of
+            // a real video link.
+            $services = [
+                'youtube' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'vimeo' => 'https://vimeo.com/123456789',
+                'peertube' => 'https://tubes.apps.education.fr/w/abc123',
+                'esuppod' => 'https://pod.esup-portail.org/video/0001-my-video/',
+                'dailymotion' => 'https://www.dailymotion.com/video/x9abcde',
+                'opencast' => 'https://opencast.example.org/play/abc-123',
+                'other' => '',
+            ];
+            $options = '';
+            foreach ($services as $key => $example) {
+                $options .= \html_writer::tag(
+                    'option',
+                    get_string('videoservice_' . $key, 'videoassessment'),
+                    ['value' => $key, 'data-example' => $example]
+                );
+            }
+            $selecthtml = \html_writer::tag(
+                'label',
+                get_string('selectvideoservice', 'videoassessment'),
+                ['for' => 'id_videoservice', 'class' => 'd-block fw-bold']
+            )
+                . \html_writer::tag('select', $options, [
+                    'id' => 'id_videoservice',
+                    'class' => 'custom-select form-select mb-1',
+                ])
+                . \html_writer::tag('div', '', [
+                    'id' => 'videoservice-hint',
+                    'class' => 'form-text text-muted mb-2',
+                ]);
+            $mform->addElement('html', $selecthtml);
+            $PAGE->requires->js_call_amd('mod_videoassessment/external_link_service', 'init');
 
             if ($mobile) {
                 $mform->addElement('text', 'mobileurl', '', ['size' => 40]);

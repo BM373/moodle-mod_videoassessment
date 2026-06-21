@@ -181,4 +181,42 @@ final class upload_help_strings_test extends \basic_testcase {
             );
         }
     }
+
+    /**
+     * The external-link "video service" selector (2026-06 request) must
+     * be wired: the form renders the select + hint and loads the JS,
+     * and every service option has a label string in both packs.
+     *
+     * @coversNothing
+     */
+    public function test_video_service_selector_wiring(): void {
+        $form = file_get_contents(__DIR__ . '/../classes/form/video_upload.php');
+        $this->assertStringContainsString(
+            "id' => 'id_videoservice'",
+            $form,
+            'The upload form must render the video-service selector.'
+        );
+        $this->assertStringContainsString(
+            "'mod_videoassessment/external_link_service'",
+            $form,
+            'The upload form must load the service-selector JS.'
+        );
+
+        $en = $this->load_strings('en');
+        $ja = $this->load_strings('ja');
+        $keys = [
+            'selectvideoservice',
+            'videoservicehint',
+            'videoservice_youtube',
+            'videoservice_peertube',
+            'videoservice_esuppod',
+            'videoservice_opencast',
+            'videoservice_dailymotion',
+            'videoservice_other',
+        ];
+        foreach ($keys as $key) {
+            $this->assertArrayHasKey($key, $en, "EN must define '{$key}'.");
+            $this->assertArrayHasKey($key, $ja, "JA must define '{$key}'.");
+        }
+    }
 }
