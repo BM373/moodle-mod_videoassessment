@@ -475,24 +475,50 @@ final class video_embed_test extends \advanced_testcase {
 
     /**
      * Static guard: the renderer must sandbox the external embed iframe
-     * and not leak the referrer. A regression here re-opens the
-     * clickjacking / phishing surface the allowlist narrows.
+     * to block the meaningful in-frame attacks (form POST, parent
+     * navigation, modals) while still granting what real video players
+     * need to play (popups + an origin-only referrer). A regression
+     * here either re-opens the phishing surface or breaks playback.
      *
      * @coversNothing
      */
     public function test_embed_iframe_is_hardened(): void {
         $renderer = file_get_contents(__DIR__ . '/../classes/renderer/renderer.php');
         $this->assertStringContainsString(
-            "'sandbox' => 'allow-scripts allow-same-origin allow-presentation'",
+            "'sandbox' =>",
             $renderer,
-            'The external embed iframe must be sandboxed without '
-                . 'allow-forms / allow-top-navigation / allow-popups.'
+            'The external embed iframe must declare a sandbox.'
         );
+
+        // The dangerous sandbox tokens must NOT be granted (these
+        // strings only appear in the sandbox attribute).
+        foreach (['allow-forms', 'allow-top-navigation', 'allow-modals'] as $forbidden) {
+            $this->assertStringNotContainsString(
+                $forbidden,
+                $renderer,
+                "The embed sandbox must not grant {$forbidden}."
+            );
+        }
+        // Playback needs these.
+        foreach (['allow-scripts', 'allow-same-origin', 'allow-popups'] as $needed) {
+            $this->assertStringContainsString(
+                $needed,
+                $renderer,
+                "The embed sandbox must grant {$needed} for the player to work."
+            );
+        }
+
+        // The referrer must carry the origin (YouTube needs it to verify
+        // the embedding domain) but not the full page URL: no-referrer
+        // breaks YouTube (error 153), unsafe-url leaks the student id.
         $this->assertStringContainsString(
-            "'referrerpolicy' => 'no-referrer'",
+            "'referrerpolicy' => 'strict-origin-when-cross-origin'",
             $renderer,
-            'The external embed iframe must not leak the Moodle page URL.'
+            'The embed must send an origin-only referrer (no-referrer '
+                . 'breaks YouTube embedding; the full URL would leak the '
+                . 'student id).'
         );
+
         $this->assertStringNotContainsString(
             'clipboard-write',
             $renderer,

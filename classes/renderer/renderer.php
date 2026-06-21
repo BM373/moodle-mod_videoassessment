@@ -224,16 +224,26 @@ class renderer extends plugin_renderer_base {
                         'allow' => 'accelerometer; autoplay; encrypted-media; '
                             . 'gyroscope; picture-in-picture; fullscreen',
                         // Sandbox the embed: an external link is
-                        // ultimately user-supplied, so stop a hostile
-                        // page from navigating the parent window,
-                        // submitting a phishing form, opening pop-ups
-                        // or showing modal dialogs. allow-scripts +
-                        // allow-same-origin are what the players need;
-                        // allow-forms / allow-top-navigation /
-                        // allow-popups / allow-modals are withheld.
-                        'sandbox' => 'allow-scripts allow-same-origin allow-presentation',
-                        // Do not leak the Moodle page URL to the embed.
-                        'referrerpolicy' => 'no-referrer',
+                        // ultimately user-supplied, so the meaningful
+                        // in-frame attacks are withheld -- the embed
+                        // cannot submit a form (phishing), navigate the
+                        // parent window (clickjacking) or pop a modal
+                        // dialog, because those grants are simply not
+                        // listed below. Popups ARE granted because real
+                        // players need them: YouTube's "Watch on
+                        // YouTube" / share controls open a new window
+                        // and, without the grant, the player refuses to
+                        // play inline. The host allowlist in
+                        // video_embed already restricts embeds to
+                        // trusted hosts, so a popup is a low-risk vector.
+                        'sandbox' => 'allow-scripts allow-same-origin allow-presentation '
+                            . 'allow-popups allow-popups-to-escape-sandbox',
+                        // Send only the site origin (not the full page
+                        // URL with the student id) to the embed.
+                        // YouTube needs at least the origin to verify
+                        // the embedding domain -- no-referrer triggered
+                        // its "video player configuration" error 153.
+                        'referrerpolicy' => 'strict-origin-when-cross-origin',
                         'allowfullscreen' => 'allowfullscreen',
                         'class' => 'mod-videoassessment-youtube-embed'
                             . ($embed['shorts'] ? ' shorts' : ''),
