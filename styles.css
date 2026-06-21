@@ -501,3 +501,29 @@ body.dragging * {
     --bs-text-opacity: 1;
     color: white;
 }
+
+/* Item (2026-06): keep a recorded feedback video inside its container.
+   Moodle's videojs media filter wraps the player in a div with an
+   inline max-width:640px and can size the player to the video's native
+   width, which overflows the narrow "show all comments" modal (and a
+   narrow report column) on a phone. Cap the player to the available
+   width so it fits, keeping the aspect ratio. */
+.mobile-submissioncomment .mediaplugin,
+.mobile-submissioncomment .mediaplugin > div,
+.mobile-submissioncomment .video-js,
+.submissioncomment .mediaplugin,
+.submissioncomment .mediaplugin > div,
+.submissioncomment .video-js {
+    /* stylelint-disable-next-line declaration-no-important */
+    max-width: 100% !important;
+    /* stylelint-disable-next-line declaration-no-important */
+    width: 100% !important;
+}
+
+.mobile-submissioncomment .video-js,
+.mobile-submissioncomment .mediaplugin video,
+.submissioncomment .video-js,
+.submissioncomment .mediaplugin video {
+    /* stylelint-disable-next-line declaration-no-important */
+    height: auto !important;
+}
