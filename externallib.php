@@ -104,17 +104,41 @@ class mod_videoassessment_external extends external_api {
         global $OUTPUT, $DB, $PAGE;
 
         $PAGE->set_context($context);
-        $va = $DB->get_record('videoassessment', ['id' => $cmid]);
+        // The button passes the real course-module id; resolve it to the
+        // activity instance (the previous code used the cmid directly as
+        // the videoassessment id, which only worked by coincidence when
+        // the two happened to be equal).
+        $cm = get_coursemodule_from_id('videoassessment', $cmid, 0, false, MUST_EXIST);
 
         $o = \html_writer::start_tag('div', ['class' => 'card  card-body']);
         $gradertypes = ['self', 'peer', 'teacher'];
 
         foreach ($gradertypes as $gradertype) {
             $gradingarea = $timing . $gradertype;
-            $grades = va::get_grade_items_by_id($gradingarea, $userid, $va->id);
+            $grades = va::get_grade_items_by_id($gradingarea, $userid, $cm->instance);
             foreach ($grades as $item => $gradeitem) {
                 if ($gradeitem->id == $id) {
-                    $comment = '<label class="mobile-submissioncomment">' . $gradeitem->submissioncomment . '</label>';
+                    // Rewrite @@PLUGINFILE@@ placeholders to real URLs and
+                    // format the HTML (noclean so the recorded-feedback
+                    // <video> tags survive). Without this the modal showed
+                    // raw @@PLUGINFILE@@ text instead of a playable video.
+                    $commentformat = isset($gradeitem->submissioncommentformat)
+                        ? $gradeitem->submissioncommentformat
+                        : FORMAT_HTML;
+                    $gradeid = isset($gradeitem->gradeid) ? $gradeitem->gradeid : $gradeitem->id;
+                    $commenttext = file_rewrite_pluginfile_urls(
+                        $gradeitem->submissioncomment,
+                        'pluginfile.php',
+                        $context->id,
+                        'mod_videoassessment',
+                        'submissioncomment',
+                        $gradeid
+                    );
+                    $formattedcomment = format_text($commenttext, $commentformat, [
+                        'context' => $context,
+                        'noclean' => true,
+                    ]);
+                    $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
                     $label = '<span class="blue box">' . get_string($gradertype, 'videoassessment') . '</span>';
                     $o .= $OUTPUT->heading($label . $comment);
                 }
@@ -123,7 +147,10 @@ class mod_videoassessment_external extends external_api {
 
         $o .= \html_writer::end_tag('div');
         $data = [];
-        $data['html'] = json_encode($o);
+        // Return the HTML as-is. The PARAM_RAW return type serialises it
+        // safely; the previous JSON-encoding step double-encoded it, so
+        // the modal body showed an escaped string ("...教師<\/span>...").
+        $data['html'] = $o;
         return $data;
     }
 

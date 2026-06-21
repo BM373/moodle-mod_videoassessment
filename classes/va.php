@@ -218,6 +218,10 @@ class va {
             // for the portrait-phone tab switcher on the assess screen.
             'tabvideo',
             'tabgrading',
+            // Title of the mobile "show all comments" modal
+            // (mod_videoassessment/videoassessment); without it the
+            // modal title rendered as "undefined".
+            'generalcomments',
         ], 'videoassessment');
 
         $PAGE->requires->strings_for_js(['all'], 'moodle');
@@ -2636,13 +2640,20 @@ class va {
                     $comment = '<label class="submissioncomment">' . $formattedcomment . '</label>';
                     if ($this->uses_mobile_upload()) {
                         $commentbutton = '';
-                        $plaintext = strip_tags($gradeitem->submissioncomment);
+                        // Preview from the FORMATTED comment so the
+                        // 10-char teaser is plain text, not a leaked
+                        // "@@PLUGINFILE@@..." placeholder from the raw
+                        // value.
+                        $plaintext = trim(strip_tags($formattedcomment));
                         if (strlen($plaintext) > 30) {
                             $shortcomment = substr($plaintext, 0, 10);
+                            // Pass the real course-module id; the modal's
+                            // external function resolves it to the
+                            // activity instance.
                             $commentbutton = "<button type='button'"
                                 . " class='commentbutton btn btn-secondary'"
                                 . " id = '" . $gradeitem->id . "'"
-                                . " cmid = '" . $this->va->id . "'"
+                                . " cmid = '" . $this->cm->id . "'"
                                 . " userid = '" . $userid . "'"
                                 . " timing = '" . $timing . "'><h2>...</h2></button>";
                             $comment = '<label class="mobile-submissioncomment">' . $shortcomment . '</label>';

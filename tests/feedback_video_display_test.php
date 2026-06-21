@@ -85,6 +85,81 @@ final class feedback_video_display_test extends \advanced_testcase {
         $this->assertMatchesRegularExpression('~<source\b[^>]*>~i', $rendered);
     }
 
+    /**
+     * Static guard for the mobile "show all comments" modal
+     * (externallib get_getallcomments). On smartphones the modal showed
+     * an escaped JSON string and a leaked @@PLUGINFILE@@ because the
+     * handler json_encode()'d the HTML and skipped the rewrite/format
+     * step.
+     *
+     * @coversNothing
+     */
+    public function test_getallcomments_returns_formatted_html_not_json(): void {
+        $src = file_get_contents(__DIR__ . '/../externallib.php');
+
+        // Isolate the get_getallcomments function body.
+        $start = strpos($src, 'function get_getallcomments(');
+        $this->assertNotFalse($start, 'get_getallcomments must exist.');
+        $end = strpos($src, 'function ', $start + 1);
+        $body = substr($src, $start, $end - $start);
+
+        $this->assertStringNotContainsString(
+            'json_encode(',
+            $body,
+            'get_getallcomments must return the HTML as-is; json_encode() '
+                . 'double-encoded it so the modal body showed an escaped '
+                . 'JSON string.'
+        );
+        $this->assertStringContainsString(
+            'file_rewrite_pluginfile_urls(',
+            $body,
+            'get_getallcomments must rewrite @@PLUGINFILE@@ so the modal '
+                . 'does not leak the placeholder and the video plays.'
+        );
+        $this->assertStringContainsString(
+            'format_text(',
+            $body,
+            'get_getallcomments must format the comment HTML.'
+        );
+        $this->assertStringContainsString(
+            "get_coursemodule_from_id('videoassessment'",
+            $body,
+            'get_getallcomments must resolve the passed cmid to the '
+                . 'activity instance, not use it directly as the '
+                . 'videoassessment id.'
+        );
+    }
+
+    /**
+     * Static guard: the mobile comment preview must be built from the
+     * FORMATTED comment, the modal-opening button must carry the real
+     * course-module id, and the "generalcomments" string must be loaded
+     * for the modal title.
+     *
+     * @coversNothing
+     */
+    public function test_mobile_comment_preview_and_button_wiring(): void {
+        $va = file_get_contents(__DIR__ . '/../classes/va.php');
+        $this->assertStringContainsString(
+            'strip_tags($formattedcomment)',
+            $va,
+            'The mobile comment preview must strip the FORMATTED comment '
+                . 'so no @@PLUGINFILE@@ placeholder leaks into the teaser.'
+        );
+        $this->assertStringContainsString(
+            '$this->cm->id',
+            $va,
+            'The mobile comment button must pass the real course-module '
+                . 'id to the modal external function.'
+        );
+        $this->assertStringContainsString(
+            "'generalcomments'",
+            $va,
+            'The generalcomments string must be loaded for JS so the '
+                . 'modal title is not "undefined".'
+        );
+    }
+
     // The capability-check branch of mod_videoassessment_pluginfile()
     // ends in send_file_not_found(), which calls header(). PHPUnit
     // always has output already buffered, so a unit test that
