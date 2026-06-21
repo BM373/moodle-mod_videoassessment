@@ -45,6 +45,181 @@ define(['jquery'], function($) {
     }
 
     /**
+     * Shuffle an array in place (Fisher-Yates) and return it.
+     *
+     * @param {Array} arr Array to shuffle.
+     * @return {Array} The same array, shuffled.
+     */
+    function shuffleInPlace(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    /**
+     * The max-min spread of a chosen-count map.
+     *
+     * @param {Object} chosen Map of userId -> times chosen as a peer.
+     * @return {number} max(count) - min(count).
+     */
+    function chosenSpread(chosen) {
+        const counts = Object.keys(chosen).map(function(k) {
+            return chosen[k];
+        });
+        return Math.max.apply(null, counts) - Math.min.apply(null, counts);
+    }
+
+    /**
+     * Try to reduce the spread by one swap: move an over-picked user out
+     * of someone's list and put an under-picked user in its place.
+     *
+     * @param {number[]} userIds All candidate ids.
+     * @param {Object} peers Map userId -> peer-id array (mutated on swap).
+     * @param {Object} chosen Map userId -> chosen-count (mutated on swap).
+     * @return {boolean} True when a swap was made.
+     */
+    function trySwap(userIds, peers, chosen) {
+        const max = Math.max.apply(null, userIds.map(function(u) {
+            return chosen[u];
+        }));
+        const min = Math.min.apply(null, userIds.map(function(u) {
+            return chosen[u];
+        }));
+        const over = shuffleInPlace(userIds.filter(function(u) {
+            return chosen[u] === max;
+        }));
+        const under = shuffleInPlace(userIds.filter(function(u) {
+            return chosen[u] === min;
+        }));
+        for (let oi = 0; oi < over.length; oi++) {
+            for (let ui = 0; ui < under.length; ui++) {
+                const ov = over[oi];
+                const un = under[ui];
+                for (let k = 0; k < userIds.length; k++) {
+                    const owner = userIds[k];
+                    if (owner === un) {
+                        continue;
+                    }
+                    const list = peers[owner];
+                    if (list.indexOf(ov) === -1 || list.indexOf(un) !== -1) {
+                        continue;
+                    }
+                    list[list.indexOf(ov)] = un;
+                    chosen[ov]--;
+                    chosen[un]++;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * One generation of the load-balancing picker: greedy lowest-chosen
+     * selection followed by a swap post-pass.
+     *
+     * @param {number[]} userIds Candidate ids (length > numPeers).
+     * @param {number} numPeers Peers per user.
+     * @return {Object} { peers, chosen }
+     */
+    function generateBalanced(userIds, numPeers) {
+        const peers = {};
+        const chosen = {};
+        userIds.forEach(function(u) {
+            peers[u] = [];
+            chosen[u] = 0;
+        });
+        const order = shuffleInPlace(userIds.slice());
+        order.forEach(function(userid) {
+            for (let slot = 0; slot < numPeers; slot++) {
+                const candidates = shuffleInPlace(userIds.filter(function(c) {
+                    return c !== userid && peers[userid].indexOf(c) === -1;
+                }));
+                if (!candidates.length) {
+                    break;
+                }
+                let best = candidates[0];
+                let bestCount = chosen[best];
+                candidates.forEach(function(c) {
+                    if (chosen[c] < bestCount) {
+                        best = c;
+                        bestCount = chosen[c];
+                    }
+                });
+                peers[userid].push(best);
+                chosen[best]++;
+            }
+        });
+        const limit = userIds.length * 3 + 1;
+        for (let attempt = 0; attempt < limit; attempt++) {
+            if (chosenSpread(chosen) <= 1) {
+                break;
+            }
+            if (!trySwap(userIds, peers, chosen)) {
+                break;
+            }
+        }
+        return {peers: peers, chosen: chosen};
+    }
+
+    /**
+     * Build a balanced peer assignment.
+     *
+     * Each user gets exactly numPeers peers (no self-pairing, no
+     * duplicates) AND every user is chosen as a peer an equal number of
+     * times -- because the average chosen-count is exactly numPeers, a
+     * max-min spread of <= 1 means everyone is reviewed the same number
+     * of times. This mirrors the PHP
+     * va::get_random_peers_for_users() so the activity-settings page
+     * and the peers page produce the same fair result (the old
+     * per-user-independent "shuffle then slice" left some students
+     * reviewed many times and others not at all).
+     *
+     * @param {number[]} userIds Candidate user ids.
+     * @param {number} numPeers Peers per user.
+     * @return {Object} Map userId -> array of peer ids.
+     */
+    function balancedAssign(userIds, numPeers) {
+        const peers = {};
+        userIds.forEach(function(u) {
+            peers[u] = [];
+        });
+        // Not enough users: pair everyone with all the others.
+        if (userIds.length <= numPeers) {
+            userIds.forEach(function(u) {
+                peers[u] = userIds.filter(function(x) {
+                    return x !== u;
+                });
+            });
+            return peers;
+        }
+        // Greedy + swap, retried; almost always converges to spread <= 1.
+        for (let gen = 0; gen < 4; gen++) {
+            const result = generateBalanced(userIds, numPeers);
+            if (chosenSpread(result.chosen) <= 1) {
+                return result.peers;
+            }
+        }
+        // Deterministic shuffled-ring fallback: user i is reviewed by the
+        // numPeers users that follow it in a random circle -- perfectly
+        // balanced by construction.
+        const ring = shuffleInPlace(userIds.slice());
+        const n = ring.length;
+        const ringPeers = {};
+        userIds.forEach(function(u) {
+            ringPeers[u] = [];
+        });
+        for (let i = 0; i < n; i++) {
+            for (let off = 1; off <= numPeers; off++) {
+                ringPeers[ring[i]].push(ring[(i + off) % n]);
+            }
+        }
+        return ringPeers;
+    }
+
+    /**
      * Get the current maximum number of peers allowed per user.
      *
      * @return {number} The maximum number of peers (0 = unlimited)
@@ -303,21 +478,12 @@ define(['jquery'], function($) {
         // Clear existing assignments.
         peerAssignments = {};
 
-        // Simple random assignment algorithm.
+        // Balanced assignment: every student is reviewed the same number
+        // of times (the old per-student "shuffle then slice" left some
+        // students, e.g. Student010, reviewed far more often than others).
+        const courseAssignment = balancedAssign(studentIds, numPeers);
         studentIds.forEach(function(userid) {
-            peerAssignments[userid] = [];
-            const availablePeers = studentIds.filter(function(id) {
-                return id !== userid;
-            });
-
-            // Shuffle available peers.
-            for (let i = availablePeers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availablePeers[i], availablePeers[j]] = [availablePeers[j], availablePeers[i]];
-            }
-
-            // Assign the first numPeers.
-            peerAssignments[userid] = availablePeers.slice(0, numPeers);
+            peerAssignments[userid] = courseAssignment[userid] || [];
         });
 
         // Re-render all users (students only for course assignment).
@@ -393,20 +559,11 @@ define(['jquery'], function($) {
             peerAssignments[userid] = [];
         });
 
-        // Simple random assignment algorithm (same as course assignment).
+        // Balanced assignment within the group (same fairness guarantee
+        // as the course button).
+        const groupAssignment = balancedAssign(groupMembers.slice(), numPeers);
         groupMembers.forEach(function(userid) {
-            const availablePeers = groupMembers.filter(function(id) {
-                return id !== userid;
-            });
-
-            // Shuffle available peers.
-            for (let i = availablePeers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availablePeers[i], availablePeers[j]] = [availablePeers[j], availablePeers[i]];
-            }
-
-            // Assign the first numPeers.
-            peerAssignments[userid] = availablePeers.slice(0, numPeers);
+            peerAssignments[userid] = groupAssignment[userid] || [];
         });
 
         // Re-render group members.

@@ -304,4 +304,42 @@ final class peer_persistence_test extends \advanced_testcase {
                 . 'submit-capability check — that re-includes teachers.'
         );
     }
+
+    /**
+     * Static wiring guard: the activity-settings page assigns peers
+     * CLIENT-SIDE in amd/src/peer_assignment.js (the "Course" / "Group"
+     * buttons there are type=button, handled in JS, not the PHP
+     * randompeer path). That JS must use the balanced algorithm, not
+     * the old per-student "shuffle the others then slice the first N"
+     * which left some students reviewed many times and others never
+     * (the Student010 imbalance the customer reported).
+     *
+     * @coversNothing
+     */
+    public function test_settings_page_js_uses_balanced_assignment(): void {
+        $js = file_get_contents(__DIR__ . '/../amd/src/peer_assignment.js');
+        $this->assertStringContainsString(
+            'function balancedAssign(',
+            $js,
+            'peer_assignment.js must define the balanced assignment helper.'
+        );
+        $this->assertStringNotContainsString(
+            'availablePeers.slice(0, numPeers)',
+            $js,
+            'peer_assignment.js must not use the old per-student '
+                . '"shuffle then slice" assignment — it does not balance '
+                . 'how often each student is chosen as a peer.'
+        );
+        // Both the Course and Group buttons must route through it.
+        $this->assertStringContainsString(
+            'balancedAssign(studentIds',
+            $js,
+            'The Course button handler must call balancedAssign().'
+        );
+        $this->assertStringContainsString(
+            'balancedAssign(groupMembers',
+            $js,
+            'The Group button handler must call balancedAssign().'
+        );
+    }
 }
