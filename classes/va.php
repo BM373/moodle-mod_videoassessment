@@ -1013,7 +1013,7 @@ class va {
             $thumb = \html_writer::empty_tag('img', $attr);
 
             if ($v->tmpname == 'Youtube') {
-                $videocell = '<a href=' . $v->originalname . ' id=' . $v->id . ' class="video-thumb" >' . $thumb . '</a>';
+                $videocell = '<a href="' . s($v->originalname) . '" id="' . $v->id . '" class="video-thumb">' . $thumb . '</a>';
             } else {
                 $videocell = $OUTPUT->action_link(
                     \moodle_url::make_pluginfile_url(
@@ -1079,7 +1079,7 @@ class va {
 
             $row = [
                 $videocell,
-                $v->originalname,
+                s($v->originalname),
                 userdate($v->timecreated),
                 $assoccell,
                 $opcell,

@@ -233,11 +233,13 @@ class renderer extends plugin_renderer_base {
                         // players need them: YouTube's "Watch on
                         // YouTube" / share controls open a new window
                         // and, without the grant, the player refuses to
-                        // play inline. The host allowlist in
-                        // video_embed already restricts embeds to
-                        // trusted hosts, so a popup is a low-risk vector.
+                        // play inline. The popup itself stays sandboxed
+                        // (allow-popups-to-escape-sandbox is withheld) so it
+                        // cannot open an un-sandboxed top-level window. The
+                        // host allowlist in video_embed already restricts
+                        // embeds to trusted hosts, so a popup is low risk.
                         'sandbox' => 'allow-scripts allow-same-origin allow-presentation '
-                            . 'allow-popups allow-popups-to-escape-sandbox',
+                            . 'allow-popups',
                         // Send only the site origin (not the full page
                         // URL with the student id) to the embed.
                         // YouTube needs at least the origin to verify

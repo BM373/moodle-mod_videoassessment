@@ -39,6 +39,12 @@ try {
     $bulkupload = new videoassessment_bulkupload($cmid);
     $bulkupload->require_capability();
 
+    // CSRF protection: amd/src/bulkupload.js sends M.cfg.sesskey with every
+    // request, so require a valid session key before the state-changing
+    // upload / progress actions below (which move an uploaded file, insert a
+    // DB record and dispatch a server-side FFmpeg conversion).
+    require_sesskey();
+
     if (isset($_FILES['file'])) {
         $code = $bulkupload->start_async($_FILES['file']);
         send_headers('text/plain', false);

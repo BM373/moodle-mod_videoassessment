@@ -119,9 +119,13 @@ class mod_videoassessment_external extends external_api {
             foreach ($grades as $item => $gradeitem) {
                 if ($gradeitem->id == $id) {
                     // Rewrite @@PLUGINFILE@@ placeholders to real URLs and
-                    // format the HTML (noclean so the recorded-feedback
-                    // <video> tags survive). Without this the modal showed
-                    // raw @@PLUGINFILE@@ text instead of a playable video.
+                    // format the HTML. This comment is grader-authored
+                    // (self / peer / teacher) and is rendered in another
+                    // user's session, so it MUST be purified: format_text()
+                    // runs HTML Purifier by default, which keeps the
+                    // <video> / <audio> / <source> tags that recorded
+                    // feedback relies on while stripping any injected script
+                    // (closes a stored-XSS path through the comments modal).
                     $commentformat = isset($gradeitem->submissioncommentformat)
                         ? $gradeitem->submissioncommentformat
                         : FORMAT_HTML;
@@ -136,7 +140,6 @@ class mod_videoassessment_external extends external_api {
                     );
                     $formattedcomment = format_text($commenttext, $commentformat, [
                         'context' => $context,
-                        'noclean' => true,
                     ]);
                     $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
                     $label = '<span class="blue box">' . get_string($gradertype, 'videoassessment') . '</span>';
