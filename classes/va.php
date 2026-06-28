@@ -483,13 +483,22 @@ class va {
                     // 2026-06 platform-support request: PeerTube,
                     // Esup-Pod, Dailymotion, Opencast and generic embed
                     // URLs. Label the entry with the provider + host so
-                    // the videos list stays readable; no remote
-                    // thumbnail (the i.ytimg fallback only exists for
-                    // YouTube ids).
+                    // the videos list stays readable. Vimeo exposes a
+                    // still through its oEmbed endpoint; the host-agnostic
+                    // providers have no derivable thumbnail and fall back
+                    // to a placeholder at render time (never a broken
+                    // <img>, which is what an empty URL produced before).
                     $host = parse_url($url, PHP_URL_HOST) ?: 'external';
+                    $thumburl = '';
+                    if ($embed['provider'] === 'vimeo') {
+                        $vimeoid = vimeo_url::extract_id($url);
+                        if ($vimeoid !== null) {
+                            $thumburl = (string) vimeo_url::thumbnail_url($vimeoid);
+                        }
+                    }
                     $ytinfo = [
                         'title' => ucfirst($embed['provider']) . ' video (' . $host . ')',
-                        'thumbnail_url' => '',
+                        'thumbnail_url' => $thumburl,
                     ];
                 } else {
                     // Fall back to the legacy split for non-canonical URLs to
@@ -681,6 +690,45 @@ class va {
             'thumbnail_url' => 'https://i.ytimg.com/vi/' . $videoid . '/1.jpg',
         ];
         return $ytarr;
+    }
+
+    /**
+     * Thumbnail markup for an externally-linked video.
+     *
+     * Only some providers expose a still (YouTube, Vimeo). When the
+     * stored thumbnail URL is empty -- the host-agnostic providers, or a
+     * Vimeo oEmbed lookup that failed -- render a neutral placeholder box
+     * instead of a broken <img src="">.
+     *
+     * @param string $thumbnailname Stored thumbnail URL ('' when none).
+     * @param int|null $width Thumbnail width in px (default 140).
+     * @param int|null $height Thumbnail height in px (default 90).
+     * @return string HTML for a single thumbnail element.
+     */
+    public static function external_video_thumb($thumbnailname, $width = 140, $height = 90) {
+        $width = (int) ($width ?: 140);
+        $height = (int) ($height ?: 90);
+        $thumbnailname = is_string($thumbnailname) ? trim($thumbnailname) : '';
+        if ($thumbnailname !== '') {
+            return \html_writer::empty_tag('img', [
+                'src' => $thumbnailname,
+                'width' => $width,
+                'height' => $height,
+                'alt' => get_string('externalvideo', 'videoassessment'),
+                'class' => 'va-external-thumb',
+            ]);
+        }
+        return \html_writer::tag(
+            'span',
+            get_string('externalvideo', 'videoassessment'),
+            [
+                'class' => 'va-external-thumb-placeholder',
+                'style' => 'display:inline-flex;align-items:center;justify-content:center;'
+                    . 'width:' . $width . 'px;height:' . $height . 'px;'
+                    . 'background:#e9ecef;color:#555;border:1px solid #ccc;'
+                    . 'font-size:12px;text-align:center;',
+            ]
+        );
     }
 
     /**
@@ -991,9 +1039,11 @@ class va {
             $thumbname = $base . self::THUMBEXT;
 
             if ($v->tmpname == 'Youtube') {
-                $attr = [
-                    'src' => $v->thumbnailname,
-                ];
+                $thumb = self::external_video_thumb(
+                    $v->thumbnailname,
+                    $thumbsize ? $thumbsize->width : null,
+                    $thumbsize ? $thumbsize->height : null
+                );
             } else {
                 $attr = [
                     'src' => \moodle_url::make_pluginfile_url(
@@ -1005,12 +1055,12 @@ class va {
                         $thumbname
                     ),
                 ];
+                if ($thumbsize) {
+                    $attr['width'] = $thumbsize->width;
+                    $attr['height'] = $thumbsize->height;
+                }
+                $thumb = \html_writer::empty_tag('img', $attr);
             }
-            if ($thumbsize) {
-                $attr['width'] = $thumbsize->width;
-                $attr['height'] = $thumbsize->height;
-            }
-            $thumb = \html_writer::empty_tag('img', $attr);
 
             if ($v->tmpname == 'Youtube') {
                 $videocell = '<a href="' . s($v->originalname) . '" id="' . $v->id . '" class="video-thumb">' . $thumb . '</a>';

@@ -72,4 +72,66 @@ final class vimeo_url {
         }
         return $url;
     }
+
+    /**
+     * Best-effort thumbnail URL for a Vimeo video.
+     *
+     * Unlike YouTube, a Vimeo still cannot be derived from the video id
+     * (the CDN path is opaque), so we ask Vimeo's public oEmbed endpoint.
+     * Any network error, malformed payload or non-Vimeo host yields null
+     * so the caller can render a placeholder instead of a broken image.
+     *
+     * @param string $videoid Numeric Vimeo video id.
+     * @return string|null https thumbnail URL on a Vimeo CDN host, or null.
+     */
+    public static function thumbnail_url(string $videoid): ?string {
+        global $CFG;
+        if (!preg_match('~^' . self::VIDEO_ID . '$~', $videoid)) {
+            return null;
+        }
+        // The curl class lives in filelib.php, which is not autoloaded.
+        require_once($CFG->libdir . '/filelib.php');
+        $endpoint = 'https://vimeo.com/api/oembed.json?url='
+            . rawurlencode('https://vimeo.com/' . $videoid);
+        try {
+            $curl = new \curl();
+            $body = $curl->get($endpoint, [], [
+                'CURLOPT_TIMEOUT' => 5,
+                'CURLOPT_CONNECTTIMEOUT' => 3,
+                'CURLOPT_FOLLOWLOCATION' => false,
+            ]);
+            if ($curl->get_errno() || !is_string($body) || $body === '') {
+                return null;
+            }
+            $data = json_decode($body, true);
+            $thumb = (is_array($data) && isset($data['thumbnail_url'])) ? $data['thumbnail_url'] : '';
+            if (!is_string($thumb) || $thumb === '') {
+                return null;
+            }
+            $scheme = strtolower((string) parse_url($thumb, PHP_URL_SCHEME));
+            $host = strtolower((string) parse_url($thumb, PHP_URL_HOST));
+            if ($scheme !== 'https' || !self::is_vimeo_cdn_host($host)) {
+                return null;
+            }
+            return $thumb;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Whether a host belongs to Vimeo or its thumbnail CDN.
+     *
+     * @param string $host Lower-case host component.
+     * @return bool
+     */
+    private static function is_vimeo_cdn_host(string $host): bool {
+        foreach (['vimeocdn.com', 'vimeo.com'] as $base) {
+            $suffix = '.' . $base;
+            if ($host === $base || substr($host, -strlen($suffix)) === $suffix) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

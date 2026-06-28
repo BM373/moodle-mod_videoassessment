@@ -840,10 +840,11 @@ class grade_table {
         if ($video = $this->va->get_associated_video($user->id, $timing)) {
             $url = $video->get_url(true);
             if ($video->data->tmpname == 'Youtube') {
-                $content =
-                    '<div class="youtube-div"><img style="width:140px;height:90px;" src='
-                    . $video->data->thumbnailname
-                    . ' /><p class="youtube-remind youtube-remind-left">Video in Youtube</p></div>';
+                $content = '<div class="youtube-div">'
+                    . va::external_video_thumb($video->data->thumbnailname, 140, 90)
+                    . '<p class="youtube-remind youtube-remind-left">'
+                    . get_string('externalvideo', 'videoassessment')
+                    . '</p></div>';
             } else {
                 $content = $video->render_thumbnail(va::str('previewvideo'));
             }

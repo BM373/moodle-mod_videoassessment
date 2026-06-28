@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062800)`.
+  and set the release to `1.1.8 (Build: 2026062801)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -51,6 +51,17 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   generic embed) are gated by `videoassessment/trustedembedhosts`
   (`classes/video_embed.php::host_is_trusted()` / `default_trusted_hosts()`); an
   unlisted host degrades to a plain link instead of an iframe.
+
+### Fixed (post-release testing)
+- External-video thumbnails no longer render as a broken image. Externally-linked
+  videos other than YouTube (Vimeo, PeerTube, Esup-Pod, Dailymotion, Opencast,
+  generic embeds) had no thumbnail URL, so the score/overview and Videos tables
+  emitted `<img src="">`. A shared `va::external_video_thumb()` helper now renders a
+  quoted `<img>` only when a thumbnail exists and a neutral "External video"
+  placeholder otherwise, and the misleading hard-coded "Video in Youtube" label is
+  replaced by the localised `externalvideo` string. Vimeo links additionally fetch a
+  real still via the public oEmbed endpoint (`vimeo_url::thumbnail_url()`, https +
+  Vimeo-CDN-host validated, fail-safe to the placeholder on any network/parse error).
 
 ### Fixed (customer-requested 2026-04 fixes)
 - **#7** Smartphone UX hardening for the assess screen. SGU's

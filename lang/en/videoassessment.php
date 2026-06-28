@@ -169,6 +169,7 @@ $string['event_grade_assigned'] = 'Grade assigned';
 $string['event_peer_review_submitted'] = 'Peer review submitted';
 $string['event_report_viewed'] = 'Report viewed';
 $string['event_video_uploaded'] = 'Video uploaded';
+$string['externalvideo'] = 'External video';
 $string['existingcourse'] = 'Publish to an existing course';
 $string['existingcourse_help'] = 'If set to other than (New), videos will be published to the selected course. You need to be able to add resources to the course.';
 $string['existingcourseornewcourse'] = 'Publish to an Existing Course<br /> or a New Course';
