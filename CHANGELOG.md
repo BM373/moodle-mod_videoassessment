@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062801)`.
+  and set the release to `1.1.8 (Build: 2026062802)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -53,6 +53,12 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
+- Untrusted external-embed hosts now show a clear notice instead of silently
+  degrading to a bare link. When a host-agnostic provider's host is not on the
+  `trustedembedhosts` allowlist, `video_embed::blocked_host()` distinguishes that
+  case from an unrecognised URL and the renderer shows a warning ("host not on the
+  trusted list"), a button to open the video in a new tab, and the admin path to add
+  the host — rather than a plain link that looked like the player had failed.
 - External-video thumbnails no longer render as a broken image. Externally-linked
   videos other than YouTube (Vimeo, PeerTube, Esup-Pod, Dailymotion, Opencast,
   generic embeds) had no thumbnail URL, so the score/overview and Videos tables

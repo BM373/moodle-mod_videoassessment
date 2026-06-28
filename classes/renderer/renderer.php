@@ -252,6 +252,33 @@ class renderer extends plugin_renderer_base {
                     ]
                 );
             }
+            // Host-agnostic provider whose host is not on the trusted
+            // allowlist: resolve() returned null to avoid iframing an
+            // arbitrary host. Show a clear notice plus a safe link to
+            // open the video, instead of silently degrading to a bare
+            // link, which looked like the player had simply failed.
+            $blockedhost = video_embed::blocked_host($url);
+            if ($blockedhost !== null) {
+                $body = html_writer::tag(
+                    'p',
+                    get_string('embednottrusted', 'videoassessment', $blockedhost)
+                );
+                $body .= html_writer::link(
+                    new moodle_url($url),
+                    get_string('embedopenexternal', 'videoassessment'),
+                    [
+                        'target' => '_blank',
+                        'rel' => 'noopener noreferrer',
+                        'class' => 'btn btn-secondary btn-sm',
+                    ]
+                );
+                $body .= html_writer::tag(
+                    'p',
+                    get_string('embednottrusted_addhost', 'videoassessment'),
+                    ['class' => 'mt-2 mb-0 small text-muted']
+                );
+                return html_writer::div($body, 'alert alert-warning mod-videoassessment-embed-blocked');
+            }
         }
 
         // Use width and height from $video->data if available, otherwise default.

@@ -111,6 +111,46 @@ final class video_embed {
     }
 
     /**
+     * The host of an untrusted host-agnostic embed, for messaging.
+     *
+     * resolve() returns null both for a URL that is not a recognised
+     * video and for a recognised host-agnostic provider (PeerTube,
+     * Esup-Pod, Opencast, generic embed) whose host is not on the
+     * trusted-embed allowlist. The renderer needs to tell those two
+     * cases apart so it can show a helpful "host not trusted" notice
+     * instead of silently degrading to a bare link. Returns the blocked
+     * host in the second case, or null otherwise (fixed-host providers,
+     * trusted hosts and unrecognised URLs all yield null).
+     *
+     * @param string $url Candidate URL.
+     * @return string|null Untrusted host, or null when not host-blocked.
+     */
+    public static function blocked_host(string $url): ?string {
+        if ($url === ''
+                || youtube_url::extract_id($url) !== null
+                || vimeo_url::extract_id($url) !== null) {
+            return null;
+        }
+        $resolved = self::resolve_dailymotion($url)
+            ?? self::resolve_peertube($url, false)
+            ?? self::resolve_esuppod($url)
+            ?? self::resolve_opencast($url)
+            ?? self::resolve_generic_embed($url);
+        if ($resolved === null) {
+            return null;
+        }
+        $hostagnostic = ['peertube', 'esuppod', 'opencast', 'embed'];
+        if (!in_array($resolved['provider'], $hostagnostic, true)) {
+            return null;
+        }
+        $host = (string) parse_url($resolved['src'], PHP_URL_HOST);
+        if ($host === '' || self::host_is_trusted($host)) {
+            return null;
+        }
+        return $host;
+    }
+
+    /**
      * Decide whether a host is on the admin trusted-embed allowlist.
      *
      * The allowlist is the `trustedembedhosts` site setting: one host
