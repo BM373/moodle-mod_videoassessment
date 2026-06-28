@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062802)`.
+  and set the release to `1.1.8 (Build: 2026062803)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -53,6 +53,10 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
+- Opencast: recognise the Tobira `/v/{id}` share-link form (used by
+  `explore.opencast.org` and other Tobira front-ends) in `resolve_opencast()`,
+  alongside `/play/{id}`, the Paella and Theodul players. Previously a `/v/` link
+  was not recognised as a video at all, so it became a bare link.
 - Untrusted external-embed hosts now show a clear notice instead of silently
   degrading to a bare link. When a host-agnostic provider's host is not on the
   `trustedembedhosts` allowlist, `video_embed::blocked_host()` distinguishes that

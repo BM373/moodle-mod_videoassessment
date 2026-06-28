@@ -333,16 +333,18 @@ final class video_embed {
     /**
      * Opencast: host-agnostic player paths. Opencast has no single
      * canonical watch URL across versions, but its player endpoints
-     * (/play/{id}, the Paella player, the legacy Theodul player) are
-     * standalone pages designed to be embedded, so they are iframed
-     * as-is.
+     * (the Tobira /v/{id} share link and /play/{id}, the Paella player,
+     * the legacy Theodul player) are standalone pages designed to be
+     * embedded, so they are iframed as-is. The /v/ and /play/ ids are
+     * Tobira's short base-something ids, hence the mixed-case class.
      *
      * @param string $url Candidate URL.
      * @return array{provider: string, src: string, shorts: bool}|null
      */
     private static function resolve_opencast(string $url): ?array {
         $patterns = [
-            '~^https?://[^/?#]+/play/[a-zA-Z0-9-]+(?:[?#].*)?$~',
+            '~^https?://[^/?#]+/v/[a-zA-Z0-9_-]+(?:[?#].*)?$~',
+            '~^https?://[^/?#]+/play/[a-zA-Z0-9_-]+(?:[?#].*)?$~',
             '~^https?://[^/?#]+/paella/ui/watch\.html\?id=[a-zA-Z0-9-]+(?:[&#].*)?$~',
             '~^https?://[^/?#]+/engage/theodul/ui/core\.html\?id=[a-zA-Z0-9-]+(?:[&#].*)?$~',
         ];

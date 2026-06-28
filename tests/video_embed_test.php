@@ -246,6 +246,16 @@ final class video_embed_test extends \advanced_testcase {
                 'https://geo.dailymotion.com/player.html?video=x9ekanc',
             ],
             // Opencast players (host-agnostic pass-through).
+            'opencast /v/ tobira share link' => [
+                'https://opencast.univ.fr/v/GlyZSol6GjU',
+                'opencast',
+                'https://opencast.univ.fr/v/GlyZSol6GjU',
+            ],
+            'opencast /v/ with query' => [
+                'https://opencast.univ.fr/v/GlyZSol6GjU?order=old_to_new',
+                'opencast',
+                'https://opencast.univ.fr/v/GlyZSol6GjU?order=old_to_new',
+            ],
             'opencast /play/' => [
                 'https://opencast.univ.fr/play/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
                 'opencast',

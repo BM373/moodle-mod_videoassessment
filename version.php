@@ -26,9 +26,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026062802;
+$plugin->version   = 2026062803;
 $plugin->requires  = 2024100700; // Moodle 4.5 LTS.
 $plugin->component = 'mod_videoassessment';
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.1.8 (Build: 2026062802)'; // User-friendly version number.
+$plugin->release = '1.1.8 (Build: 2026062803)'; // User-friendly version number.
 $plugin->supported = [405, 502]; // Moodle 4.5 LTS through 5.2.
