@@ -126,9 +126,7 @@ final class video_embed {
      * @return string|null Untrusted host, or null when not host-blocked.
      */
     public static function blocked_host(string $url): ?string {
-        if ($url === ''
-                || youtube_url::extract_id($url) !== null
-                || vimeo_url::extract_id($url) !== null) {
+        if ($url === '' || youtube_url::extract_id($url) !== null || vimeo_url::extract_id($url) !== null) {
             return null;
         }
         $resolved = self::resolve_dailymotion($url)
