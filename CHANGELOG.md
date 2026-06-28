@@ -7,6 +7,8 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 
 ## [Unreleased]
 
+## [1.1.8] - 2026-06-28
+
 ### Added
 - GitHub Actions workflow `moodle-ci.yml` running the Moodle Plugin CI matrix across
   Moodle 4.5 / 5.0 / 5.1 / 5.2 × MariaDB / PostgreSQL in parallel.
@@ -16,9 +18,39 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and bump the build to `2026050100`.
+  and set the release to `1.1.8 (Build: 2026062800)`.
+- `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
+  range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
+  and replaced the inline change log with a pointer to `CHANGELOG.md`.
 - Convert all first-party source files (PHP, JS sources, CSS, Mustache, YAML, Markdown,
   etc.) from CRLF to LF line endings.
+
+### Security
+- Pre-release security review (2026-06). Hardened content that is authored by one
+  user and rendered in another user's session:
+  - **Stored XSS — comments modal.** The "show all comments" web service
+    (`mod_videoassessment_get_getallcomments`, `externallib.php`) now purifies
+    grader feedback with `format_text()` instead of rendering it with
+    `noclean => true`. Moodle's HTML Purifier keeps the `<video>` / `<audio>` /
+    `<source>` tags recorded feedback needs while stripping injected script, so a
+    peer/self grader can no longer land script in the assessed user's or teacher's
+    session.
+  - **Stored XSS — video filename.** The uploaded `originalname` is now escaped
+    with `s()` on the teacher "Videos" management table (`classes/va.php`) — both
+    the cell value and the (now quoted) YouTube link `href`.
+  - **CSRF — bulk upload.** `bulkupload/ajax.php` now calls `require_sesskey()`
+    before the state-changing upload / progress actions (the AMD uploader already
+    sends `M.cfg.sesskey` with every request).
+  - **iframe sandbox.** Dropped `allow-popups-to-escape-sandbox` from the external
+    embed sandbox (`classes/renderer/renderer.php`) so a popup opened from a
+    trusted embed can no longer escape into an un-sandboxed top-level window;
+    `allow-forms`, `allow-top-navigation` and `allow-modals` remain withheld and
+    `clipboard-write` is not granted.
+- External-embed trusted-host allowlist (from the 2026-06-19 review) re-verified
+  intact and fail-closed: host-agnostic providers (PeerTube, Esup-Pod, Opencast,
+  generic embed) are gated by `videoassessment/trustedembedhosts`
+  (`classes/video_embed.php::host_is_trusted()` / `default_trusted_hosts()`); an
+  unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (customer-requested 2026-04 fixes)
 - **#7** Smartphone UX hardening for the assess screen. SGU's
@@ -249,5 +281,6 @@ build `2026013000`, `$plugin->supported = [400, 403]`).
 This entry summarises the upstream state at the time the Shinonome Labo
 fork was created; pre-fork history is preserved in the upstream repository.
 
-[Unreleased]: https://github.com/ShinonomeLabo/moodle-mod_videoassessment/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/ShinonomeLabo/moodle-mod_videoassessment/compare/v1.1.8...HEAD
+[1.1.8]: https://github.com/ShinonomeLabo/moodle-mod_videoassessment/compare/v1.0.5...v1.1.8
 [1.0.5]: https://github.com/ShinonomeLabo/moodle-mod_videoassessment/releases/tag/v1.0.5

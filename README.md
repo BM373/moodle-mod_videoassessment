@@ -1,12 +1,17 @@
 Video Assessment
 ================
 
+Current version: **1.1.8** (Build: 2026062800)
+
 Requirements
 ------------
 
-* Moodle 4.0 to 4.3
+* Moodle 4.5 LTS to 5.2
+* PHP 8.1 or later (8.3 recommended)
 * ffmpeg
 * MP4Box (Optional - Legacy)
+
+Database: MariaDB / MySQL and PostgreSQL are both supported.
 
 Optional parameter adjustment
 -----------------------------
@@ -45,7 +50,7 @@ In order to change the version number of Video Assessment module on the Moodle d
 4. Go to the SQL tab and run the following command:
 
 ```sql
-UPDATE xxx_config_plugins SET value = 2025040100 WHERE plugin = ‘mod_videoassessment’;.
+UPDATE xxx_config_plugins SET value = 2026013000 WHERE plugin = 'mod_videoassessment';
 ```
 *tableprefix can vary from installation to installation.
 
@@ -56,36 +61,27 @@ $CFG->prefix    = 'mdl_';
 5. Run the following command to check if the value has been changed correctly.
 
 ```sql
-SELECT * FROM xxx_config_plugins WHERE plugin = ‘mod_videoassessment’;
+SELECT * FROM xxx_config_plugins WHERE plugin = 'mod_videoassessment';
 ```
 Success if the result is as follows:
 ```sql
 +------+---------------------+---------+------------+
 | id   | plugin              | name    | value      |
 +------+---------------------+---------+------------+
-| xxx  | mod_videoassessment | version | 2025040100 |
+| xxx  | mod_videoassessment | version | 2026013000 |
 +------+---------------------+---------+------------+
 ```
-*The value of [value] column shows "2025040100".
+*The value of [value] column shows "2026013000".
 
 Changelog
 ---------
 
-### Version 2025120816 (Build: 2025120816)
+The full, per-release change history is maintained in
+[CHANGELOG.md](CHANGELOG.md) (Keep a Changelog / Semantic Versioning).
 
-**Changes:**
-- Changed default value for "Automatic file deletion at course end date" from "No" to "Yes" in activity settings
-- Improved mobile video behavior: video automatically scrolls back to original position after closing comment textarea
-- Mobile: Video hides when feedback textarea is focused, reappears when blurred with smooth scroll animation
+The current release line covers Moodle 4.5 LTS through 5.2 support, PostgreSQL
+compatibility, the 2026-04 customer-requested fixes (#1–#13), and external
+video-host embedding (YouTube, Vimeo, PeerTube, Esup-Pod, Dailymotion,
+Opencast) with a fail-closed trusted-host allowlist.
 
-### Version 2025120815 (Build: 2025120815)
-
-**Changes:**
-- Fixed "Grade to pass" field not saving in activity settings
-- Added database upgrade checkpoint for `gradepass` fields
-- Removed CSS rule for `#page-footer` element
-- Enhanced mobile assessment experience with improved video visibility controls
-
-### Previous Versions
-
-For earlier version history, please refer to the upgrade.txt file.
+For version history prior to the 1.0.5 baseline, please refer to the upgrade.txt file.
