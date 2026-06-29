@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062806)`.
+  and set the release to `1.1.8 (Build: 2026062807)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -58,10 +58,11 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   could not reach the cells to grade. `assess.css` now keeps the rubric within the
   viewport and lets it scroll horizontally (touch-friendly) below the 768px breakpoint.
 - Opencast: a Tobira `/v/{id}` share link is now embedded via Tobira's iframe-safe
-  `/~embed/v/{id}` route. The `/v/{id}` page frame-busts inside an iframe ("This page
-  can't be embedded"), so `resolve_opencast()` rewrites it; it also recognises
-  `/play/{id}`, the Paella and Theodul players. Previously a `/v/` link was not
-  recognised as a video at all (bare link), then embedded the framebusting page.
+  player route `/~embed/!v/{id}` (the exact URL Tobira's own Share -> Embed dialog
+  hands out; note the `!`). The `/v/{id}` page frame-busts inside an iframe ("This
+  page can't be embedded") and `/~embed/v/{id}` without the `!` returns "Page not
+  found", so `resolve_opencast()` rewrites to the correct form; it also recognises
+  `/play/{id}`, the Paella and Theodul players.
 - Mobile feedback indicator: the comment modal button on the report/assess screen now
   shows the localised "[See video]" when the grader feedback contains a recorded
   `<video>` (and "[See comment]" otherwise), instead of an opaque "...", so a student

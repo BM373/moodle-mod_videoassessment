@@ -266,12 +266,12 @@ final class video_embed_test extends \advanced_testcase {
             'opencast /v/ tobira share link rewritten to embed route' => [
                 'https://opencast.univ.fr/v/GlyZSol6GjU',
                 'opencast',
-                'https://opencast.univ.fr/~embed/v/GlyZSol6GjU',
+                'https://opencast.univ.fr/~embed/!v/GlyZSol6GjU',
             ],
             'opencast /v/ with query rewritten to embed route' => [
                 'https://opencast.univ.fr/v/GlyZSol6GjU?order=old_to_new',
                 'opencast',
-                'https://opencast.univ.fr/~embed/v/GlyZSol6GjU',
+                'https://opencast.univ.fr/~embed/!v/GlyZSol6GjU',
             ],
             'opencast /play/' => [
                 'https://opencast.univ.fr/play/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',

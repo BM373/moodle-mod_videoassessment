@@ -441,13 +441,14 @@ final class video_embed {
     private static function resolve_opencast(string $url): ?array {
         // A Tobira video page (/v/{id}) frame-busts inside an iframe
         // ("This page can't be embedded"); its dedicated, iframe-safe
-        // route is /~embed/v/{id}, so rewrite that form (and drop any
-        // query such as ?order=...). The other player endpoints are
-        // already embeddable and are iframed verbatim.
+        // player route is /~embed/!v/{id} (note the "!"; this is exactly
+        // what Tobira's own Share -> Embed dialog hands out), so rewrite
+        // that form and drop any query such as ?order=.... The other
+        // player endpoints are already embeddable and are iframed verbatim.
         if (preg_match('~^(https?://[^/?#]+)/v/([a-zA-Z0-9_-]+)(?:[?#].*)?$~', $url, $m) === 1) {
             return [
                 'provider' => 'opencast',
-                'src' => $m[1] . '/~embed/v/' . $m[2],
+                'src' => $m[1] . '/~embed/!v/' . $m[2],
                 'shorts' => false,
             ];
         }
