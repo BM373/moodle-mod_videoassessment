@@ -176,7 +176,6 @@ final class video_embed {
         if ($resolved === null) {
             return null;
         }
-        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME)) ?: 'https';
         $host = (string) parse_url($url, PHP_URL_HOST);
         if ($host === '') {
             return null;
@@ -187,12 +186,21 @@ final class video_embed {
             }
             return null;
         }
-        if ($resolved['provider'] === 'peertube') {
-            $endpoint = $scheme . '://' . $host . '/services/oembed?format=json&url=' . rawurlencode($url);
-            return self::oembed_thumbnail($endpoint, $host);
-        }
-        if ($resolved['provider'] === 'esuppod') {
-            $endpoint = $scheme . '://' . $host . '/video/oembed/?format=json&url=' . rawurlencode($url);
+        // PeerTube / Esup-Pod thumbnails come from an oEmbed endpoint on
+        // the *video* host, so this fetches a user-influenced URL. Restrict
+        // it to hosts the admin has trusted for embedding (the same
+        // allowlist) and force https: this is the only place a student-
+        // supplied host reaches an outbound request, so it must not become
+        // an SSRF probe. oembed_thumbnail() additionally rejects hosts that
+        // resolve to private/reserved addresses.
+        if ($resolved['provider'] === 'peertube' || $resolved['provider'] === 'esuppod') {
+            if (!self::host_is_trusted($host)) {
+                return null;
+            }
+            $path = $resolved['provider'] === 'peertube'
+                ? '/services/oembed?format=json&url='
+                : '/video/oembed/?format=json&url=';
+            $endpoint = 'https://' . $host . $path . rawurlencode($url);
             return self::oembed_thumbnail($endpoint, $host);
         }
         // Opencast and the generic embed pass-through: no derivable still.
@@ -213,6 +221,12 @@ final class video_embed {
      */
     private static function oembed_thumbnail(string $oembedurl, string $videohost): ?string {
         global $CFG;
+        // Defence in depth against SSRF: never fetch from a host that
+        // resolves to a private or reserved address (loopback, RFC1918,
+        // link-local, ...), even if it slipped onto the trusted list.
+        if (!self::host_is_public($videohost)) {
+            return null;
+        }
         require_once($CFG->libdir . '/filelib.php');
         try {
             $curl = new \curl();
@@ -245,6 +259,31 @@ final class video_embed {
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    /**
+     * Whether a host resolves only to public (non-private, non-reserved)
+     * IP addresses. Used to keep the oEmbed fetch from being turned into
+     * an SSRF probe of internal infrastructure.
+     *
+     * @param string $host Host name or IP literal.
+     * @return bool
+     */
+    private static function host_is_public(string $host): bool {
+        $host = trim($host);
+        if ($host === '') {
+            return false;
+        }
+        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (gethostbynamel($host) ?: []);
+        if (empty($ips)) {
+            return false;
+        }
+        foreach ($ips as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

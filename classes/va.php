@@ -2694,20 +2694,31 @@ class va {
                         // "..." gave no hint that a video was waiting.
                         $hasvideo = stripos($formattedcomment, '<video') !== false
                             || stripos($formattedcomment, '<source') !== false;
-                        $buttonlabel = $hasvideo
-                            ? get_string('seevideo', 'videoassessment')
-                            : get_string('seecomment', 'videoassessment');
+                        // A feedback video gets a prominent primary button
+                        // with a play icon; a text-only comment gets a
+                        // quieter secondary button with a speech-bubble
+                        // icon, so a student can tell at a glance whether a
+                        // feedback video is waiting (the bare "..." did not).
+                        if ($hasvideo) {
+                            $buttonlabel = get_string('seevideo', 'videoassessment');
+                            $btnclass = 'commentbutton btn btn-primary';
+                            $btnicon = '<i class="fa fa-play" aria-hidden="true"></i> ';
+                        } else {
+                            $buttonlabel = get_string('seecomment', 'videoassessment');
+                            $btnclass = 'commentbutton btn btn-secondary';
+                            $btnicon = '<i class="fa fa-comment" aria-hidden="true"></i> ';
+                        }
                         if ($hasvideo || strlen($plaintext) > 30) {
                             $shortcomment = $plaintext === '' ? '' : substr($plaintext, 0, 10);
                             // Pass the real course-module id; the modal's
                             // external function resolves it to the
                             // activity instance.
                             $commentbutton = "<button type='button'"
-                                . " class='commentbutton btn btn-secondary'"
+                                . " class='" . $btnclass . "'"
                                 . " id = '" . $gradeitem->id . "'"
                                 . " cmid = '" . $this->cm->id . "'"
                                 . " userid = '" . $userid . "'"
-                                . " timing = '" . $timing . "'>" . s($buttonlabel) . "</button>";
+                                . " timing = '" . $timing . "'>" . $btnicon . s($buttonlabel) . "</button>";
                             $comment = '<label class="mobile-submissioncomment">' . $shortcomment . '</label>';
                             $comment = $comment . $commentbutton;
                         } else {

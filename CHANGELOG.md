@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062807)`.
+  and set the release to `1.1.8 (Build: 2026062808)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -26,6 +26,13 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   etc.) from CRLF to LF line endings.
 
 ### Security
+- SSRF hardening of the external-video thumbnail fetch. `video_embed::thumbnail_url()`
+  builds a PeerTube/Esup-Pod oEmbed endpoint from the (user-supplied) video host and
+  requests it server-side. It now only fetches when the host is on the admin
+  trusted-embed allowlist and forces https, and `oembed_thumbnail()` additionally
+  rejects any host that resolves to a private or reserved address (loopback, RFC1918,
+  link-local, ...), so a student-supplied link cannot be used to probe internal
+  services.
 - Pre-release security review (2026-06). Hardened content that is authored by one
   user and rendered in another user's session:
   - **Stored XSS — comments modal.** The "show all comments" web service
@@ -64,9 +71,10 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   found", so `resolve_opencast()` rewrites to the correct form; it also recognises
   `/play/{id}`, the Paella and Theodul players.
 - Mobile feedback indicator: the comment modal button on the report/assess screen now
-  shows the localised "[See video]" when the grader feedback contains a recorded
-  `<video>` (and "[See comment]" otherwise), instead of an opaque "...", so a student
-  can tell at a glance whether a feedback video is waiting.
+  shows the localised "[See video]" with a play icon on a primary (blue) button when
+  the grader feedback contains a recorded `<video>`, and "[See comment]" with a
+  speech-bubble icon on a quieter secondary button otherwise, instead of an opaque
+  "...", so a student can tell at a glance whether a feedback video is waiting.
 - Untrusted external-embed hosts now show a clear notice instead of silently
   degrading to a bare link. When a host-agnostic provider's host is not on the
   `trustedembedhosts` allowlist, `video_embed::blocked_host()` distinguishes that
