@@ -137,7 +137,24 @@
      width: 100%;
      max-width: none;
  }
- 
+
+ /* On a phone the rubric table is far wider than the viewport, so its
+    right-hand levels and the score-input column overflowed off-screen and
+    a teacher could not reach the cells to grade. Cap the rubric at the
+    viewport and let it scroll horizontally (touch-friendly); keep a
+    readable min-width on the table so the cells do not collapse into an
+    unreadable sliver instead of scrolling. */
+ @media (max-width: 767.98px) {
+     #page-mod-videoassessment-view.assess-page.path-mod-videoassessment #page.container-fluid .gradingform_rubric {
+         max-width: 100%;
+         overflow-x: auto;
+         -webkit-overflow-scrolling: touch;
+     }
+     #page-mod-videoassessment-view.assess-page.path-mod-videoassessment #page.container-fluid .gradingform_rubric table {
+         min-width: 480px;
+     }
+ }
+
  .remark {
      text-align: center;
  }

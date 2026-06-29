@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062805)`.
+  and set the release to `1.1.8 (Build: 2026062806)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -53,6 +53,10 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
+- Mobile grading: on a phone the rubric table is far wider than the viewport, so its
+  right-hand levels and the score-input column overflowed off-screen and a teacher
+  could not reach the cells to grade. `assess.css` now keeps the rubric within the
+  viewport and lets it scroll horizontally (touch-friendly) below the 768px breakpoint.
 - Opencast: a Tobira `/v/{id}` share link is now embedded via Tobira's iframe-safe
   `/~embed/v/{id}` route. The `/v/{id}` page frame-busts inside an iframe ("This page
   can't be embedded"), so `resolve_opencast()` rewrites it; it also recognises
