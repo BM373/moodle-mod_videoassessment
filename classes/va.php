@@ -2681,24 +2681,20 @@ class va {
                         'context' => $this->context,
                     ]);
                     $comment = '<label class="submissioncomment">' . $formattedcomment . '</label>';
-                    if ($this->uses_mobile_upload()) {
-                        $commentbutton = '';
-                        // Preview from the FORMATTED comment so the
-                        // 10-char teaser is plain text, not a leaked
-                        // "@@PLUGINFILE@@..." placeholder from the raw
-                        // value.
-                        $plaintext = trim(strip_tags($formattedcomment));
-                        // Tell the student what the modal holds: "[See
-                        // video]" when the feedback contains a recorded
-                        // <video>, otherwise "[See comment]". The bare
-                        // "..." gave no hint that a video was waiting.
-                        $hasvideo = stripos($formattedcomment, '<video') !== false
-                            || stripos($formattedcomment, '<source') !== false;
-                        // A feedback video gets a prominent primary button
-                        // with a play icon; a text-only comment gets a
-                        // quieter secondary button with a speech-bubble
-                        // icon, so a student can tell at a glance whether a
-                        // feedback video is waiting (the bare "..." did not).
+                    // A feedback video shows a clear "[See video]" button on
+                    // EVERY device (the bare "..." gave no hint a video was
+                    // waiting); a text-only comment keeps the existing
+                    // behaviour -- a "[See comment]" teaser button only on a
+                    // phone, full text inline on desktop. The 10-char teaser
+                    // comes from the FORMATTED comment so no "@@PLUGINFILE@@"
+                    // placeholder leaks. The modal JS that opens the full
+                    // comment/video is loaded for everyone at the foot of
+                    // this method.
+                    $plaintext = trim(strip_tags($formattedcomment));
+                    $hasvideo = stripos($formattedcomment, '<video') !== false
+                        || stripos($formattedcomment, '<source') !== false;
+                    $longtextonmobile = !$hasvideo && $this->uses_mobile_upload() && strlen($plaintext) > 30;
+                    if ($hasvideo || $longtextonmobile) {
                         if ($hasvideo) {
                             $buttonlabel = get_string('seevideo', 'videoassessment');
                             $btnclass = 'commentbutton btn btn-primary';
@@ -2708,22 +2704,20 @@ class va {
                             $btnclass = 'commentbutton btn btn-secondary';
                             $btnicon = '<i class="fa fa-comment" aria-hidden="true"></i> ';
                         }
-                        if ($hasvideo || strlen($plaintext) > 30) {
-                            $shortcomment = $plaintext === '' ? '' : substr($plaintext, 0, 10);
-                            // Pass the real course-module id; the modal's
-                            // external function resolves it to the
-                            // activity instance.
-                            $commentbutton = "<button type='button'"
-                                . " class='" . $btnclass . "'"
-                                . " id = '" . $gradeitem->id . "'"
-                                . " cmid = '" . $this->cm->id . "'"
-                                . " userid = '" . $userid . "'"
-                                . " timing = '" . $timing . "'>" . $btnicon . s($buttonlabel) . "</button>";
-                            $comment = '<label class="mobile-submissioncomment">' . $shortcomment . '</label>';
-                            $comment = $comment . $commentbutton;
-                        } else {
-                            $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
-                        }
+                        // No teaser for a video: its plain-text strip is
+                        // just the leaked pluginfile URL, so show the button
+                        // alone. A text comment keeps a short teaser.
+                        $shortcomment = $hasvideo ? '' : substr($plaintext, 0, 10);
+                        // Pass the real course-module id; the modal's
+                        // external function resolves it to the activity
+                        // instance.
+                        $commentbutton = "<button type='button'"
+                            . " class='" . $btnclass . "'"
+                            . " id = '" . $gradeitem->id . "'"
+                            . " cmid = '" . $this->cm->id . "'"
+                            . " userid = '" . $userid . "'"
+                            . " timing = '" . $timing . "'>" . $btnicon . s($buttonlabel) . "</button>";
+                        $comment = '<label class="mobile-submissioncomment">' . $shortcomment . '</label>' . $commentbutton;
                     }
 
                     if ($gradertype == "peer") {

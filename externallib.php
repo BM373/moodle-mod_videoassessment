@@ -110,7 +110,7 @@ class mod_videoassessment_external extends external_api {
         // the two happened to be equal).
         $cm = get_coursemodule_from_id('videoassessment', $cmid, 0, false, MUST_EXIST);
 
-        $o = \html_writer::start_tag('div', ['class' => 'card  card-body']);
+        $o = \html_writer::start_tag('div', ['class' => 'card card-body va-feedback-modal']);
         $gradertypes = ['self', 'peer', 'teacher'];
 
         foreach ($gradertypes as $gradertype) {
@@ -119,13 +119,14 @@ class mod_videoassessment_external extends external_api {
             foreach ($grades as $item => $gradeitem) {
                 if ($gradeitem->id == $id) {
                     // Rewrite @@PLUGINFILE@@ placeholders to real URLs and
-                    // format the HTML. This comment is grader-authored
-                    // (self / peer / teacher) and is rendered in another
-                    // user's session, so it MUST be purified: format_text()
-                    // runs HTML Purifier by default, which keeps the
-                    // <video> / <audio> / <source> tags that recorded
-                    // feedback relies on while stripping any injected script
-                    // (closes a stored-XSS path through the comments modal).
+                    // format the HTML as NATIVE video (filter => false): this
+                    // content is injected into the modal by AJAX, where
+                    // Moodle's Video.js filter never initialises, so a
+                    // "video-js" player would collapse to a broken sliver. A
+                    // plain <video> (constrained by .va-feedback-modal CSS)
+                    // plays natively on every device. HTML Purifier still
+                    // runs (noclean omitted), keeping <video>/<source> while
+                    // stripping injected script (closes a stored-XSS path).
                     $commentformat = isset($gradeitem->submissioncommentformat)
                         ? $gradeitem->submissioncommentformat
                         : FORMAT_HTML;
@@ -140,6 +141,7 @@ class mod_videoassessment_external extends external_api {
                     );
                     $formattedcomment = format_text($commenttext, $commentformat, [
                         'context' => $context,
+                        'filter' => false,
                     ]);
                     $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
                     $label = '<span class="blue box">' . get_string($gradertype, 'videoassessment') . '</span>';

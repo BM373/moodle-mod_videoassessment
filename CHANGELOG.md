@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062808)`.
+  and set the release to `1.1.8 (Build: 2026062809)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -70,11 +70,17 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   page can't be embedded") and `/~embed/v/{id}` without the `!` returns "Page not
   found", so `resolve_opencast()` rewrites to the correct form; it also recognises
   `/play/{id}`, the Paella and Theodul players.
-- Mobile feedback indicator: the comment modal button on the report/assess screen now
-  shows the localised "[See video]" with a play icon on a primary (blue) button when
-  the grader feedback contains a recorded `<video>`, and "[See comment]" with a
-  speech-bubble icon on a quieter secondary button otherwise, instead of an opaque
-  "...", so a student can tell at a glance whether a feedback video is waiting.
+- Feedback-video indicator: when grader feedback contains a recorded `<video>`, the
+  report's General Comments now shows a localised "[See video]" play-icon primary
+  (blue) button on **every device** (it previously only appeared on a phone, and the
+  video was shown inline on desktop), so a student can always tell at a glance that a
+  feedback video is waiting and tap to play it in a modal. A text-only comment keeps
+  the "[See comment]" speech-bubble button (a phone teaser; full text inline on
+  desktop), instead of the old opaque "...". The modal now renders the recording as a
+  native `<video>` (`get_getallcomments` formats with `filter => false`, scoped by
+  `.va-feedback-modal` CSS): the AJAX-injected content never gets a Video.js instance,
+  so the old filtered "video-js" player collapsed to a broken sliver on desktop. No
+  leaked `@@PLUGINFILE@@` URL teaser is shown for a video anymore.
 - Untrusted external-embed hosts now show a clear notice instead of silently
   degrading to a bare link. When a host-agnostic provider's host is not on the
   `trustedembedhosts` allowlist, `video_embed::blocked_host()` distinguishes that
