@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062803)`.
+  and set the release to `1.1.8 (Build: 2026062804)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -53,10 +53,15 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
-- Opencast: recognise the Tobira `/v/{id}` share-link form (used by
-  `explore.opencast.org` and other Tobira front-ends) in `resolve_opencast()`,
-  alongside `/play/{id}`, the Paella and Theodul players. Previously a `/v/` link
-  was not recognised as a video at all, so it became a bare link.
+- Opencast: a Tobira `/v/{id}` share link is now embedded via Tobira's iframe-safe
+  `/~embed/v/{id}` route. The `/v/{id}` page frame-busts inside an iframe ("This page
+  can't be embedded"), so `resolve_opencast()` rewrites it; it also recognises
+  `/play/{id}`, the Paella and Theodul players. Previously a `/v/` link was not
+  recognised as a video at all (bare link), then embedded the framebusting page.
+- Mobile feedback indicator: the comment modal button on the report/assess screen now
+  shows the localised "[See video]" when the grader feedback contains a recorded
+  `<video>` (and "[See comment]" otherwise), instead of an opaque "...", so a student
+  can tell at a glance whether a feedback video is waiting.
 - Untrusted external-embed hosts now show a clear notice instead of silently
   degrading to a bare link. When a host-agnostic provider's host is not on the
   `trustedembedhosts` allowlist, `video_embed::blocked_host()` distinguishes that

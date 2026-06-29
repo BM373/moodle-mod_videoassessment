@@ -2695,8 +2695,17 @@ class va {
                         // "@@PLUGINFILE@@..." placeholder from the raw
                         // value.
                         $plaintext = trim(strip_tags($formattedcomment));
-                        if (strlen($plaintext) > 30) {
-                            $shortcomment = substr($plaintext, 0, 10);
+                        // Tell the student what the modal holds: "[See
+                        // video]" when the feedback contains a recorded
+                        // <video>, otherwise "[See comment]". The bare
+                        // "..." gave no hint that a video was waiting.
+                        $hasvideo = stripos($formattedcomment, '<video') !== false
+                            || stripos($formattedcomment, '<source') !== false;
+                        $buttonlabel = $hasvideo
+                            ? get_string('seevideo', 'videoassessment')
+                            : get_string('seecomment', 'videoassessment');
+                        if ($hasvideo || strlen($plaintext) > 30) {
+                            $shortcomment = $plaintext === '' ? '' : substr($plaintext, 0, 10);
                             // Pass the real course-module id; the modal's
                             // external function resolves it to the
                             // activity instance.
@@ -2705,7 +2714,7 @@ class va {
                                 . " id = '" . $gradeitem->id . "'"
                                 . " cmid = '" . $this->cm->id . "'"
                                 . " userid = '" . $userid . "'"
-                                . " timing = '" . $timing . "'><h2>...</h2></button>";
+                                . " timing = '" . $timing . "'>" . s($buttonlabel) . "</button>";
                             $comment = '<label class="mobile-submissioncomment">' . $shortcomment . '</label>';
                             $comment = $comment . $commentbutton;
                         } else {

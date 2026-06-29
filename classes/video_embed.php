@@ -340,8 +340,19 @@ final class video_embed {
      * @return array{provider: string, src: string, shorts: bool}|null
      */
     private static function resolve_opencast(string $url): ?array {
+        // A Tobira video page (/v/{id}) frame-busts inside an iframe
+        // ("This page can't be embedded"); its dedicated, iframe-safe
+        // route is /~embed/v/{id}, so rewrite that form (and drop any
+        // query such as ?order=...). The other player endpoints are
+        // already embeddable and are iframed verbatim.
+        if (preg_match('~^(https?://[^/?#]+)/v/([a-zA-Z0-9_-]+)(?:[?#].*)?$~', $url, $m) === 1) {
+            return [
+                'provider' => 'opencast',
+                'src' => $m[1] . '/~embed/v/' . $m[2],
+                'shorts' => false,
+            ];
+        }
         $patterns = [
-            '~^https?://[^/?#]+/v/[a-zA-Z0-9_-]+(?:[?#].*)?$~',
             '~^https?://[^/?#]+/play/[a-zA-Z0-9_-]+(?:[?#].*)?$~',
             '~^https?://[^/?#]+/paella/ui/watch\.html\?id=[a-zA-Z0-9-]+(?:[&#].*)?$~',
             '~^https?://[^/?#]+/engage/theodul/ui/core\.html\?id=[a-zA-Z0-9-]+(?:[&#].*)?$~',
