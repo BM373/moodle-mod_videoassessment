@@ -150,6 +150,23 @@ final class video_embed_test extends \advanced_testcase {
     }
 
     /**
+     * thumbnail_url() offline cases: Dailymotion exposes a derivable
+     * static still, while Opencast, the generic pass-through and
+     * non-video URLs have none. (PeerTube / Esup-Pod / Vimeo go through
+     * the network and are covered manually, not in unit tests.)
+     *
+     * @covers \mod_videoassessment\video_embed::thumbnail_url
+     */
+    public function test_thumbnail_url_offline_cases(): void {
+        $this->assertSame(
+            'https://www.dailymotion.com/thumbnail/video/x9ekanc',
+            video_embed::thumbnail_url('https://www.dailymotion.com/video/x9ekanc')
+        );
+        $this->assertNull(video_embed::thumbnail_url('https://opencast.univ.fr/v/GlyZSol6GjU'));
+        $this->assertNull(video_embed::thumbnail_url('https://example.com/not/a/video'));
+    }
+
+    /**
      * Provider matrix for the 2026-06 platform-support extension:
      * input URL -> expected provider + embed src (GDPR off).
      *

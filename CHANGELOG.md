@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062804)`.
+  and set the release to `1.1.8 (Build: 2026062805)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -77,6 +77,13 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   replaced by the localised `externalvideo` string. Vimeo links additionally fetch a
   real still via the public oEmbed endpoint (`vimeo_url::thumbnail_url()`, https +
   Vimeo-CDN-host validated, fail-safe to the placeholder on any network/parse error).
+- Real thumbnails extended to the other providers via
+  `video_embed::thumbnail_url()`: PeerTube and Esup-Pod are read through their oEmbed
+  endpoints (`/services/oembed` and `/video/oembed/`; Esup-Pod's host-relative
+  thumbnail is resolved against the video host), and Dailymotion uses its derivable
+  static still. Thumbnails are vetted (https, served by the video host or a sub-domain)
+  and fail-safe to the placeholder. Opencast/Tobira expose no thumbnail, so it keeps
+  the placeholder.
 
 ### Fixed (customer-requested 2026-04 fixes)
 - **#7** Smartphone UX hardening for the assess screen. SGU's

@@ -149,6 +149,105 @@ final class video_embed {
     }
 
     /**
+     * Best-effort thumbnail URL for an external video link.
+     *
+     * YouTube is handled by the caller (a static i.ytimg URL). Here we
+     * cover the rest: Vimeo and Dailymotion expose a derivable still,
+     * while PeerTube and Esup-Pod are read through their oEmbed
+     * endpoints. Opencast and the generic embed pass-through have no
+     * reliable thumbnail and return null (the caller then renders a
+     * neutral placeholder). Any network or parse failure also yields null.
+     *
+     * @param string $url The external video URL.
+     * @return string|null https thumbnail URL, or null when none.
+     */
+    public static function thumbnail_url(string $url): ?string {
+        $vimeoid = vimeo_url::extract_id($url);
+        if ($vimeoid !== null) {
+            return vimeo_url::thumbnail_url($vimeoid);
+        }
+        // Detect the provider without the trust gate: thumbnails are
+        // fetched at registration, independent of the embed allowlist.
+        $resolved = self::resolve_dailymotion($url)
+            ?? self::resolve_peertube($url, false)
+            ?? self::resolve_esuppod($url)
+            ?? self::resolve_opencast($url)
+            ?? self::resolve_generic_embed($url);
+        if ($resolved === null) {
+            return null;
+        }
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME)) ?: 'https';
+        $host = (string) parse_url($url, PHP_URL_HOST);
+        if ($host === '') {
+            return null;
+        }
+        if ($resolved['provider'] === 'dailymotion') {
+            if (preg_match('~[?&]video=([a-zA-Z0-9]+)~', $resolved['src'], $m) === 1) {
+                return 'https://www.dailymotion.com/thumbnail/video/' . $m[1];
+            }
+            return null;
+        }
+        if ($resolved['provider'] === 'peertube') {
+            $endpoint = $scheme . '://' . $host . '/services/oembed?format=json&url=' . rawurlencode($url);
+            return self::oembed_thumbnail($endpoint, $host);
+        }
+        if ($resolved['provider'] === 'esuppod') {
+            $endpoint = $scheme . '://' . $host . '/video/oembed/?format=json&url=' . rawurlencode($url);
+            return self::oembed_thumbnail($endpoint, $host);
+        }
+        // Opencast and the generic embed pass-through: no derivable still.
+        return null;
+    }
+
+    /**
+     * Read a thumbnail URL from an oEmbed JSON endpoint.
+     *
+     * Network errors, malformed payloads and thumbnails on an unrelated
+     * host all yield null. Some providers (Esup-Pod) return a host-
+     * relative thumbnail such as "https:/media/...", which is resolved
+     * against the video host.
+     *
+     * @param string $oembedurl The provider oEmbed endpoint (returns json).
+     * @param string $videohost The video host, used to vet/resolve the result.
+     * @return string|null https thumbnail URL, or null.
+     */
+    private static function oembed_thumbnail(string $oembedurl, string $videohost): ?string {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
+        try {
+            $curl = new \curl();
+            $body = $curl->get($oembedurl, [], [
+                'CURLOPT_TIMEOUT' => 5,
+                'CURLOPT_CONNECTTIMEOUT' => 3,
+                'CURLOPT_FOLLOWLOCATION' => false,
+            ]);
+            if ($curl->get_errno() || !is_string($body) || $body === '') {
+                return null;
+            }
+            $data = json_decode($body, true);
+            $thumb = (is_array($data) && isset($data['thumbnail_url'])) ? $data['thumbnail_url'] : '';
+            if (!is_string($thumb) || $thumb === '') {
+                return null;
+            }
+            $videohost = strtolower($videohost);
+            $thumbhost = strtolower((string) parse_url($thumb, PHP_URL_HOST));
+            if ($thumbhost === '') {
+                // Host-relative thumbnail: resolve against the video host.
+                $path = (string) parse_url($thumb, PHP_URL_PATH);
+                return $path === '' ? null : 'https://' . $videohost . $path;
+            }
+            if (strtolower((string) parse_url($thumb, PHP_URL_SCHEME)) !== 'https') {
+                return null;
+            }
+            // Only trust a thumbnail on the video host or a sub-domain of it.
+            $issamesite = $thumbhost === $videohost || substr($thumbhost, -strlen('.' . $videohost)) === '.' . $videohost;
+            return $issamesite ? $thumb : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
      * Decide whether a host is on the admin trusted-embed allowlist.
      *
      * The allowlist is the `trustedembedhosts` site setting: one host

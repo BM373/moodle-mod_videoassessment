@@ -489,16 +489,9 @@ class va {
                     // to a placeholder at render time (never a broken
                     // <img>, which is what an empty URL produced before).
                     $host = parse_url($url, PHP_URL_HOST) ?: 'external';
-                    $thumburl = '';
-                    if ($embed['provider'] === 'vimeo') {
-                        $vimeoid = vimeo_url::extract_id($url);
-                        if ($vimeoid !== null) {
-                            $thumburl = (string) vimeo_url::thumbnail_url($vimeoid);
-                        }
-                    }
                     $ytinfo = [
                         'title' => ucfirst($embed['provider']) . ' video (' . $host . ')',
-                        'thumbnail_url' => $thumburl,
+                        'thumbnail_url' => (string) video_embed::thumbnail_url($url),
                     ];
                 } else {
                     // Fall back to the legacy split for non-canonical URLs to
