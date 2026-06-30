@@ -1,3 +1,4 @@
+/* eslint-disable no-alert, no-nested-ternary */
 /**
  * Peer assignment management for video assessment
  *
@@ -5,12 +6,18 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+/* global bootstrap */
 define(['jquery'], function($) {
     let students = {};
     let allUsers = {}; // Includes students + teachers for name lookups.
     let peerAssignments = {};
+    // Reserved for future server-side persistence. Set during init() but
+    // not yet consumed -- kept here so the public init() contract is stable.
+    // eslint-disable-next-line no-unused-vars
     let isExisting = false;
+    // eslint-disable-next-line no-unused-vars
     let cmid = 0;
+    // eslint-disable-next-line no-unused-vars
     let sesskey = '';
     let usedpeers = 0;
     let groups = {};
@@ -29,8 +36,187 @@ define(['jquery'], function($) {
             field.val(jsonValue);
         } else {
             // Create the hidden field if it doesn't exist.
-            $('form.mform').append('<input type="hidden" name="peerassignments" id="id_peerassignments" value="' + jsonValue.replace(/"/g, '&quot;') + '">');
+            const escaped = jsonValue.replace(/"/g, '&quot;');
+            $('form.mform').append(
+                '<input type="hidden" name="peerassignments" id="id_peerassignments" value="'
+                    + escaped + '">'
+            );
         }
+    }
+
+    /**
+     * Shuffle an array in place (Fisher-Yates) and return it.
+     *
+     * @param {Array} arr Array to shuffle.
+     * @return {Array} The same array, shuffled.
+     */
+    function shuffleInPlace(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    /**
+     * The max-min spread of a chosen-count map.
+     *
+     * @param {Object} chosen Map of userId -> times chosen as a peer.
+     * @return {number} max(count) - min(count).
+     */
+    function chosenSpread(chosen) {
+        const counts = Object.keys(chosen).map(function(k) {
+            return chosen[k];
+        });
+        return Math.max.apply(null, counts) - Math.min.apply(null, counts);
+    }
+
+    /**
+     * Try to reduce the spread by one swap: move an over-picked user out
+     * of someone's list and put an under-picked user in its place.
+     *
+     * @param {number[]} userIds All candidate ids.
+     * @param {Object} peers Map userId -> peer-id array (mutated on swap).
+     * @param {Object} chosen Map userId -> chosen-count (mutated on swap).
+     * @return {boolean} True when a swap was made.
+     */
+    function trySwap(userIds, peers, chosen) {
+        const max = Math.max.apply(null, userIds.map(function(u) {
+            return chosen[u];
+        }));
+        const min = Math.min.apply(null, userIds.map(function(u) {
+            return chosen[u];
+        }));
+        const over = shuffleInPlace(userIds.filter(function(u) {
+            return chosen[u] === max;
+        }));
+        const under = shuffleInPlace(userIds.filter(function(u) {
+            return chosen[u] === min;
+        }));
+        for (let oi = 0; oi < over.length; oi++) {
+            for (let ui = 0; ui < under.length; ui++) {
+                const ov = over[oi];
+                const un = under[ui];
+                for (let k = 0; k < userIds.length; k++) {
+                    const owner = userIds[k];
+                    if (owner === un) {
+                        continue;
+                    }
+                    const list = peers[owner];
+                    if (list.indexOf(ov) === -1 || list.indexOf(un) !== -1) {
+                        continue;
+                    }
+                    list[list.indexOf(ov)] = un;
+                    chosen[ov]--;
+                    chosen[un]++;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * One generation of the load-balancing picker: greedy lowest-chosen
+     * selection followed by a swap post-pass.
+     *
+     * @param {number[]} userIds Candidate ids (length > numPeers).
+     * @param {number} numPeers Peers per user.
+     * @return {Object} { peers, chosen }
+     */
+    function generateBalanced(userIds, numPeers) {
+        const peers = {};
+        const chosen = {};
+        userIds.forEach(function(u) {
+            peers[u] = [];
+            chosen[u] = 0;
+        });
+        const order = shuffleInPlace(userIds.slice());
+        order.forEach(function(userid) {
+            for (let slot = 0; slot < numPeers; slot++) {
+                const candidates = shuffleInPlace(userIds.filter(function(c) {
+                    return c !== userid && peers[userid].indexOf(c) === -1;
+                }));
+                if (!candidates.length) {
+                    break;
+                }
+                let best = candidates[0];
+                let bestCount = chosen[best];
+                candidates.forEach(function(c) {
+                    if (chosen[c] < bestCount) {
+                        best = c;
+                        bestCount = chosen[c];
+                    }
+                });
+                peers[userid].push(best);
+                chosen[best]++;
+            }
+        });
+        const limit = userIds.length * 3 + 1;
+        for (let attempt = 0; attempt < limit; attempt++) {
+            if (chosenSpread(chosen) <= 1) {
+                break;
+            }
+            if (!trySwap(userIds, peers, chosen)) {
+                break;
+            }
+        }
+        return {peers: peers, chosen: chosen};
+    }
+
+    /**
+     * Build a balanced peer assignment.
+     *
+     * Each user gets exactly numPeers peers (no self-pairing, no
+     * duplicates) AND every user is chosen as a peer an equal number of
+     * times -- because the average chosen-count is exactly numPeers, a
+     * max-min spread of <= 1 means everyone is reviewed the same number
+     * of times. This mirrors the PHP
+     * va::get_random_peers_for_users() so the activity-settings page
+     * and the peers page produce the same fair result (the old
+     * per-user-independent "shuffle then slice" left some students
+     * reviewed many times and others not at all).
+     *
+     * @param {number[]} userIds Candidate user ids.
+     * @param {number} numPeers Peers per user.
+     * @return {Object} Map userId -> array of peer ids.
+     */
+    function balancedAssign(userIds, numPeers) {
+        const peers = {};
+        userIds.forEach(function(u) {
+            peers[u] = [];
+        });
+        // Not enough users: pair everyone with all the others.
+        if (userIds.length <= numPeers) {
+            userIds.forEach(function(u) {
+                peers[u] = userIds.filter(function(x) {
+                    return x !== u;
+                });
+            });
+            return peers;
+        }
+        // Greedy + swap, retried; almost always converges to spread <= 1.
+        for (let gen = 0; gen < 4; gen++) {
+            const result = generateBalanced(userIds, numPeers);
+            if (chosenSpread(result.chosen) <= 1) {
+                return result.peers;
+            }
+        }
+        // Deterministic shuffled-ring fallback: user i is reviewed by the
+        // numPeers users that follow it in a random circle -- perfectly
+        // balanced by construction.
+        const ring = shuffleInPlace(userIds.slice());
+        const n = ring.length;
+        const ringPeers = {};
+        userIds.forEach(function(u) {
+            ringPeers[u] = [];
+        });
+        for (let i = 0; i < n; i++) {
+            for (let off = 1; off <= numPeers; off++) {
+                ringPeers[ring[i]].push(ring[(i + off) % n]);
+            }
+        }
+        return ringPeers;
     }
 
     /**
@@ -77,15 +263,15 @@ define(['jquery'], function($) {
     function removePeer(userid, peerid) {
         // Try multiple key formats to find the user's peer assignments.
         const userPeers = peerAssignments[userid] || peerAssignments[parseInt(userid)] || peerAssignments[String(userid)] || [];
-        
+
         if (!Array.isArray(userPeers) || userPeers.length === 0) {
             return;
         }
-        
+
         // Find the peer to remove, handling type mismatches (string vs number).
         const peeridNum = parseInt(peerid);
         const peeridStr = String(peerid);
-        
+
         // Try to find the index using both number and string comparison.
         let index = userPeers.indexOf(peerid);
         if (index === -1 && !isNaN(peeridNum)) {
@@ -100,7 +286,7 @@ define(['jquery'], function($) {
                 return p == peerid || parseInt(p) === peeridNum || String(p) === peeridStr;
             });
         }
-        
+
         if (index > -1) {
             // Use the correct key format to update.
             const key = peerAssignments[userid] ? userid : (peerAssignments[parseInt(userid)] ? parseInt(userid) : String(userid));
@@ -110,17 +296,17 @@ define(['jquery'], function($) {
         renderPeersForUser(userid);
         updateHiddenField();
     }
-    
+
     /**
      * Render badges for all users found in the table rows.
      * This ensures teachers and all users get re-rendered after any operation.
      */
     function renderAllUsersInTable() {
         const tableRows = $('tr[data-userid]');
-        
+
         // Collect all unique user IDs from multiple sources.
         const allUserIds = new Set();
-        
+
         // Add users from table rows.
         tableRows.each(function() {
             const userid = parseInt($(this).attr('data-userid'));
@@ -128,7 +314,7 @@ define(['jquery'], function($) {
                 allUserIds.add(userid);
             }
         });
-        
+
         // Add users from peerAssignments.
         Object.keys(peerAssignments).forEach(function(key) {
             const uid = parseInt(key);
@@ -136,7 +322,7 @@ define(['jquery'], function($) {
                 allUserIds.add(uid);
             }
         });
-        
+
         // Add users from allUsers.
         Object.keys(allUsers).forEach(function(key) {
             const uid = parseInt(key);
@@ -144,7 +330,7 @@ define(['jquery'], function($) {
                 allUserIds.add(uid);
             }
         });
-        
+
         // Render for all unique user IDs.
         allUserIds.forEach(function(userid) {
             renderPeersForUser(userid);
@@ -162,7 +348,7 @@ define(['jquery'], function($) {
         if (isNaN(userIdNum) || userIdNum <= 0) {
             return;
         }
-        
+
         // Try multiple container ID formats.
         let container = $('#assigned-peers-' + userIdNum);
         if (container.length === 0) {
@@ -181,17 +367,21 @@ define(['jquery'], function($) {
         if (container.length === 0) {
             return;
         }
-        
+
         container.empty();
 
         // Try multiple key formats to get user peers.
-        let userPeers = peerAssignments[userIdNum] || peerAssignments[userid] || peerAssignments[String(userIdNum)] || peerAssignments[String(userid)] || [];
-        
+        let userPeers = peerAssignments[userIdNum]
+            || peerAssignments[userid]
+            || peerAssignments[String(userIdNum)]
+            || peerAssignments[String(userid)]
+            || [];
+
         // Ensure we have an array.
         if (!Array.isArray(userPeers)) {
             userPeers = [];
         }
-        
+
         const maxPeers = getMaxPeers();
         const atLimit = maxPeers > 0 && userPeers.length >= maxPeers;
 
@@ -201,20 +391,20 @@ define(['jquery'], function($) {
             if (isNaN(peeridNum) || peeridNum <= 0) {
                 return; // Skip invalid peer IDs.
             }
-            
+
             // Use allUsers for peer name lookup.
             let peername = allUsers[peeridNum] || allUsers[peerid] || allUsers[String(peeridNum)] || allUsers[String(peerid)];
-            
+
             // Fallback to students if not found in allUsers.
             if (!peername) {
                 peername = students[peeridNum] || students[peerid] || students[String(peeridNum)] || students[String(peerid)];
             }
-            
+
             // If still no name found, use a fallback.
             if (!peername) {
                 peername = 'User ' + peeridNum;
             }
-            
+
             const badge = $('<span class="peer-badge badge bg-secondary text-dark me-1 mb-1"></span>')
                 .attr('data-peerid', peeridNum)
                 .css({'display': 'inline-block', 'margin': '2px'});
@@ -251,7 +441,7 @@ define(['jquery'], function($) {
                     $(this).prop('disabled', false);
                 } else {
                     // Check if this peer is already assigned (compare both as numbers and strings).
-                    const isAssigned = userPeers.some(function(p) { 
+                    const isAssigned = userPeers.some(function(p) {
                         return parseInt(p) === optionValue || p === optionValue || String(p) === String(optionValue);
                     });
                     $(this).prop('disabled', isAssigned);
@@ -279,35 +469,28 @@ define(['jquery'], function($) {
         }
 
         // Confirm before proceeding.
-        if (!confirm('This will reset all peer assignments and assign ' + numPeers + ' random peer(s) to each student. Continue?')) {
+        const confirmMsg = 'This will reset all peer assignments and assign '
+            + numPeers + ' random peer(s) to each student. Continue?';
+        if (!confirm(confirmMsg)) {
             return;
         }
 
         // Clear existing assignments.
         peerAssignments = {};
 
-        // Simple random assignment algorithm.
+        // Balanced assignment: every student is reviewed the same number
+        // of times (the old per-student "shuffle then slice" left some
+        // students, e.g. Student010, reviewed far more often than others).
+        const courseAssignment = balancedAssign(studentIds, numPeers);
         studentIds.forEach(function(userid) {
-            peerAssignments[userid] = [];
-            const availablePeers = studentIds.filter(function(id) {
-                return id !== userid;
-            });
-
-            // Shuffle available peers.
-            for (let i = availablePeers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availablePeers[i], availablePeers[j]] = [availablePeers[j], availablePeers[i]];
-            }
-
-            // Assign the first numPeers.
-            peerAssignments[userid] = availablePeers.slice(0, numPeers);
+            peerAssignments[userid] = courseAssignment[userid] || [];
         });
 
         // Re-render all users (students only for course assignment).
         studentIds.forEach(function(userid) {
             renderPeersForUser(userid);
         });
-        
+
         // Also render for ALL users in the table (from allUsers) to ensure teachers and everyone gets updated.
         // This ensures badges show up for all users, including teachers who might have manual assignments.
         Object.keys(allUsers).forEach(function(key) {
@@ -316,7 +499,7 @@ define(['jquery'], function($) {
                 renderPeersForUser(uid);
             }
         });
-        
+
         // Render all users in the table (including teachers) to ensure everyone gets re-rendered.
         renderAllUsersInTable();
 
@@ -338,7 +521,7 @@ define(['jquery'], function($) {
         // Convert groupId to number and try both string and number keys.
         const groupIdNum = parseInt(groupId);
         let group = groups[groupIdNum] || groups[groupId] || groups[String(groupId)];
-        
+
         if (!group) {
             alert('Group not found. Please try again.');
             return;
@@ -346,13 +529,16 @@ define(['jquery'], function($) {
 
         // Include all group members (students and teachers).
         const groupMembers = group.members || [];
-        
+
         // Need at least (numPeers + 1) members in the group to assign numPeers peers to each.
         if (groupMembers.length <= numPeers) {
             const maxPossiblePeers = Math.max(0, groupMembers.length - 1);
-            let errorMsg = 'Not enough members in group "' + group.name + '" to assign ' + numPeers + ' peer(s) to each member.';
+            let errorMsg = 'Not enough members in group "' + group.name
+                + '" to assign ' + numPeers + ' peer(s) to each member.';
             if (groupMembers.length > 0) {
-                errorMsg += ' The group has ' + groupMembers.length + ' member(s), so each member can have at most ' + maxPossiblePeers + ' peer(s).';
+                errorMsg += ' The group has ' + groupMembers.length
+                    + ' member(s), so each member can have at most '
+                    + maxPossiblePeers + ' peer(s).';
             } else {
                 errorMsg += ' The group has no members.';
             }
@@ -361,7 +547,10 @@ define(['jquery'], function($) {
         }
 
         // Confirm before proceeding.
-        if (!confirm('This will reset peer assignments for all members in "' + group.name + '" and assign ' + numPeers + ' random peer(s) from within the group. Continue?')) {
+        const groupConfirmMsg = 'This will reset peer assignments for all members in "'
+            + group.name + '" and assign ' + numPeers
+            + ' random peer(s) from within the group. Continue?';
+        if (!confirm(groupConfirmMsg)) {
             return;
         }
 
@@ -370,27 +559,18 @@ define(['jquery'], function($) {
             peerAssignments[userid] = [];
         });
 
-        // Simple random assignment algorithm (same as course assignment).
+        // Balanced assignment within the group (same fairness guarantee
+        // as the course button).
+        const groupAssignment = balancedAssign(groupMembers.slice(), numPeers);
         groupMembers.forEach(function(userid) {
-            const availablePeers = groupMembers.filter(function(id) {
-                return id !== userid;
-            });
-
-            // Shuffle available peers.
-            for (let i = availablePeers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availablePeers[i], availablePeers[j]] = [availablePeers[j], availablePeers[i]];
-            }
-
-            // Assign the first numPeers.
-            peerAssignments[userid] = availablePeers.slice(0, numPeers);
+            peerAssignments[userid] = groupAssignment[userid] || [];
         });
 
         // Re-render group members.
         groupMembers.forEach(function(userid) {
             renderPeersForUser(userid);
         });
-        
+
         renderAllUsersInTable();
 
         updateHiddenField();
@@ -413,7 +593,7 @@ define(['jquery'], function($) {
                 sesskey = params.sesskey || '';
                 usedpeers = params.usedpeers || 0;
                 groups = params.groups || {};
-                
+
                 // Normalize keys in students and allUsers to ensure consistent lookup (both numeric and string keys).
                 const normalizeKeys = function(obj) {
                     if (!obj || typeof obj !== 'object') {
@@ -434,10 +614,10 @@ define(['jquery'], function($) {
                     });
                     return normalized;
                 };
-                
+
                 students = normalizeKeys(students);
                 allUsers = normalizeKeys(allUsers);
-                
+
                 // Ensure group IDs are numeric keys for consistency.
                 const numericGroups = {};
                 Object.keys(groups).forEach(function(key) {
@@ -470,7 +650,7 @@ define(['jquery'], function($) {
                 // Collect all user IDs from both peerAssignments and allUsers.
                 // This ensures we render badges for all users in the table.
                 const allUserIds = new Set();
-                
+
                 // Add all users from peerAssignments.
                 Object.keys(peerAssignments).forEach(function(key) {
                     const uid = parseInt(key);
@@ -478,7 +658,7 @@ define(['jquery'], function($) {
                         allUserIds.add(uid);
                     }
                 });
-                
+
                 // Add all users from allUsers (includes students + teachers from groups).
                 Object.keys(allUsers).forEach(function(key) {
                     const uid = parseInt(key);
@@ -486,13 +666,13 @@ define(['jquery'], function($) {
                         allUserIds.add(uid);
                     }
                 });
-                
+
                 // Render peers for all users (both those with assignments and those without).
                 // This ensures all badges are rendered and dropdowns are initialized.
                 allUserIds.forEach(function(userid) {
                     renderPeersForUser(userid);
                 });
-                
+
 
                 // Initialize the hidden field.
                 updateHiddenField();
@@ -570,7 +750,7 @@ define(['jquery'], function($) {
                 if (usedPeersInput.length) {
                     usedPeersInput.on('change keyup blur', function() {
                         const maxPeers = getMaxPeers();
-                        
+
                         // If maxPeers > 0, trim excess peers from all users.
                         if (maxPeers > 0) {
                             Object.keys(peerAssignments).forEach(function(userid) {
@@ -581,12 +761,12 @@ define(['jquery'], function($) {
                                 }
                             });
                         }
-                        
+
                         // Re-render all users to update UI.
                         Object.keys(students).forEach(function(userid) {
                             renderPeersForUser(parseInt(userid));
                         });
-                        
+
                         // Update the hidden field with trimmed assignments.
                         updateHiddenField();
                     });

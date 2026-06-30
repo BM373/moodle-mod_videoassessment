@@ -29,12 +29,12 @@ require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 
 $id = required_param('id', PARAM_INT);
-$url = new moodle_url('/mod/videoassessment/view.php', array('id' => $id));
+$url = new moodle_url('/mod/videoassessment/view.php', ['id' => $id]);
 if ($action = optional_param('action', null, PARAM_ALPHA)) {
     $url->param('action', $action);
 }
 $cm = get_coursemodule_from_id('videoassessment', $id);
-$course = $DB->get_record('course', array('id' => $cm->course));
+$course = $DB->get_record('course', ['id' => $cm->course]);
 require_login($cm->course, true, $cm);
 $PAGE->set_url($url);
 $context = context_module::instance($cm->id);
@@ -42,4 +42,13 @@ require_capability('mod/videoassessment:exportownsubmission', $context);
 
 $va = new mod_videoassessment\va($context, $cm, $course);
 $pp = new mod_videoassessment\print_page($va);
+
+// Item #10: emit a fine-grained "report viewed" event so analytics can
+// distinguish report visits from generic activity views.
+\mod_videoassessment\event\report_viewed::create([
+    'context' => $context,
+    'objectid' => $cm->instance,
+    'other' => ['videoassessmentid' => $cm->instance],
+])->trigger();
+
 $pp->do_action();

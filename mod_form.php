@@ -45,9 +45,6 @@ class mod_videoassessment_mod_form extends moodleform_mod {
     /** @var int Default number of peers for assessment */
     const DEFAULT_USED_PEERS = 1;
 
-    /** @var object|null Video assessment instance data */
-    protected $_videoassessmentinstance = null;
-
     /**
      * Define the form elements for video assessment configuration.
      *
@@ -73,9 +70,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(false, get_string('description', 'videoassessment'));
 
-        // =====================================================================
-        // 1. AVAILABILITY
-        // =====================================================================
+        // 1. AVAILABILITY.
         $mform->addElement('header', 'availability', get_string('availability', 'assign'));
         $mform->setExpanded('availability', false);
 
@@ -96,9 +91,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'gradingduedate', $name, ['optional' => true]);
         $mform->addHelpButton('gradingduedate', 'gradingduedate', 'assign');
 
-        // =====================================================================
-        // 2. ASSESSORS AND WEIGHTINGS (Default open)
-        // =====================================================================
+        // 2. ASSESSORS AND WEIGHTINGS (Default open).
         $mform->addElement('header', 'ratings', get_string('assessorsandweightings', 'videoassessment'));
         $mform->addHelpButton('ratings', 'ratings', 'videoassessment');
         $mform->setExpanded('ratings', true);
@@ -148,16 +141,19 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->setType('peerassignments', PARAM_RAW);
 
         // Error placeholder for peer assignment validation.
-        $mform->addElement('static', 'peerassignmenterror', '', '<div id="peerassignment-error" class="text-danger" style="display:none;"></div>');
+        $mform->addElement(
+            'static',
+            'peerassignmenterror',
+            '',
+            '<div id="peerassignment-error" class="text-danger" style="display:none;"></div>'
+        );
 
         $mform->addElement('html', '</div>');
 
         // Initialize JavaScript for peer assessors visibility.
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initPeerAssessorsVisibility');
 
-        // =====================================================================
-        // 3. GRADING (with Whole Class Grading dropdown)
-        // =====================================================================
+        // 3. GRADING (with Whole Class Grading dropdown).
         $this->standard_grading_coursemodule_elements_to_grading('grading');
 
         // Whole Class Grading - dropdown (Open/Close), default = Close.
@@ -175,9 +171,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->setType('class', PARAM_INT);
         $mform->setDefault('class', 0);
 
-        // =====================================================================
-        // 4. VIDEO SUBMISSIONS
-        // =====================================================================
+        // 4. VIDEO SUBMISSIONS.
         $mform->addElement('header', 'videosubmissions', get_string('videosubmissions', 'videoassessment'));
         $mform->setExpanded('videosubmissions', false);
 
@@ -185,29 +179,46 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->setDefault('allowstudentupload', 1);
         $mform->addHelpButton('allowstudentupload', 'allowstudentupload', 'videoassessment');
 
-        // Check if video uploads are prevented globally.
-        $preventvideouploads = get_config('videoassessment', 'preventvideouploads');
+        // Item #2 of the 2026-04 fix programme: read the three site-level
+        // allow-* flags individually so the activity admin can only opt
+        // out of channels that the site allows in the first place. The
+        // legacy `preventvideouploads` setting still acts as a hard kill
+        // switch for backward compatibility (sites that haven't run the
+        // upgrade migration yet).
+        $allowexternallinks = get_config('videoassessment', 'allowexternallinks');
+        $allowvideouploads = get_config('videoassessment', 'allowvideouploads');
+        $allowvideorecording = get_config('videoassessment', 'allowvideorecording');
+        // Treat `false` (setting not yet defined on this site) as the new
+        // default of 1, so a Moodle that has not run the migration yet
+        // still behaves as documented.
+        $allowexternallinks = ($allowexternallinks === false) ? 1 : (int)$allowexternallinks;
+        $allowvideouploads = ($allowvideouploads === false) ? 1 : (int)$allowvideouploads;
+        $allowvideorecording = ($allowvideorecording === false) ? 1 : (int)$allowvideorecording;
+        $preventvideouploads = !$allowvideouploads || !$allowvideorecording;
 
         $mform->addElement('advcheckbox', 'allowyoutube', get_string('allowyoutube', 'videoassessment'));
-        $mform->setDefault('allowyoutube', 1);
         $mform->addHelpButton('allowyoutube', 'allowyoutube', 'videoassessment');
+        if (!$allowexternallinks) {
+            $mform->hardFreeze('allowyoutube');
+            $mform->setDefault('allowyoutube', 0);
+        } else {
+            $mform->setDefault('allowyoutube', 1);
+        }
 
-        // Video upload option - greyed out if prevented globally.
+        // Video upload option - greyed out when uploads are disabled site-wide.
         $mform->addElement('advcheckbox', 'allowvideoupload', get_string('allowvideoupload', 'videoassessment'));
         $mform->addHelpButton('allowvideoupload', 'allowvideoupload', 'videoassessment');
-        if ($preventvideouploads) {
-            // Disable and force unchecked when prevented globally.
+        if (!$allowvideouploads) {
             $mform->hardFreeze('allowvideoupload');
             $mform->setDefault('allowvideoupload', 0);
         } else {
             $mform->setDefault('allowvideoupload', 1);
         }
 
-        // Video record option - greyed out if prevented globally.
+        // Video record option - greyed out when in-browser recording is disabled site-wide.
         $mform->addElement('advcheckbox', 'allowvideorecord', get_string('allowvideorecord', 'videoassessment'));
         $mform->addHelpButton('allowvideorecord', 'allowvideorecord', 'videoassessment');
-        if ($preventvideouploads) {
-            // Disable and force unchecked when prevented globally.
+        if (!$allowvideorecording) {
             $mform->hardFreeze('allowvideorecord');
             $mform->setDefault('allowvideorecord', 0);
         } else {
@@ -238,13 +249,13 @@ class mod_videoassessment_mod_form extends moodleform_mod {
                 </style>
                 <script>
                     document.addEventListener("DOMContentLoaded", function() {
-                        // Find and grey out the form items
+                        // Find and grey out the form items.
                         var uploadItem = document.getElementById("fitem_id_allowvideoupload");
                         var recordItem = document.getElementById("fitem_id_allowvideorecord");
                         if (uploadItem) uploadItem.style.opacity = "0.5";
                         if (recordItem) recordItem.style.opacity = "0.5";
 
-                        // Also try by input name
+                        // Also try by input name.
                         var uploadInput = document.querySelector("input[name=\'allowvideoupload\']");
                         var recordInput = document.querySelector("input[name=\'allowvideorecord\']");
                         if (uploadInput) {
@@ -260,19 +271,13 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             ');
         }
 
-        // =====================================================================
-        // 5. NOTIFICATIONS
-        // =====================================================================
+        // 5. NOTIFICATIONS.
         $this->add_notifications();
 
-        // =====================================================================
-        // 6. ADVANCED OPTIONS
-        // =====================================================================
+        // 6. ADVANCED OPTIONS.
         $this->add_advanced_options($cm);
 
-        // =====================================================================
-        // Standard Moodle sections
-        // =====================================================================
+        // Standard Moodle sections.
         $this->standard_coursemodule_elements();
 
         // Custom action buttons with "Save and create rubric" option.
@@ -493,9 +498,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->addElement('header', 'advancedoptions', get_string('advancedoptions', 'videoassessment'));
         $mform->setExpanded('advancedoptions', false);
 
-        // =====================================================================
-        // Training Pre-test
-        // =====================================================================
+        // Training Pre-test.
         $mform->addElement('selectyesno', 'training', get_string('trainingpretest', 'videoassessment'));
             $mform->setDefault('training', 0);
             $mform->addHelpButton('training', 'trainingpretest', 'videoassessment');
@@ -539,9 +542,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Initialize JavaScript for training pretest visibility toggle.
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initTrainingChange');
 
-        // =====================================================================
-        // Peer Fairness Bonus
-        // =====================================================================
+        // Peer Fairness Bonus.
         $mform->addElement('selectyesno', 'fairnessbonus', get_string('peerfairnessbonus', 'videoassessment'));
         $mform->setDefault('fairnessbonus', 0);
         $mform->addHelpButton('fairnessbonus', 'peerfairnessbonus', 'videoassessment');
@@ -571,7 +572,8 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         ];
         for ($level = 1; $level <= 6; $level++) {
             $bonusscoregroup = [];
-            $bonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . ' ' . get_string('difference', 'videoassessment') . ':');
+            $diffsuffix = ' ' . get_string('difference', 'videoassessment') . ':';
+            $bonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . $diffsuffix);
             $bonusscoregroup[] = $mform->createElement('select', 'bonus' . $level, '', $scaleopts);
             $bonusscoregroup[] = $mform->createElement('static', '', '', get_string('offairnessbonus', 'videoassessment'));
             $mform->addGroup($bonusscoregroup, 'bonusscoregroup' . $level, '', [' '], false);
@@ -579,9 +581,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             $mform->setDefault('bonus' . $level, max(0, 100 - (($level - 1) * 20)));
         }
 
-        // =====================================================================
-        // Self Fairness Bonus
-        // =====================================================================
+        // Self Fairness Bonus.
         $mform->addElement('selectyesno', 'selffairnessbonus', get_string('selffairnessbonus', 'videoassessment'));
         $mform->setDefault('selffairnessbonus', 0);
         $mform->addHelpButton('selffairnessbonus', 'selffairnessbonus', 'videoassessment');
@@ -594,7 +594,8 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Self Bonus Scale groups (6 levels).
         for ($level = 1; $level <= 6; $level++) {
             $selfbonusscoregroup = [];
-            $selfbonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . ' ' . get_string('difference', 'videoassessment') . ':');
+            $diffsuffix = ' ' . get_string('difference', 'videoassessment') . ':';
+            $selfbonusscoregroup[] = $mform->createElement('static', '', '', $levellabels[$level] . $diffsuffix);
             $selfbonusscoregroup[] = $mform->createElement('select', 'selfbonus' . $level, '', $scaleopts);
             $selfbonusscoregroup[] = $mform->createElement('static', '', '', get_string('offairnessbonus', 'videoassessment'));
             $mform->addGroup($selfbonusscoregroup, 'selfbonusscoregroup' . $level, '', [' '], false);
@@ -605,9 +606,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         // Initialize JavaScript for fairness bonus visibility toggle.
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initFairnessBonusChange');
 
-        // =====================================================================
-        // Automatic File Deletion at Course End Date
-        // =====================================================================
+        // Automatic File Deletion at Course End Date.
         $mform->addElement('selectyesno', 'autodeletefiles', get_string('autodeletefiles', 'videoassessment'));
         $mform->setDefault('autodeletefiles', 1);
         $mform->addHelpButton('autodeletefiles', 'autodeletefiles', 'videoassessment');
@@ -1033,12 +1032,12 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             $namefieldsql = \core_user\fields::for_name()->get_sql('u', false, '', '', false);
             $userfields = 'u.id, ' . $namefieldsql->selects;
             $allmembers = groups_get_members($group->id, $userfields);
-            
+
             // Include all group members (students and teachers).
             foreach ($allmembers as $member) {
                 $groupmembers[] = $member->id;
             }
-            
+
             if (!empty($groupmembers)) {
                 $groupdata[$group->id] = [
                     'name' => $group->name,
@@ -1055,7 +1054,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
                 $allgroupuserids[$memberid] = $memberid;
             }
         }
-        
+
         // Get user data for all group members (including teachers).
         $allusersdata = [];
         // Start with students.
@@ -1298,50 +1297,30 @@ class mod_videoassessment_mod_form extends moodleform_mod {
     public function get_data() {
         $data = parent::get_data();
 
-        // DEBUG: Dump form data to see what's being submitted
-        if ($data) {
-            error_log('=== VIDEOASSESSMENT FORM get_data() DEBUG ===');
-            error_log('gradepass in data: ' . var_export(property_exists($data, 'gradepass') ? $data->gradepass : 'NOT SET', true));
-            error_log('$_POST[gradepass]: ' . var_export(isset($_POST['gradepass']) ? $_POST['gradepass'] : 'NOT SET', true));
-            error_log('Full data object keys: ' . implode(', ', array_keys((array)$data)));
-            if (property_exists($data, 'gradepass')) {
-                error_log('gradepass type: ' . gettype($data->gradepass));
-                error_log('gradepass value: ' . var_export($data->gradepass, true));
-            }
-            error_log('=== END DEBUG ===');
-        } else {
-            error_log('=== VIDEOASSESSMENT FORM get_data() DEBUG: data is NULL ===');
-        }
-
         if ($data) {
             // Process gradepass field - Moodle parent processes 'gradepass' with unformat_float(),
             // but we need to ensure it's properly set (default to 0 if empty).
             // For itemnumber 0 (which maps to 'grading'), the field name is just 'gradepass'.
             // Always ensure gradepass is set and is numeric (never null or empty string)
-            // Parent processes 'gradepass' with unformat_float(), but we need to ensure it's always set
+            // Parent processes 'gradepass' with unformat_float(), but we need to ensure it's always set.
             if (property_exists($data, 'gradepass')) {
-                // Parent already processed it with unformat_float(), but ensure it's not empty/null
+                // Parent already processed it with unformat_float(), but ensure it's not empty/null.
                 if ($data->gradepass === '' || $data->gradepass === null) {
                     $data->gradepass = 0;
                 } else {
-                    // Ensure it's a numeric value
+                    // Ensure it's a numeric value.
                     $data->gradepass = (float)$data->gradepass;
                 }
             } else {
-                // Field doesn't exist in data (form field was empty/not submitted), set default to 0
+                // Field doesn't exist in data (form field was empty/not submitted), set default to 0.
                 $data->gradepass = 0;
             }
-            
-            // Final safety check - ensure it's always numeric, never null
+
+            // Final safety check - ensure it's always numeric, never null.
             $data->gradepass = (float)$data->gradepass;
             if ($data->gradepass < 0) {
                 $data->gradepass = 0;
             }
-            
-            // DEBUG: Log after processing
-            error_log('=== AFTER PROCESSING ===');
-            error_log('gradepass final value: ' . var_export($data->gradepass, true));
-            error_log('gradepass final type: ' . gettype($data->gradepass));
 
             if (!empty($this->current->_advancedgradingdata['areas'])) {
                 // Get all area names.

@@ -137,7 +137,24 @@
      width: 100%;
      max-width: none;
  }
- 
+
+ /* On a phone the rubric table is far wider than the viewport, so its
+    right-hand levels and the score-input column overflowed off-screen and
+    a teacher could not reach the cells to grade. Cap the rubric at the
+    viewport and let it scroll horizontally (touch-friendly); keep a
+    readable min-width on the table so the cells do not collapse into an
+    unreadable sliver instead of scrolling. */
+ @media (max-width: 767.98px) {
+     #page-mod-videoassessment-view.assess-page.path-mod-videoassessment #page.container-fluid .gradingform_rubric {
+         max-width: 100%;
+         overflow-x: auto;
+         -webkit-overflow-scrolling: touch;
+     }
+     #page-mod-videoassessment-view.assess-page.path-mod-videoassessment #page.container-fluid .gradingform_rubric table {
+         min-width: 480px;
+     }
+ }
+
  .remark {
      text-align: center;
  }
@@ -301,7 +318,18 @@
      .assess-form-videos .mediaplugin {
          width: 100%;
      }
- 
+
+     /* Item #4 reviewer feedback: the portrait Shorts iframe inherits the
+        generic width:100% above which, with its 9:16 aspect ratio, makes
+        it far taller than the 25vh sticky band and pushes the rubric off
+        screen. Constrain it to the band and let the width follow. */
+     .path-mod-videoassessment .assess-form-videos .mod-videoassessment-youtube-embed.shorts,
+     .assess-form-videos .mod-videoassessment-youtube-embed.shorts {
+         width: auto;
+         height: 25vh;
+         max-height: 25vh;
+     }
+
      .path-mod-videoassessment .gradingform,
      .gradingform {
          float: none;
@@ -583,3 +611,203 @@
          padding: 10px;
      }
  }
+/* Item #7 of the 2026-04 fix programme: smartphone UX hardening.
+   Targets two concrete problems reported by SGU on iOS:
+   (a) the floating / sticky video container slid under the iOS Home
+       indicator, so its bottom edge was unreadable, and
+   (b) tapping a .remark textarea pushed the focused field behind the
+       on-screen keyboard.
+   The two rules below address each: (a) widens the safe-area
+   reservation that .assess-form-videos needs, and (b) gives every
+   focusable feedback field enough scroll-margin that the browser
+   scrolls it back into view automatically. */
+
+@media (max-width: 768px) {
+    .path-mod-videoassessment .assess-form-videos,
+    .assess-form-videos {
+        max-width: 100vw;
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        padding-left: env(safe-area-inset-left, 0);
+        padding-right: env(safe-area-inset-right, 0);
+        box-sizing: border-box;
+    }
+
+    /* Keep the focused per-criterion remark textarea above the
+       on-screen keyboard. The big top margin works because mobile
+       browsers honour scroll-margin-top during the implicit
+       scrollIntoView() that fires on focus. */
+    .path-mod-videoassessment .remark textarea,
+    .remark textarea {
+        scroll-margin-top: 35vh;
+        scroll-margin-bottom: 35vh;
+    }
+
+    /* Same treatment for the final feedback editor that sits at the
+       bottom of the assess form. */
+    .path-mod-videoassessment .felement.feditor,
+    .felement.feditor {
+        scroll-margin-top: 35vh;
+        scroll-margin-bottom: 35vh;
+    }
+}
+
+/* Item #4 (2026-04 fix programme): YouTube preview embed.
+   Shorts videos are 9:16 portrait by design, so let the iframe keep
+   its declared 270x480 size on desktop and shrink with the column
+   width on smaller screens. Landscape (`.mod-videoassessment-youtube-embed`
+   without `.shorts`) keeps a 16:9 ratio. */
+.mod-videoassessment-youtube-embed {
+    max-width: 100%;
+    border: 0;
+    display: block;
+    margin: 0 auto;
+}
+.mod-videoassessment-youtube-embed.shorts {
+    aspect-ratio: 9 / 16;
+    height: auto;
+    /* Item #4 reviewer feedback: a portrait Shorts video at 80vh took up
+       most of the screen and made grading hard. Cap at half the viewport
+       so the rubric stays reachable below it. */
+    max-height: 50vh;
+}
+
+/* -----------------------------------------------------------------
+ * Mobile-portrait assess tab switcher (動画 / 採点).
+ *
+ * Replaces the stacked video-on-top-of-rubric layout on portrait
+ * phones with a two-tab interface so a portrait recording does not
+ * push the criteria off-screen. Driven by amd/src/assess_mobile_tabs
+ * which toggles body classes; the tab bar itself is hidden on
+ * desktop and landscape so the existing side-by-side layout is kept.
+ * ----------------------------------------------------------------- */
+.vam-assess-tabs {
+    display: none;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+    body .vam-assess-tabs,
+    body.assess-page .vam-assess-tabs,
+    .path-mod-videoassessment .vam-assess-tabs {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        /* Fixed (rather than sticky) so the tab bar always stays at
+         * the top of the viewport — iOS Safari was dropping the
+         * sticky position once the page scrolled past the original
+         * insertion point. */
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1001 !important;
+        background: #fff !important;
+        border-bottom: 1px solid #ddd !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    /* Push the page content down so the fixed tab bar does not cover
+     * the breadcrumb / task-link nav under it. ~50px = the tab bar
+     * height (14+14 padding + ~22 font line-height). */
+    body.vam-assess-tab-video-active,
+    body.vam-assess-tab-grading-active {
+        padding-top: 50px;
+    }
+
+    /* Body-child selector ensures the tab bar resolves
+     * `position: fixed` against the viewport and not against any
+     * transformed ancestor. The JS now mounts the bar directly under
+     * <body>, but the explicit selector keeps the contract loud and
+     * forces the viewport-wide width even if a future refactor moves
+     * the element. */
+    body > .vam-assess-tabs {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+    body .vam-assess-tabs .vam-assess-tab,
+    .path-mod-videoassessment .vam-assess-tabs .vam-assess-tab {
+        flex: 1 1 50% !important;
+        display: block !important;
+        width: 50% !important;
+        max-width: 50% !important;
+        padding: 14px 0 !important;
+        margin: 0 !important;
+        font-size: 1em !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        background: #f5f5f5 !important;
+        border: none !important;
+        border-bottom: 3px solid transparent !important;
+        border-radius: 0 !important;
+        color: #555 !important;
+        text-align: center !important;
+        cursor: pointer !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        box-shadow: none !important;
+    }
+    body .vam-assess-tabs .vam-assess-tab.vam-assess-tab-active,
+    body .vam-assess-tabs .vam-assess-tab[aria-selected="true"],
+    .path-mod-videoassessment .vam-assess-tabs .vam-assess-tab.vam-assess-tab-active,
+    .path-mod-videoassessment .vam-assess-tabs .vam-assess-tab[aria-selected="true"] {
+        background: #fff !important;
+        color: #0f6cbf !important;
+        border-bottom-color: #0f6cbf !important;
+    }
+
+    /* Video tab active: hide grading. */
+    body.vam-assess-tab-video-active .gradingform_rubric,
+    body.vam-assess-tab-video-active form.gradingform {
+        display: none !important;
+    }
+    /* Video tab active: give the video the full content area. */
+    body.vam-assess-tab-video-active .assess-form-videos,
+    body.vam-assess-tab-video-active .path-mod-videoassessment .assess-form-videos {
+        position: static;
+        float: none;
+        width: 100%;
+        height: auto;
+        max-height: 85vh;
+        margin: 0;
+    }
+    body.vam-assess-tab-video-active .assess-form-videos video,
+    body.vam-assess-tab-video-active .assess-form-videos iframe,
+    body.vam-assess-tab-video-active .assess-form-videos object,
+    body.vam-assess-tab-video-active .assess-form-videos embed,
+    body.vam-assess-tab-video-active .assess-form-videos .mediaplugin {
+        width: 100%;
+        max-width: 100%;
+        max-height: 85vh;
+        height: auto;
+        object-fit: contain;
+    }
+
+    /* Grading tab active: park the video band off-screen instead of
+       display:none so audio keeps playing while the user scores the
+       rubric (the "listen while grading" workflow from the 2026-06
+       feedback round). Must match the inline technique applied by
+       assess_mobile_tabs.js setHidden(). */
+    body.vam-assess-tab-grading-active .assess-form-videos {
+        position: fixed !important;
+        top: 0 !important;
+        left: -10000px !important;
+        width: 1px !important;
+        height: 1px !important;
+        max-height: 1px !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    /* Grading tab active: full-width rubric. */
+    body.vam-assess-tab-grading-active form.gradingform,
+    body.vam-assess-tab-grading-active .gradingform_rubric {
+        width: 100%;
+        float: none;
+    }
+}
+

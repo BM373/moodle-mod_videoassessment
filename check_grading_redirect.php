@@ -29,15 +29,15 @@ require_login();
 header('Content-Type: application/json');
 
 // Always clear the preference first to prevent redirect loops.
-$redirect_to_grading = get_user_preferences('videoassessment_redirect_to_grading');
+$redirecttograding = get_user_preferences('videoassessment_redirect_to_grading');
 unset_user_preference('videoassessment_redirect_to_grading');
 
-if (!empty($redirect_to_grading)) {
+if (!empty($redirecttograding)) {
     // Parse the preference value: 'id:timestamp' or just 'id' (for backward compatibility).
-    $parts = explode(':', $redirect_to_grading);
+    $parts = explode(':', $redirecttograding);
     $vaid = (int)$parts[0];
     $preftimestamp = isset($parts[1]) ? (int)$parts[1] : 0;
-    
+
     // Only redirect if preference was set very recently (within 2 seconds).
     // This ensures redirects only happen immediately after clicking "Save and create rubric".
     if ($preftimestamp > 0 && (time() - $preftimestamp) > 2) {
@@ -45,37 +45,37 @@ if (!empty($redirect_to_grading)) {
         echo json_encode(['redirect' => false]);
         exit;
     }
-    
+
     // Get the course module for this videoassessment instance.
     $va = $DB->get_record('videoassessment', ['id' => $vaid]);
     if ($va) {
         $cm = get_coursemodule_from_instance('videoassessment', $va->id, 0, false, MUST_EXIST);
         $context = context_module::instance($cm->id);
-        
+
         // Get or create the grading area.
         require_once($CFG->dirroot . '/grade/grading/lib.php');
         $gradingmanager = get_grading_manager($context, 'mod_videoassessment', 'beforeteacher');
-        
+
         $arearecord = $DB->get_record('grading_areas', [
             'contextid' => $context->id,
             'component' => 'mod_videoassessment',
-            'areaname' => 'beforeteacher'
+            'areaname' => 'beforeteacher',
         ]);
-        
+
         if (!$arearecord) {
             // Create the area.
             $gradingmanager->set_active_method('rubric');
             $arearecord = $DB->get_record('grading_areas', [
                 'contextid' => $context->id,
                 'component' => 'mod_videoassessment',
-                'areaname' => 'beforeteacher'
+                'areaname' => 'beforeteacher',
             ]);
         }
-        
+
         if ($arearecord && $arearecord->id) {
             echo json_encode([
                 'redirect' => true,
-                'url' => $CFG->wwwroot . '/grade/grading/manage.php?areaid=' . $arearecord->id
+                'url' => $CFG->wwwroot . '/grade/grading/manage.php?areaid=' . $arearecord->id,
             ]);
             exit;
         }
@@ -83,4 +83,3 @@ if (!empty($redirect_to_grading)) {
 }
 
 echo json_encode(['redirect' => false]);
-

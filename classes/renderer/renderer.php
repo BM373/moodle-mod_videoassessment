@@ -20,14 +20,13 @@ use plugin_renderer_base;
 use renderable;
 use mod_videoassessment\va;
 use mod_videoassessment\video;
+use mod_videoassessment\video_embed;
 use filter_mediaplugin\text_filter;
 use moodle_url;
 use html_table;
 use html_table_row;
 use html_table_cell;
 use html_writer;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Main renderer for video assessment module.
@@ -58,7 +57,7 @@ class renderer extends plugin_renderer_base {
      * @return string HTML output of the rendered object
      */
     public function render(renderable $widget) {
-        $rendermethod = 'render_'.str_replace('\\', '_', get_class($widget));
+        $rendermethod = 'render_' . str_replace('\\', '_', get_class($widget));
         if (method_exists($this, $rendermethod)) {
             return $this->$rendermethod($widget);
         }
@@ -105,8 +104,8 @@ class renderer extends plugin_renderer_base {
      * @return string HTML content for task navigation links
      */
     public function task_link(va $va) {
-        $highlight = (object)array('upload' => null, 'associate' => null, 'assess' => null);
-        $current = array('class' => 'tasklink-current');
+        $highlight = (object)['upload' => null, 'associate' => null, 'assess' => null];
+        $current = ['class' => 'tasklink-current'];
         switch ($va->action) {
             case 'videos':
                 $highlight->associate = $current;
@@ -118,17 +117,34 @@ class renderer extends plugin_renderer_base {
 
         $o = '';
         if ($va->is_teacher()) {
-            $links = array(
-                    $this->output->action_link(new \moodle_url('/mod/videoassessment/bulkupload/index.php',
-                            array('cmid' => $va->cm->id)),
-                            get_string('uploadvideos', 'videoassessment'), $highlight->upload),
-                    $this->output->action_link(new \moodle_url('/mod/videoassessment/view.php',
-                            array('id' => $va->cm->id, 'action' => 'videos')),
-                            get_string('associate', 'videoassessment'), null, $highlight->associate),
-                    $this->output->action_link(new \moodle_url('/mod/videoassessment/view.php',
-                            array('id' => $va->cm->id)),
-                            get_string('assess', 'videoassessment'), null, $highlight->assess),
-            );
+            $links = [
+                    $this->output->action_link(
+                        new \moodle_url(
+                            '/mod/videoassessment/bulkupload/index.php',
+                            ['cmid' => $va->cm->id]
+                        ),
+                        get_string('uploadvideos', 'videoassessment'),
+                        $highlight->upload
+                    ),
+                    $this->output->action_link(
+                        new \moodle_url(
+                            '/mod/videoassessment/view.php',
+                            ['id' => $va->cm->id, 'action' => 'videos']
+                        ),
+                        get_string('associate', 'videoassessment'),
+                        null,
+                        $highlight->associate
+                    ),
+                    $this->output->action_link(
+                        new \moodle_url(
+                            '/mod/videoassessment/view.php',
+                            ['id' => $va->cm->id]
+                        ),
+                        get_string('assess', 'videoassessment'),
+                        null,
+                        $highlight->assess
+                    ),
+            ];
             $o .= $this->output->box(implode(get_separator(), $links));
         }
 
@@ -148,8 +164,8 @@ class renderer extends plugin_renderer_base {
         global $CFG;
 
         if ($CFG->release < 2012062500) {
-            // Moodle 2.2
-            require_once($CFG->dirroot.'/filter/mediaplugin/filter.php');
+            // Moodle 2.2.
+            require_once($CFG->dirroot . '/filter/mediaplugin/filter.php');
         }
 
         if (optional_param('novideo', 0, PARAM_BOOL)) {
@@ -159,12 +175,111 @@ class renderer extends plugin_renderer_base {
             $url = $video->data->originalname;
         } else {
             $url = moodle_url::make_pluginfile_url(
-                    $video->context->id, 'mod_videoassessment', 'video', 0,
-                    $video->file->get_filepath(), $video->file->get_filename());
+                $video->context->id,
+                'mod_videoassessment',
+                'video',
+                0,
+                $video->file->get_filepath(),
+                $video->file->get_filename()
+            );
         }
 
         $url = (string)$url;
         @$alt = $this->alt ?? $url;
+
+        // Render external videos (YouTube incl. /shorts/ and youtu.be,
+        // and Vimeo) as a direct iframe rather than going through
+        // filter_mediaplugin, because Moodle's media_youtube_plugin URL
+        // regex does not accept the /shorts/ path on every supported
+        // branch.
+        // Item #4: 9:16 aspect ratio for Shorts so the recording shows
+        // in its native portrait orientation.
+        // Item #1 (GDPR): video_embed::resolve() picks the
+        // cookie-suppressing host (youtube-nocookie.com / Vimeo ?dnt=1)
+        // when the site-admin GDPR toggle is enabled.
+        if ($video->data->tmpname == 'Youtube') {
+            $embed = video_embed::resolve($url, video_embed::gdpr_enabled());
+            if ($embed !== null) {
+                if ($embed['shorts']) {
+                    // Portrait 9:16 — pick a width that fits within
+                    // the surrounding column even on small screens.
+                    $iframewidth = 270;
+                    $iframeheight = 480;
+                } else {
+                    $iframewidth = !empty($video->data->width) ? (int) $video->data->width : 400;
+                    $iframeheight = !empty($video->data->height) ? (int) $video->data->height : 225;
+                }
+                return html_writer::tag(
+                    'iframe',
+                    '',
+                    [
+                        'src' => $embed['src'],
+                        'width' => $iframewidth,
+                        'height' => $iframeheight,
+                        'frameborder' => 0,
+                        // Grant only the feature permissions a video
+                        // player needs. Clipboard and cross-document
+                        // sharing permissions are withheld as they aid
+                        // phishing and are not needed for playback.
+                        'allow' => 'accelerometer; autoplay; encrypted-media; '
+                            . 'gyroscope; picture-in-picture; fullscreen',
+                        // Sandbox the embed: an external link is
+                        // ultimately user-supplied, so the meaningful
+                        // in-frame attacks are withheld -- the embed
+                        // cannot submit a form (phishing), navigate the
+                        // parent window (clickjacking) or pop a modal
+                        // dialog, because those grants are simply not
+                        // listed below. Popups ARE granted because real
+                        // players need them: YouTube's "Watch on
+                        // YouTube" / share controls open a new window
+                        // and, without the grant, the player refuses to
+                        // play inline. The popup itself stays sandboxed
+                        // (allow-popups-to-escape-sandbox is withheld) so it
+                        // cannot open an un-sandboxed top-level window. The
+                        // host allowlist in video_embed already restricts
+                        // embeds to trusted hosts, so a popup is low risk.
+                        'sandbox' => 'allow-scripts allow-same-origin allow-presentation '
+                            . 'allow-popups',
+                        // Send only the site origin (not the full page
+                        // URL with the student id) to the embed.
+                        // YouTube needs at least the origin to verify
+                        // the embedding domain -- no-referrer triggered
+                        // its "video player configuration" error 153.
+                        'referrerpolicy' => 'strict-origin-when-cross-origin',
+                        'allowfullscreen' => 'allowfullscreen',
+                        'class' => 'mod-videoassessment-youtube-embed'
+                            . ($embed['shorts'] ? ' shorts' : ''),
+                    ]
+                );
+            }
+            // Host-agnostic provider whose host is not on the trusted
+            // allowlist: resolve() returned null to avoid iframing an
+            // arbitrary host. Show a clear notice plus a safe link to
+            // open the video, instead of silently degrading to a bare
+            // link, which looked like the player had simply failed.
+            $blockedhost = video_embed::blocked_host($url);
+            if ($blockedhost !== null) {
+                $body = html_writer::tag(
+                    'p',
+                    get_string('embednottrusted', 'videoassessment', $blockedhost)
+                );
+                $body .= html_writer::link(
+                    new moodle_url($url),
+                    get_string('embedopenexternal', 'videoassessment'),
+                    [
+                        'target' => '_blank',
+                        'rel' => 'noopener noreferrer',
+                        'class' => 'btn btn-secondary btn-sm',
+                    ]
+                );
+                $body .= html_writer::tag(
+                    'p',
+                    get_string('embednottrusted_addhost', 'videoassessment'),
+                    ['class' => 'mt-2 mb-0 small text-muted']
+                );
+                return html_writer::div($body, 'alert alert-warning mod-videoassessment-embed-blocked');
+            }
+        }
 
         // Use width and height from $video->data if available, otherwise default.
         $width = !empty($video->data->width) ? $video->data->width : 400;
@@ -175,29 +290,29 @@ class renderer extends plugin_renderer_base {
         : '';
 
         // Use the video object's context instead of $this->va (which may not exist here).
-        $filter = new \filter_mediaplugin\text_filter($video->context, array());
+        $filter = new \filter_mediaplugin\text_filter($video->context, []);
         if (va::check_mp4_support()) {
             // Browsers supporting the MP4 format use the HTML5 <video> tag.
             $prevfiltermediapluginenablehtml5video = !empty($CFG->filtermediapluginenablehtml5video);
             $CFG->filtermediapluginenablehtml5video = true;
-            $html = $filter->filter('<a href="'.$url.$dim.'">'.$alt.'</a>');
+            $html = $filter->filter('<a href="' . $url . $dim . '">' . $alt . '</a>');
             $CFG->filtermediapluginenablehtml5video = $prevfiltermediapluginenablehtml5video;
             return $html;
         }
         // Other browsers use FlowPlayer.
-        // (Since QuickTime is not widely used on Windows, FlowPlayer is also used for .mp4 files.)
+        // (Since QuickTime is not widely used on Windows, FlowPlayer is also used for .mp4 files.).
 
         // Since the .mp4 extension doesn't match the FLV filter,
         // we replace it with the dummy .flv extension to pass through the filter,
         // then rewrite the resulting HTML with the original extension.
         $mp4 = null;
         if (preg_match('/\.mp4$/i', $url, $m)) {
-            list ($mp4) = $m;
+             [$mp4] = $m;
             $url = substr_replace($url, '.flv', -4);
         }
         $prevfiltermediapluginenableflv = !empty($CFG->filtermediapluginenableflv);
         $CFG->filtermediapluginenableflv = true;
-        $html = $filter->filter('<a href="'.$url.$dim.'">'.$alt.'</a>');
+        $html = $filter->filter('<a href="' . $url . $dim . '">' . $alt . '</a>');
         $CFG->filtermediapluginenableflv = $prevfiltermediapluginenableflv;
         if ($mp4) {
             $html = preg_replace('/\.flv(?=["#])/', $mp4, $html);
@@ -230,7 +345,7 @@ class renderer extends plugin_renderer_base {
             $cutoffdate = $va->cutoffdate;
             if ($duedate > 0) {
                 if ($va->allowsubmissionsfromdate) {
-                    // allowsubmissionsfrom date.
+                    // Allowsubmissionsfrom date.
                     $cell1content = get_string('allowsubmissionsfromdate', 'assign');
                     $cell2content = userdate($va->allowsubmissionsfromdate);
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);
@@ -239,7 +354,7 @@ class renderer extends plugin_renderer_base {
                 // Due date.
                 $cell1content = get_string('duedate', 'assign');
                 if ($duedate - $time <= 0) {
-                    $cell2content = userdate($duedate).'('.get_string('assignmentisdue', 'videoassessment').')';
+                    $cell2content = userdate($duedate) . '(' . get_string('assignmentisdue', 'videoassessment') . ')';
                 } else {
                     $cell2content = format_time($duedate - $time);
                 }
@@ -251,11 +366,11 @@ class renderer extends plugin_renderer_base {
                     if ($cutoffdate > $time) {
                         $cell2content = get_string('latesubmissionsaccepted', 'videoassessment', userdate($va->cutoffdate));
                     } else {
-                        $cell2content = userdate($va->cutoffdate).'('.get_string('nomoresubmissionsaccepted', 'videoassessment').')';
+                        $cutoffstr = get_string('nomoresubmissionsaccepted', 'videoassessment');
+                        $cell2content = userdate($va->cutoffdate) . '(' . $cutoffstr . ')';
                     }
                     $this->add_table_row_tuple($t, $cell1content, $cell2content);
                 }
-
             }
             $o .= html_writer::table($t);
             $o .= $this->output->box_end();
@@ -277,8 +392,13 @@ class renderer extends plugin_renderer_base {
      * @param array $secondattributes Optional attributes for the second cell
      * @return void
      */
-    private function add_table_row_tuple(html_table $table, $first, $second, $firstattributes = [],
-                                        $secondattributes = []) {
+    private function add_table_row_tuple(
+        html_table $table,
+        $first,
+        $second,
+        $firstattributes = [],
+        $secondattributes = []
+    ) {
         $row = new html_table_row();
         $cell1 = new html_table_cell($first);
         $cell1->header = true;
@@ -289,7 +409,7 @@ class renderer extends plugin_renderer_base {
         if (!empty($secondattributes)) {
             $cell2->attributes = $secondattributes;
         }
-        $row->cells = array($cell1, $cell2);
+        $row->cells = [$cell1, $cell2];
         $table->data[] = $row;
     }
 }

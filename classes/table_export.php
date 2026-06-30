@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Table export utility for video assessment data.
  *
@@ -132,7 +130,7 @@ class table_export {
                 if (isset($this->data[$row][$column])) {
                     $value = $this->data[$row][$column];
                     if (preg_match('/[,"\n]/', $value)) {
-                        $value = '"'.str_replace('"', '""', $value).'"';
+                        $value = '"' . str_replace('"', '""', $value) . '"';
                     }
                     $o .= $value;
                 }

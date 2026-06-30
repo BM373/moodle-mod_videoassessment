@@ -18,8 +18,6 @@ namespace mod_videoassessment\task;
 
 use core\check\result;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Scheduled task for sending reminder notification emails.
  *
@@ -31,7 +29,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class reminder_notifition_mail_cron extends \core\task\scheduled_task {
-
     /**
      * Get the human-readable name of the scheduled task.
      *
@@ -56,14 +53,14 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
 
-        $videoassessments = $DB->get_records("videoassessment", array("remindernotification" => 1));
-        $modlue = $DB->get_record("modules", array('name' => "videoassessment"));
+        $videoassessments = $DB->get_records("videoassessment", ["remindernotification" => 1]);
+        $modlue = $DB->get_record("modules", ['name' => "videoassessment"]);
         foreach ($videoassessments as $videoassessment) {
-            $cm = $DB->get_record("course_modules", array(
+            $cm = $DB->get_record("course_modules", [
                 "course" => $videoassessment->course,
                 "instance" => $videoassessment->id,
                 "module" => $modlue->id,
-            ));
+            ]);
             $context = \context_module::instance($cm->id);
             $students = get_enrolled_users($context, 'mod/videoassessment:submit', null);
             $teachers = get_enrolled_users($context, 'mod/videoassessment:addinstance', null);
@@ -71,37 +68,48 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
                 if ($this->check_trigger($videoassessment, $student)) {
                     $videoassessmentcompletionexpected = $cm->completionexpected;
                     mtrace('student ' . $student->username . ' mail send start...');
-                    if ($videoassessment->isbeforeduedate == 1
-                        && 0 <= ($videoassessmentcompletionexpected - (($videoassessment->beforeduedate * 24 * 60 * 60 * 1000) + time()))
-                        && ($videoassessmentcompletionexpected - (($videoassessment->beforeduedate * 24 * 60 * 60 * 1000) + time())) < 60000) {
-
+                    $beforedelta = $videoassessmentcompletionexpected
+                        - (($videoassessment->beforeduedate * 24 * 60 * 60 * 1000) + time());
+                    if (
+                        $videoassessment->isbeforeduedate == 1
+                        && 0 <= $beforedelta
+                        && $beforedelta < 60000
+                    ) {
                         $this->send_mail($videoassessment, $student, current($teachers));
-
-                    } else if ($videoassessment->isonduedate == 1
+                    } else if (
+                        $videoassessment->isonduedate == 1
                         && 0 <= ($videoassessmentcompletionexpected - time())
-                        && ($videoassessmentcompletionexpected - time()) < 60000) {
-
+                        && ($videoassessmentcompletionexpected - time()) < 60000
+                    ) {
                         $this->send_mail($videoassessment, $student, current($teachers));
-
-                    } else if ($videoassessment->isafterduedate == 1
+                    } else if (
+                        $videoassessment->isafterduedate == 1
                         && 0 <= ($videoassessment->nextsendmaildate - time())
-                        && ($videoassessment->nextsendmaildate - time()) < 60000) {
-
+                        && ($videoassessment->nextsendmaildate - time()) < 60000
+                    ) {
                         $this->send_mail($videoassessment, $student, current($teachers));
-
                     }
                     mtrace('student ' . $student->username . ' has been sent');
                 }
-
             }
-            if ($videoassessment->isonduedate == 1 && 0 <= ($videoassessmentcompletionexpected - time()) && ($videoassessmentcompletionexpected - time()) < 60000) {
-                $videoassessment->nextsendmaildate = time() + ($videoassessment->afterduedate * 24 * 60 * 60 * 1000);
-            } else if ($videoassessment->isafterduedate == 1 && 0 <= ($videoassessment->nextsendmaildate - time()) && ($videoassessment->nextsendmaildate - time()) < 60000) {
-                $videoassessment->nextsendmaildate = time() + ($videoassessment->afterduedate * 24 * 60 * 60 * 1000);
+            $expecteddelta = $videoassessmentcompletionexpected - time();
+            $nextsendmaildelta = $videoassessment->nextsendmaildate - time();
+            $afteroffset = $videoassessment->afterduedate * 24 * 60 * 60 * 1000;
+            if (
+                $videoassessment->isonduedate == 1
+                && 0 <= $expecteddelta
+                && $expecteddelta < 60000
+            ) {
+                $videoassessment->nextsendmaildate = time() + $afteroffset;
+            } else if (
+                $videoassessment->isafterduedate == 1
+                && 0 <= $nextsendmaildelta
+                && $nextsendmaildelta < 60000
+            ) {
+                $videoassessment->nextsendmaildate = time() + $afteroffset;
             }
             $DB->update_record('videoassessment', $videoassessment);
         }
-
     }
 
     /**
@@ -119,7 +127,7 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
         global $DB;
         $isupload = $DB->record_exists(
             'videoassessment_video_assocs',
-            array('videoassessment' => $videoassessment->id, 'associationid' => $student->id)
+            ['videoassessment' => $videoassessment->id, 'associationid' => $student->id]
         );
 
         if ($videoassessment->isnovideouploaded == 1 && !$isupload) {
@@ -128,7 +136,7 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
 
         $isselfassessment = $DB->record_exists(
             'videoassessment_grade_items',
-            array('videoassessment' => $videoassessment->id, 'gradeduser' => $student->id, 'grader' => $student->id)
+            ['videoassessment' => $videoassessment->id, 'gradeduser' => $student->id, 'grader' => $student->id]
         );
         if ($videoassessment->isnoselfassessment == 1 && !$isselfassessment) {
             return true;
@@ -136,14 +144,14 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
 
         $selfassessment = $DB->get_record(
             'videoassessment_grade_items',
-            array('videoassessment' => $videoassessment->id, 'gradeduser' => $student->id, 'grader' => $student->id)
+            ['videoassessment' => $videoassessment->id, 'gradeduser' => $student->id, 'grader' => $student->id]
         );
         if (!$isselfassessment) {
             return false;
         } else {
             $assessment = $DB->get_record(
                 'videoassessment_grades',
-                array('videoassessment' => $videoassessment->id, 'gradeitem' => $selfassessment->id)
+                ['videoassessment' => $videoassessment->id, 'gradeitem' => $selfassessment->id]
             );
             $array = explode(" ", $assessment->submissioncomment);
             if (count($array) < 20 && $videoassessment->isnoselfassessmentwithcomments == 1) {
@@ -152,12 +160,11 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
         }
         $ispeerassessment = $DB->record_exists(
             'videoassessment_grade_items',
-            array('videoassessment' => $videoassessment->id, 'gradeduser' => $student->id, 'type' => "beforepeer")
+            ['videoassessment' => $videoassessment->id, 'gradeduser' => $student->id, 'type' => "beforepeer"]
         );
         if ($videoassessment->isnopeerassessment == 1 && !$ispeerassessment) {
             return true;
         }
-
     }
 
     /**
@@ -175,11 +182,11 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
     private function send_mail($videoassessment, $user, $teacher) {
         global $DB;
         $mailtemplate = $videoassessment->remindernotificationtemplate;
-        $templatearray = array(
+        $templatearray = [
             "[[student name]]" => $user->firstname . ' ' . $user->lastname,
             "[[teacher's emailaddress]]" => $teacher->email,
             "[[teacher name]]" => $teacher->firstname . ' ' . $teacher->lastname,
-        );
+        ];
 
         foreach ($templatearray as $item => $template) {
             $mailtemplate = str_replace($item, $template, $mailtemplate);
@@ -193,7 +200,7 @@ class reminder_notifition_mail_cron extends \core\task\scheduled_task {
             // to avoid errors when the block is missing.
             $dbman = $DB->get_manager();
             if ($dbman->table_exists('block_quickmailjpn_users')) {
-                $quickmail = $DB->get_record('block_quickmailjpn_users', array('userid' => $user->id));
+                $quickmail = $DB->get_record('block_quickmailjpn_users', ['userid' => $user->id]);
                 if (!empty($quickmail)) {
                     $mobileuser = $user;
                     $mobileuser->email = $quickmail->mobileemail;

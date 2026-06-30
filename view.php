@@ -58,10 +58,18 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
             }
         }
 
-        $templatecontext = [
-            'courses' => $courseoptions,
-        ];
-        $html = $OUTPUT->render_from_template('mod_videoassessment/course_options', $templatecontext);
+        // Build the <option> list directly. A Mustache partial cannot be used
+        // here because templates emitting bare <option> elements fail Moodle's
+        // mustache lint (HTML5 requires <option> to be inside <select>); the
+        // resulting HTML is injected into an existing <select> by the caller.
+        $html = html_writer::tag('option', '(' . get_string('new') . ')', ['value' => '0']);
+        foreach ($courseoptions as $option) {
+            $attributes = ['value' => $option['id']];
+            if (!empty($option['selected'])) {
+                $attributes['selected'] = 'selected';
+            }
+            $html .= html_writer::tag('option', s($option['fullname']), $attributes);
+        }
         echo json_encode([
             'html' => $html,
         ]);
@@ -89,10 +97,17 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
             }
         }
 
-        $templatecontext = [
-            'sections' => $sectionopts,
-        ];
-        $html = $OUTPUT->render_from_template('mod_videoassessment/section_options', $templatecontext);
+        // Same rationale as the course_options branch above: build the
+        // <option> list inline rather than via a Mustache partial that would
+        // fail HTML5 lint when emitting bare <option> elements.
+        $html = '';
+        foreach ($sectionopts as $option) {
+            $attributes = ['value' => $option['id']];
+            if (!empty($option['selected'])) {
+                $attributes['selected'] = 'selected';
+            }
+            $html .= html_writer::tag('option', s($option['name']), $attributes);
+        }
 
         echo json_encode([
             'html' => $html,
@@ -129,9 +144,19 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
                         'submissioncomment',
                         $gradeid
                     );
-                    // Then format the text.
+                    // Then format the text. noclean is required so the
+                    // HTML5 <video>/<source> tags produced by the
+                    // recordrtc Atto/Tiny plugin survive the purifier
+                    // pass; the source has already been sanitised by
+                    // format_text() at the editor save site (see
+                    // classes/form/assess.php where editoroptions also
+                    // sets noclean => true). Item #6 of the 2026-04 fix
+                    // programme - without this flag, the cleaner stripped
+                    // <video>/<source>, leaving teacher-recorded
+                    // feedback unplayable when the student opened it.
                     $formattedcomment = format_text($commenttext, $commentformat, [
                         'context' => $context,
+                        'noclean' => true,
                     ]);
                     $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
                     if ($gradertype == "peer") {
@@ -144,7 +169,6 @@ if (optional_param('ajax', null, PARAM_ALPHANUM)) {
                     $o .= $OUTPUT->heading($label . $comment);
                 }
             }
-
         }
         $o .= \html_writer::end_tag('div');
 
@@ -177,63 +201,63 @@ require_capability('mod/videoassessment:view', $context);
 // The redirect to grading should ONLY happen when "Save and create rubric" button is clicked,
 // which sets a user preference with a timestamp. This check is now done server-side only in lib.php
 // during add_instance/update_instance, and the preference is cleared immediately after redirect.
-// 
+//
 // Clear any stale preferences as a safety measure to prevent unwanted redirects.
-$redirect_to_grading = get_user_preferences('videoassessment_redirect_to_grading');
-if (!empty($redirect_to_grading)) {
+$redirecttograding = get_user_preferences('videoassessment_redirect_to_grading');
+if (!empty($redirecttograding)) {
     // Parse the preference value: 'id:timestamp' or just 'id' (for backward compatibility).
-    $parts = explode(':', $redirect_to_grading);
+    $parts = explode(':', $redirecttograding);
     $vaid = (int)$parts[0];
     $preftimestamp = isset($parts[1]) ? (int)$parts[1] : 0;
-    
+
     // Check if we're coming from modedit.php (activity creation/editing).
-    $isfrommodedit = isset($_SERVER['HTTP_REFERER']) && 
+    $isfrommodedit = isset($_SERVER['HTTP_REFERER']) &&
         (strpos($_SERVER['HTTP_REFERER'], '/course/modedit.php') !== false ||
          strpos($_SERVER['HTTP_REFERER'], '/mod/videoassessment/modedit.php') !== false);
-    
+
     // Only redirect if ALL of these conditions are met:
     // 1. Coming from modedit.php (activity creation/editing)
     // 2. Preference was set very recently (within 0.5 seconds - extremely strict)
     // 3. Preference ID matches current activity instance
-    // 4. Preference has a valid timestamp
-    $should_redirect = false;
+    // 4. Preference has a valid timestamp.
+    $shouldredirect = false;
     if ($isfrommodedit && $preftimestamp > 0) {
-        $recent = (time() - $preftimestamp) <= 0.5; // 0.5 second window - extremely strict
+        $recent = (time() - $preftimestamp) <= 0.5; // 0.5 Second window - extremely strict.
         $matchesactivity = ($vaid == $cm->instance);
-        
+
         if ($recent && $matchesactivity) {
-            // Double-check: verify the activity exists and matches
+            // Double-check: verify the activity exists and matches.
             $va = $DB->get_record('videoassessment', ['id' => $vaid]);
             if ($va && $va->id == $cm->instance) {
-                $should_redirect = true;
+                $shouldredirect = true;
             }
         }
     }
-    
-    if ($should_redirect) {
+
+    if ($shouldredirect) {
         // Clear the preference immediately to prevent redirect loops.
         unset_user_preference('videoassessment_redirect_to_grading');
-        
+
         // Get or create the grading area and redirect.
         require_once($CFG->dirroot . '/grade/grading/lib.php');
         $gradingmanager = get_grading_manager($context, 'mod_videoassessment', 'beforeteacher');
-        
+
         $arearecord = $DB->get_record('grading_areas', [
             'contextid' => $context->id,
             'component' => 'mod_videoassessment',
-            'areaname' => 'beforeteacher'
+            'areaname' => 'beforeteacher',
         ]);
-        
+
         if (!$arearecord) {
             // Create the area.
             $gradingmanager->set_active_method('rubric');
             $arearecord = $DB->get_record('grading_areas', [
                 'contextid' => $context->id,
                 'component' => 'mod_videoassessment',
-                'areaname' => 'beforeteacher'
+                'areaname' => 'beforeteacher',
             ]);
         }
-        
+
         if ($arearecord && $arearecord->id) {
             // Redirect to grading page.
             redirect(new moodle_url('/grade/grading/manage.php', ['areaid' => $arearecord->id]));
@@ -245,8 +269,8 @@ if (!empty($redirect_to_grading)) {
 } else {
     // No preference found - ensure any stale preferences are cleared.
     // This is a safety measure to prevent issues from previous activity creations.
-    $stale_pref = get_user_preferences('videoassessment_redirect_to_grading');
-    if (!empty($stale_pref)) {
+    $stalepref = get_user_preferences('videoassessment_redirect_to_grading');
+    if (!empty($stalepref)) {
         unset_user_preference('videoassessment_redirect_to_grading');
     }
 }
@@ -257,7 +281,7 @@ $PAGE->requires->js_amd_inline("
     require(['jquery'], function(\$) {
         var currentUrl = window.location.href;
         // Clear redirect flags on grading pages or activity view pages.
-        if (currentUrl.indexOf('/grade/grading/') !== -1 || 
+        if (currentUrl.indexOf('/grade/grading/') !== -1 ||
             currentUrl.indexOf('/mod/videoassessment/view.php') !== -1) {
             sessionStorage.removeItem('videoassessment_check_grading_redirect');
             sessionStorage.removeItem('videoassessment_processed_tokens');

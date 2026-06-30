@@ -18,8 +18,6 @@ namespace mod_videoassessment\form;
 
 use mod_videoassessment\va;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for sorting videos for the videoassessment module.
  *
@@ -31,7 +29,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class assign_class extends \moodleform {
-
     /**
      * Sort videos by ID.
      *
@@ -65,7 +62,7 @@ class assign_class extends \moodleform {
         global $DB, $OUTPUT;
 
         $mform = $this->_form;
-        /* @var $va \mod_videoassessment\va */
+        /** @var \mod_videoassessment\va $va */
         $va = $this->_customdata->va;
 
         $attrs = $mform->getAttributes();
@@ -74,22 +71,28 @@ class assign_class extends \moodleform {
         $mform->addElement('hidden', 'id', $va->cm->id);
         $mform->setType('id', PARAM_INT);
 
-        $sortoptions = array(
+        $sortoptions = [
             self::SORT_ID => get_string('sortid', 'videoassessment'),
             self::SORT_NAME => get_string('sortname', 'videoassessment'),
             self::SORT_MANUALLY => get_string('sortmanually', 'videoassessment'),
+        ];
+        $mform->addElement(
+            'select',
+            'sortby',
+            get_string('sortby', 'videoassessment'),
+            $sortoptions,
+            ['id' => 'sortby', 'data-load' => 0]
         );
-        $mform->addElement('select', 'sortby', get_string('sortby', 'videoassessment'), $sortoptions, array('id' => 'sortby', 'data-load' => 0));
         $mform->setType('sortby', PARAM_INT);
         $mform->setDefault('sortby', $this->_customdata->sortby);
 
-        $groupoptions = array(
+        $groupoptions = [
             0 => get_string('allparticipants', 'videoassessment'),
-        );
+        ];
         foreach ($this->_customdata->groups as $k => $group) {
             $groupoptions[$k] = $group->name;
         }
-        $mform->addElement('select', 'groupid', get_string('groupsseparate', 'group'), $groupoptions, array('id' => 'separate-group'));
+        $mform->addElement('select', 'groupid', get_string('groupsseparate', 'group'), $groupoptions, ['id' => 'separate-group']);
         $mform->setType('groupid', PARAM_INT);
         $mform->setDefault('groupid', $this->_customdata->groupid);
 

@@ -44,14 +44,17 @@ class video_upload extends \moodleform {
     protected function definition() {
         global $COURSE, $CFG, $PAGE;
         $mform = $this->_form;
-        /* @var $va \mod_videoassessment\va */
+        /** @var \mod_videoassessment\va $va */
         $va = $this->_customdata->va;
 
-        // Get video publishing settings.
-        // Default to true (1) if field doesn't exist or is null (for backwards compatibility).
-        $allowyoutube = !isset($va->va->allowyoutube) || $va->va->allowyoutube;
-        $allowvideoupload = !isset($va->va->allowvideoupload) || $va->va->allowvideoupload;
-        $allowvideorecord = !isset($va->va->allowvideorecord) || $va->va->allowvideorecord;
+        // Resolve which upload methods are available as the logical AND
+        // of the site-admin flags (Item #2) and the per-activity instance
+        // flags. Consulting the instance flag alone would let an activity
+        // created before a site admin disabled a feature keep offering it.
+        $uploadoptions = \mod_videoassessment\upload_options::for_instance($va->va);
+        $allowyoutube = $uploadoptions['external'];
+        $allowvideoupload = $uploadoptions['upload'];
+        $allowvideorecord = $uploadoptions['record'];
 
         // Default to YouTube (1) as the selected option.
         $defaultuploadtype = 1; // YouTube is always default when available.
@@ -63,11 +66,11 @@ class video_upload extends \moodleform {
 
         $mobile = va::uses_mobile_upload();
         if ($mobile) {
-            $mform->updateAttributes(array('enctype' => 'multipart/form-data', "id" => "mobileform"));
+            $mform->updateAttributes(['enctype' => 'multipart/form-data', "id" => "mobileform"]);
             $mform->addElement('hidden', 'mobile', 1);
             $mform->setType('mobile', PARAM_BOOL);
         } else {
-            $mform->updateAttributes(array("id" => "mform"));
+            $mform->updateAttributes(["id" => "mform"]);
         }
 
         $mform->addElement('hidden', 'id', required_param('id', PARAM_INT));
@@ -81,21 +84,60 @@ class video_upload extends \moodleform {
         $mform->setType('user', PARAM_INT);
         $mform->addElement('hidden', 'timing', optional_param('timing', '', PARAM_ALPHA));
         $mform->setType('timing', PARAM_ALPHA);
-        $mform->addElement('hidden', 'actionmodel', optional_param('actionmodel', 0, PARAM_INT), array('class' => 'actionmodel'));
+        $mform->addElement('hidden', 'actionmodel', optional_param('actionmodel', 0, PARAM_INT), ['class' => 'actionmodel']);
         $mform->setType('actionmodel', PARAM_INT);
         $mform->addElement('header', 'uploadingvideo', get_string('uploadingvideo', 'videoassessment'));
         $mform->addHelpButton('uploadingvideo', 'uploadingvideo', 'videoassessment');
 
         // YouTube URL option (first).
         if ($allowyoutube) {
+            global $PAGE;
             $mform->addElement('radio', 'upload', get_string('uploadyoutube', 'videoassessment'), '', 1);
             $mform->addHelpButton('upload', 'uploadyoutube', 'videoassessment');
 
+            // Service selector (2026-06 request). It does not change how
+            // the link is resolved (the backend auto-detects the
+            // service); it just shows an example of the video URL to
+            // paste, because users pasted platform home pages instead of
+            // a real video link.
+            $services = [
+                'youtube' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                'vimeo' => 'https://vimeo.com/123456789',
+                'peertube' => 'https://tubes.apps.education.fr/w/abc123',
+                'esuppod' => 'https://pod.esup-portail.org/video/0001-my-video/',
+                'dailymotion' => 'https://www.dailymotion.com/video/x9abcde',
+                'opencast' => 'https://opencast.example.org/play/abc-123',
+                'other' => '',
+            ];
+            $options = '';
+            foreach ($services as $key => $example) {
+                $options .= \html_writer::tag(
+                    'option',
+                    get_string('videoservice_' . $key, 'videoassessment'),
+                    ['value' => $key, 'data-example' => $example]
+                );
+            }
+            $selecthtml = \html_writer::tag(
+                'label',
+                get_string('selectvideoservice', 'videoassessment'),
+                ['for' => 'id_videoservice', 'class' => 'd-block fw-bold']
+            )
+                . \html_writer::tag('select', $options, [
+                    'id' => 'id_videoservice',
+                    'class' => 'custom-select form-select mb-1',
+                ])
+                . \html_writer::tag('div', '', [
+                    'id' => 'videoservice-hint',
+                    'class' => 'form-text text-muted mb-2',
+                ]);
+            $mform->addElement('html', $selecthtml);
+            $PAGE->requires->js_call_amd('mod_videoassessment/external_link_service', 'init');
+
             if ($mobile) {
-                $mform->addElement('text', 'mobileurl', '', array('size' => 40));
+                $mform->addElement('text', 'mobileurl', '', ['size' => 40]);
                 $mform->setType('mobileurl', PARAM_URL);
             } else {
-                $mform->addElement('text', 'url', '', array('size' => 40));
+                $mform->addElement('text', 'url', '', ['size' => 40]);
                 $mform->setType('url', PARAM_URL);
             }
         }
@@ -106,40 +148,43 @@ class video_upload extends \moodleform {
             $mform->addHelpButton('upload', 'uploadfile', 'videoassessment');
 
             if ($mobile) {
-                $mform->addElement(
-                    "html",
-                    "<div class='mdl-align upload-progress' style='display:none'><i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/><h3>" .
-                    get_string('uploadingvideonotice', 'videoassessment') .
-                    "</h3></div><br/>",
-                );
+                $spinner = "<div class='mdl-align upload-progress' style='display:none'>"
+                    . "<i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/>"
+                    . "<h3>" . get_string('uploadingvideonotice', 'videoassessment') . "</h3>"
+                    . "</div><br/>";
+                $mform->addElement('html', $spinner);
             }
             $maxbytes = $COURSE->maxbytes;
             if ($CFG->version < va::MOODLE_VERSION_23) {
-                $acceptedtypes = array('*');
+                $acceptedtypes = ['*'];
             } else {
-                $acceptedtypes = array('video', 'audio');
+                $acceptedtypes = ['video', 'audio'];
             }
 
             if ($mobile) {
-                $input = \html_writer::empty_tag('input',
-                    array(
+                $input = \html_writer::empty_tag(
+                    'input',
+                    [
                         'type' => 'file',
                         'id' => 'id_mobilevideo',
                         'name' => 'mobilevideo',
                         'accept' => 'video/*',
-                    ));
+                    ]
+                );
                 $mform->addElement('static', 'mobilevideo', "", $input);
             } else {
                 $str = va::str('video');
-                $mform->addElement('filemanager', 'video',
+                $mform->addElement(
+                    'filemanager',
+                    'video',
                     "",
                     null,
-                    array(
+                    [
                         'subdirs' => 0,
                         'maxbytes' => $maxbytes,
                         'maxfiles' => 1,
                         'accepted_types' => $acceptedtypes,
-                    )
+                    ]
                 );
             }
         }
@@ -148,39 +193,48 @@ class video_upload extends \moodleform {
         if ($allowvideorecord) {
             $mform->addElement('radio', 'upload', get_string('recordnewvideo', 'videoassessment'), '', 2);
             $mform->addHelpButton('upload', 'recordnewvideo', 'videoassessment');
-            $mform->addElement(
-                'html',
-                '<div id="recordrtc" class="recordrtc"><div id="record-content-div"></div>
-                    <span id="btn-start-recording" class="btn btn-secondary">' . get_string('startrecoding', 'videoassessment') .'</span>
-                    <span id="btn-pause-recording" class="btn btn-secondary"style="display: none; font-size: 15px;">'. get_string('pause', 'videoassessment') .'</span>
-                    </span></div>'
-            );
-            $mform->addElement(
-                "html",
-                "<div class='mdl-align upload-progress' style='display:none'><i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/><h3>" .
-                get_string('uploadingvideonotice', 'videoassessment') .
-                "</h3></div><br/>"
-            );
+            $startlabel = get_string('startrecoding', 'videoassessment');
+            $pauselabel = get_string('pause', 'videoassessment');
+            $recorderhtml = '<div id="recordrtc" class="recordrtc"><div id="record-content-div"></div>'
+                . '<span id="btn-start-recording" class="btn btn-secondary">' . $startlabel . '</span>'
+                . '<span id="btn-pause-recording" class="btn btn-secondary"'
+                . ' style="display: none; font-size: 15px;">' . $pauselabel . '</span>'
+                . '</span></div>';
+            $mform->addElement('html', $recorderhtml);
+            $spinner = "<div class='mdl-align upload-progress' style='display:none'>"
+                . "<i class='icon fa fa-circle-o-notch fa-spin fa-fw' aria-hidden='true'></i><br/>"
+                . "<h3>" . get_string('uploadingvideonotice', 'videoassessment') . "</h3>"
+                . "</div><br/>";
+            $mform->addElement('html', $spinner);
 
             $PAGE->requires->js('/mod/videoassessment/RecordRTC.js');
             $PAGE->requires->js('/mod/videoassessment/DetectRTC.js');
             $PAGE->requires->js_call_amd('mod_videoassessment/record', 'reCord', []);
         }
-        
+
         // Set default upload type - must be after all radio buttons are added.
         $mform->setDefault('upload', $defaultuploadtype);
 
         $PAGE->requires->js_call_amd('mod_videoassessment/mod_form', 'initUploadTypeChange');
-        $buttonarray = array();
+        $buttonarray = [];
         if ($mobile) {
-            $PAGE->requires->js_call_amd('mod_videoassessment/videoassessment', 'init_mobile_upload_progress_bar', array());
+            $PAGE->requires->js_call_amd(
+                'mod_videoassessment/videoassessment',
+                'init_mobile_upload_progress_bar',
+                []
+            );
             $btn = "submit";
         } else {
             $btn = "submit";
         }
         $buttonarray[] = &$mform->createElement($btn, 'submitbutton', get_string('upload'));
-        $buttonarray[] = &$mform->createElement('button', 'cancelbutton', get_string('cancel'), array('onclick' => 'javascript :history.back(-1)'));
-        $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
+        $buttonarray[] = &$mform->createElement(
+            'button',
+            'cancelbutton',
+            get_string('cancel'),
+            ['onclick' => 'javascript :history.back(-1)']
+        );
+        $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
         $mform->closeHeaderBefore('buttonar');
     }
 
@@ -195,7 +249,18 @@ class video_upload extends \moodleform {
      * @return string[] Array of validation error messages
      */
     public function validation($data, $files) {
-        $errors = array();
+        $errors = [];
+
+        // The in-browser record / iOS native-camera flow attaches the
+        // recording as $_FILES['video'] (consumed by the isRecordVideo
+        // branch of view_upload_video). The legacy "Mobile upload"
+        // requirement only applies to the direct file-upload path, so
+        // skip it when the record path is active — otherwise the
+        // record-video POST fails validation, get_data() returns null,
+        // the form re-renders, and the upload silently vanishes.
+        if (optional_param('isRecordVideo', 0, PARAM_INT) == 1) {
+            return $errors;
+        }
 
         if (isset($data['mobile']) && empty($data['mobileurl'])) {
             if (empty($files['mobilevideo'])) {

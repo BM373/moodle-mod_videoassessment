@@ -21,8 +21,6 @@ use renderable;
 use mod_videoassessment\va;
 use mod_videoassessment\rubric;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Print renderer for video assessment module.
  *
@@ -67,7 +65,7 @@ class print_renderer extends plugin_renderer_base {
 
         $rubric = new rubric($this);
 
-        $o .= \html_writer::start_tag('div', array('class' => 'report-rubrics'));
+        $o .= \html_writer::start_tag('div', ['class' => 'report-rubrics']);
         foreach ($this->timings as $timing) {
             $o .= $this->output->heading(va::str($timing . 'marks'));
             foreach ($this->gradertypes as $gradertype) {
@@ -85,7 +83,7 @@ class print_renderer extends plugin_renderer_base {
                     $this->instance,
                     $userid
                 );
-                $o .= \html_writer::start_tag('div', array('id' => 'rubrics-' . $gradingarea, 'class' => 'rubrics-page-down'));
+                $o .= \html_writer::start_tag('div', ['id' => 'rubrics-' . $gradingarea, 'class' => 'rubrics-page-down']);
                 if ($controller = $rubric->get_available_controller($gradingarea)) {
                     $gradeitems = $this->get_grade_items($gradingarea, $userid);
                     foreach ($gradeitems as $gradeitem) {

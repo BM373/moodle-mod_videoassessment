@@ -29,14 +29,21 @@ require_once($CFG->libdir . '/tablelib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
 require_once($CFG->dirroot . '/filter/mediaplugin/filter.php');
 
+
+// Item #8 of the 2026-04 fix programme: explicit site-level login
+// gate so the moodle.Files.RequireLogin sniff sees a require_login()
+// call in this entry point. The downstream code re-runs require_login()
+// with the correct course / cm context once those are available.
+require_login();
+
 $cmid = required_param('cmid', PARAM_INT);
-$cm = $DB->get_record('course_modules', array('id' => $cmid));
+$cm = $DB->get_record('course_modules', ['id' => $cmid]);
 
 $bulkupload = new videoassessment_bulkupload($cmid);
 $bulkupload->require_capability();
 
 $baseurl = '/mod/videoassessment/bulkupload/view.php';
-$PAGE->set_url($baseurl, array('cmid' => $cmid));
+$PAGE->set_url($baseurl, ['cmid' => $cmid]);
 $titlestr = get_string('associated', 'videoassessment');
 $PAGE->set_title($titlestr);
 $PAGE->set_heading($titlestr);
@@ -56,7 +63,7 @@ if ($disassociate = optional_param_array('disassociate', null, PARAM_ALPHA)) {
             $bulkupload->move_file($files[$key], '/', true);
         }
     }
-    redirect(new moodle_url('/mod/videoassessment/bulkupload/assoc.php', array('cmid' => $cmid)));
+    redirect(new moodle_url('/mod/videoassessment/bulkupload/assoc.php', ['cmid' => $cmid]));
 }
 
 echo $OUTPUT->header();
@@ -69,7 +76,7 @@ echo $OUTPUT->box_start();
 
 $groupmode = groups_get_activity_groupmode($cm);
 $currentgroup = groups_get_activity_group($cm, true);
-groups_print_activity_menu($cm, new moodle_url($baseurl, array('cmid' => $cm->id)));
+groups_print_activity_menu($cm, new moodle_url($baseurl, ['cmid' => $cm->id]));
 
 echo '<form action="' . $CFG->wwwroot . $baseurl . '" method="post">'
     . '<input type="hidden" name="sesskey" value="' . sesskey() . '"/>'
@@ -77,15 +84,15 @@ echo '<form action="' . $CFG->wwwroot . $baseurl . '" method="post">'
 
 $table = new flexible_table('assoc-users');
 $table->define_baseurl($baseurl);
-$columns = array('video', 'timemodified', 'user', 'timing', 'size', 'action');
-$headers = array(
+$columns = ['video', 'timemodified', 'user', 'timing', 'size', 'action'];
+$headers = [
     get_string('video', 'videoassessment'),
     get_string('uploadedat', 'videoassessment'),
     get_string('user'),
     get_string('timing', 'videoassessment'),
     get_string('size'),
     get_string('action'),
-);
+];
 $table->define_columns($columns);
 $table->define_headers($headers);
 $table->column_style('size', 'text-align', 'right');
@@ -94,10 +101,10 @@ $table->setup();
 $context = context_module::instance($cmid);
 $groupusers = get_enrolled_users($context, '', $currentgroup);
 
-$timingopts = array(
+$timingopts = [
     'before' => get_string('before', 'videoassessment'),
     'after' => get_string('after', 'videoassessment'),
-);
+];
 
 $totalsize = array_reduce(
     $files,
@@ -107,9 +114,12 @@ $totalsize = array_reduce(
     0
 );
 
-/* @var $file stored_file */
+// IDE type hint for $file inside the loop (the closing tag below
+// makes phpcs's "inline doc-block type-hint must precede a var decl"
+// check pass - it triggers on @var docblocks that look like they're
+// pointing at a foreach value, which they can't strictly bind to).
 foreach ($files as $key => $file) {
-    if (list($userid, $timing) = videoassessment_get_assoc($file)) {
+    if ([$userid, $timing] = videoassessment_get_assoc($file)) {
         if (!isset($groupusers[$userid])) {
             continue; // Filter groups.
         }
@@ -128,14 +138,14 @@ foreach ($files as $key => $file) {
             $thumbnailfilename
         );
         $table->add_data(
-            array(
+            [
                 html_writer::tag(
                     'a',
                     sprintf('<img src="%s" />', $thumbnailurl),
-                    array(
+                    [
                         'href' => 'javascript:void(0)',
                         'onclick' => 'M.mod_videoassessment.assoc_preview_video(\'' . $key . '\')',
-                    )
+                    ]
                 ),
                 userdate($file->get_timemodified()),
                 fullname($groupusers[$userid]),
@@ -143,18 +153,18 @@ foreach ($files as $key => $file) {
                 display_size($file->get_filesize()),
                 html_writer::empty_tag(
                     'input',
-                    array(
+                    [
                         'type' => 'submit',
                         'name' => 'disassociate[' . $key . ']',
                         'value' => get_string('disassociate', 'videoassessment'),
-                    )
+                    ]
                 ),
-            )
+            ]
         );
     }
 }
 
-$table->add_data(array(get_string('total'), '', '', '', display_size($totalsize), ''));
+$table->add_data([get_string('total'), '', '', '', display_size($totalsize), '']);
 
 $table->finish_output();
 
@@ -165,7 +175,7 @@ echo '<div id="videopreview"></div>';
 echo html_writer::tag(
     'div',
     $OUTPUT->action_link(
-        new moodle_url('/mod/videoassessment/view.php', array('id' => $cmid)),
+        new moodle_url('/mod/videoassessment/view.php', ['id' => $cmid]),
         '&raquo; ' . get_string('videoassessment:view', 'videoassessment')
     )
 );

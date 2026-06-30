@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Restore structure step for the Video Assessment activity.
  *
@@ -56,7 +54,10 @@ class restore_videoassessment_activity_structure_step extends restore_activity_s
             $grade = new restore_path_element('videoassessment_grade', '/activity/videoassessment/grades/grade');
             $paths[] = $grade;
 
-            $aggregation = new restore_path_element('videoassessment_aggregation', '/activity/videoassessment/aggregations/aggregation');
+            $aggregation = new restore_path_element(
+                'videoassessment_aggregation',
+                '/activity/videoassessment/aggregations/aggregation'
+            );
             $paths[] = $aggregation;
         }
 

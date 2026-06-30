@@ -19,8 +19,6 @@ namespace mod_videoassessment\form;
 use mod_videoassessment\va;
 use mod_videoassessment\video;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for publishing videos for the videoassessment module.
  *
@@ -51,15 +49,21 @@ class video_publish extends \moodleform {
         $mform->addElement('hidden', 'id', $va->cm->id);
         $mform->setType('id', PARAM_INT);
 
-        $courseopts = array();
+        $courseopts = [];
         $categories = \core_course_category::make_categories_list('moodle/course:create');
 
-        $sectionopts = array();
+        $sectionopts = [];
         $sectionopts[0] = '';
         if (!empty($categories)) {
-            $mform->addElement('select', 'category', get_string('category'), $categories, array('id' => 'publish-category', 'style' => 'min-width: 270px'));
+            $mform->addElement(
+                'select',
+                'category',
+                get_string('category'),
+                $categories,
+                ['id' => 'publish-category', 'style' => 'min-width: 270px']
+            );
             if (!empty($categories)) {
-                $courseopts[0] = '('.get_string('new').')';
+                $courseopts[0] = '(' . get_string('new') . ')';
             }
             $courses = \mod_videoassessment\va::get_courses_managed_by($USER->id);
             array_walk($courses, function (\stdClass $a) use (&$courseopts, &$sectionopts) {
@@ -72,67 +76,66 @@ class video_publish extends \moodleform {
                     $sectionopts[$section->__get('id')] = get_section_name($a->id, $section->__get('section'));
                 }
             });
-            $mform->addElement('select', 'course', get_string('existingcourseornewcourse', 'videoassessment'), $courseopts, array(
+            $mform->addElement('select', 'course', get_string('existingcourseornewcourse', 'videoassessment'), $courseopts, [
                 'class' => 'input-select',
                 'id' => 'publish-course',
-            ));
+            ]);
             $mform->addHelpButton('course', 'existingcourse', 'videoassessment');
-            $mform->addElement('select', 'section', get_string('insertintosection', 'videoassessment'), $sectionopts, array(
+            $mform->addElement('select', 'section', get_string('insertintosection', 'videoassessment'), $sectionopts, [
                 'disabled' => 'disabled',
                 'class' => 'input-select',
                 'id' => 'publish-section',
-            ));
-            $mform->addElement('text', 'fullname', get_string('fullnamecourse', 'videoassessment'), array(
+            ]);
+            $mform->addElement('text', 'fullname', get_string('fullnamecourse', 'videoassessment'), [
                 'class' => 'input-select',
                 'id' => 'publish-fullname',
-            ));
+            ]);
             $mform->setType('fullname', PARAM_TEXT);
-            $mform->addElement('text', 'shortname', get_string('shortnamecourse', 'videoassessment'), array(
+            $mform->addElement('text', 'shortname', get_string('shortnamecourse', 'videoassessment'), [
                 'class' => 'input-select',
                 'id' => 'publish-shortname',
-            ));
+            ]);
             $mform->setType('shortname', PARAM_TEXT);
-            $mform->addElement('text', 'prefix', get_string('addprefixtolabel', 'videoassessment'), array(
+            $mform->addElement('text', 'prefix', get_string('addprefixtolabel', 'videoassessment'), [
                 'class' => 'input-select',
                 'id' => 'publish-prefix',
-            ));
+            ]);
             $mform->setType('prefix', PARAM_TEXT);
-            $mform->addElement('text', 'suffix', get_string('addsuffixtolabel', 'videoassessment'), array(
+            $mform->addElement('text', 'suffix', get_string('addsuffixtolabel', 'videoassessment'), [
                 'class' => 'input-select',
                 'id' => 'publish-suffix',
-            ));
+            ]);
             $mform->setType('suffix', PARAM_TEXT);
-            $mform->addElement('hidden', 'video_count', 0, array('id' => 'video-count'));
+            $mform->addElement('hidden', 'video_count', 0, ['id' => 'video-count']);
             $mform->setType('video_count', PARAM_INT);
-
         }
         ob_start();
         $table = new \flexible_table('video-publish');
         $table->set_attribute('class', 'generaltable');
-        $table->define_baseurl(new \moodle_url($va->viewurl, array('action' => 'publish')));
-        $columns = array(
+        $table->define_baseurl(new \moodle_url($va->viewurl, ['action' => 'publish']));
+        $columns = [
                 'checkbox',
                 'thumbnail',
                 'name',
                 'size',
                 'grade',
-        );
-        $checkall = \html_writer::empty_tag('input', array(
+        ];
+        $checkall = \html_writer::empty_tag('input', [
                 'type' => 'checkbox',
                 'id' => 'all-video-check',
-        ));
-        $headers = array(
+        ]);
+        $headers = [
                 $checkall,
                 va::str('video'),
                 va::str('originalname'),
                 get_string('size'),
                 get_string('grade'),
-        );
+        ];
         $table->define_columns($columns);
         $table->define_headers($headers);
         $table->setup();
 
-        $videorecs = $DB->get_records('videoassessment_videos', array('videoassessment' => $va->instance));
+        $videorecs = $DB->get_records('videoassessment_videos', ['videoassessment' => $va->instance]);
         $o = '';
         foreach ($videorecs as $videorec) {
             $video = new video($va->context, $videorec);
@@ -145,9 +148,9 @@ class video_publish extends \moodleform {
             $assocs = $va->get_video_associations($videorec->id);
             $gradecell = '';
             foreach ($assocs as $assoc) {
-                if ($user = $DB->get_record('user', array('id' => $assoc->associationid))) {
-                    $gradecell .= $OUTPUT->user_picture($user).' ';
-                    $gradecell .= fullname($user).' ';
+                if ($user = $DB->get_record('user', ['id' => $assoc->associationid])) {
+                    $gradecell .= $OUTPUT->user_picture($user) . ' ';
+                    $gradecell .= fullname($user) . ' ';
                 }
                 $grade = $va->get_aggregated_grades($assoc->associationid);
                 $timing = $assoc->timing;
@@ -185,14 +188,19 @@ class video_publish extends \moodleform {
                 $checked = false;
             }
 
-            $table->add_data(array(
-                    \html_writer::checkbox('videos['.$videorec->id.']', 1, $checked, '',
-                            array('class' => 'video-check')),
+            $table->add_data([
+                    \html_writer::checkbox(
+                        'videos[' . $videorec->id . ']',
+                        1,
+                        $checked,
+                        '',
+                        ['class' => 'video-check']
+                    ),
                     $videorec->link,
                     $videorec->originalname,
                     display_size($videorec->filesize),
                     $videorec->gradecell,
-            ));
+            ]);
         }
 
         $table->finish_output();
@@ -228,7 +236,7 @@ class video_publish extends \moodleform {
             if (!trim($data['shortname'])) {
                 $errors['shortname'] = va::str('inputnewcourseshortname');
             } else {
-                if ($DB->get_record('course', array('shortname' => trim($data['shortname'])))) {
+                if ($DB->get_record('course', ['shortname' => trim($data['shortname'])])) {
                     $errors['shortname'] = va::str('courseshortnameexist');
                 }
             }

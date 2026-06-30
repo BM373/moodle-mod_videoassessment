@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Abstract base class for video assessment page controllers.
  *
@@ -72,7 +70,7 @@ abstract class page {
         $cmid = required_param('id', PARAM_INT);
         $cm = get_coursemodule_from_id('videoassessment', $cmid, 0, false, MUST_EXIST);
         $context = \context_module::instance($cmid);
-        $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+        $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
         require_login($course, true, $cm);
 
@@ -80,7 +78,7 @@ abstract class page {
         $PAGE->set_heading($cm->name);
 
         $this->va = new va($context, $cm, $course);
-        $this->url = new \moodle_url($url, array('id' => $cm->id));
+        $this->url = new \moodle_url($url, ['id' => $cm->id]);
         $PAGE->set_url($this->url);
         $this->output = $PAGE->get_renderer('mod_videoassessment');
     }

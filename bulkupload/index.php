@@ -23,15 +23,22 @@
  */
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/mod/videoassessment/bulkupload/lib.php');
+require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
+
+
+// Item #8 of the 2026-04 fix programme: explicit site-level login
+// gate so the moodle.Files.RequireLogin sniff sees a require_login()
+// call in this entry point. The downstream code re-runs require_login()
+// with the correct course / cm context once those are available.
+require_login();
 
 $cmid = required_param('cmid', PARAM_INT);
 
 $bulkupload = new videoassessment_bulkupload($cmid);
 $bulkupload->require_capability();
 
-$PAGE->set_url('/mod/videoassessment/bulkupload/index.php', array('cmid' => $cmid));
+$PAGE->set_url('/mod/videoassessment/bulkupload/index.php', ['cmid' => $cmid]);
 $PAGE->set_title(get_string('videoassessment:bulkupload', 'videoassessment'));
 $PAGE->set_heading(get_string('videoassessment:bulkupload', 'videoassessment'));
 
@@ -42,7 +49,7 @@ echo $OUTPUT->header();
 // Link to task list.
 $cm = get_coursemodule_from_id('videoassessment', $cmid);
 $context = context_module::instance($cm->id);
-$course = $DB->get_record('course', array('id' => $cm->course));
+$course = $DB->get_record('course', ['id' => $cm->course]);
 $va = new mod_videoassessment\va($context, $cm, $course);
 echo $va->output->task_link($va);
 
@@ -52,8 +59,8 @@ $PAGE->requires->js_call_amd('mod_videoassessment/bulkupload', 'init', [$cmid]);
 echo html_writer::tag(
     'div',
     $OUTPUT->action_link(
-            $va->get_view_url('videos'),
-            '&raquo; ' . get_string('videoassessment:associate', 'videoassessment')
+        $va->get_view_url('videos'),
+        '&raquo; ' . get_string('videoassessment:associate', 'videoassessment')
     )
 );
 

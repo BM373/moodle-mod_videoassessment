@@ -38,17 +38,18 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2012110200) {
-
         // Define field allowstudentpeerselection to be added to videoassessment.
         $table = new xmldb_table('videoassessment');
-        $field = new xmldb_field('allowstudentpeerselection',
+        $field = new xmldb_field(
+            'allowstudentpeerselection',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
             XMLDB_NOTNULL,
             null,
             '0',
-            'allowstudentupload');
+            'allowstudentupload'
+        );
 
         // Conditionally launch add field allowstudentpeerselection.
         if (!$dbman->field_exists($table, $field)) {
@@ -234,7 +235,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     if ($oldversion < 2016030703) {
         // Define field gradebeforetraining to be added to videoassessment_aggregation.
         $table = new xmldb_table('videoassessment_aggregation');
-        $field = new xmldb_field('gradebeforetraining',
+        $field = new xmldb_field(
+            'gradebeforetraining',
             XMLDB_TYPE_INTEGER,
             '10',
             null,
@@ -344,7 +346,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2016040700) {
-
         // Create table videoassessment_sort_items.
         $table = new xmldb_table('videoassessment_sort_items');
 
@@ -450,7 +451,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2016041100) {
-
         // Delete field sortby from course.
         $table = new xmldb_table('course');
 
@@ -487,7 +487,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2016041401) {
-
         $table = new xmldb_table('videoassessment_sort_items');
         $field = new xmldb_field('type', XMLDB_TYPE_CHAR, 32, null, XMLDB_NOTNULL, null, '');
 
@@ -510,9 +509,19 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2019041410, 'videoassessment');
     }
 
+    if ($oldversion < 2020091702) {
+        $table = new xmldb_table('videoassessment_grades');
+        $field = new xmldb_field('isnotifystudent', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 1);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2020091702, 'videoassessment');
+    }
+
     if ($oldversion < 2020091703) {
         $table = new xmldb_table('videoassessment');
-        $field = new xmldb_field('isregisteredemail',
+        $field = new xmldb_field(
+            'isregisteredemail',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -528,7 +537,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('teachercommentnotification',
+        $field = new xmldb_field(
+            'teachercommentnotification',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -540,7 +550,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isfirstassessmentbyteacher',
+        $field = new xmldb_field(
+            'isfirstassessmentbyteacher',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -552,7 +563,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isadditionalassessment',
+        $field = new xmldb_field(
+            'isadditionalassessment',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -565,7 +577,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('teachernotificationtemplate',
+        $field = new xmldb_field(
+            'teachernotificationtemplate',
             XMLDB_TYPE_TEXT,
             null,
             null,
@@ -578,7 +591,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('peercommentnotification',
+        $field = new xmldb_field(
+            'peercommentnotification',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -590,7 +604,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isfirstassessmentbystudent',
+        $field = new xmldb_field(
+            'isfirstassessmentbystudent',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -603,7 +618,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('peertnotificationtemplate',
+        $field = new xmldb_field(
+            'peertnotificationtemplate',
             XMLDB_TYPE_TEXT,
             null,
             null,
@@ -616,7 +632,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('remindernotification',
+        $field = new xmldb_field(
+            'remindernotification',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -628,7 +645,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isbeforeduedate',
+        $field = new xmldb_field(
+            'isbeforeduedate',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -660,7 +678,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isnoselfassessment',
+        $field = new xmldb_field(
+            'isnoselfassessment',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -672,7 +691,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isnoselfassessmentwithcomments',
+        $field = new xmldb_field(
+            'isnoselfassessmentwithcomments',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -684,7 +704,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('isnopeerassessment',
+        $field = new xmldb_field(
+            'isnopeerassessment',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -697,19 +718,22 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('remindernotificationtemplate',
+        $field = new xmldb_field(
+            'remindernotificationtemplate',
             XMLDB_TYPE_TEXT,
             null,
             null,
             false,
             null,
             null,
-            'isnopeerassessment');
+            'isnopeerassessment'
+        );
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        $field = new xmldb_field('videonotification',
+        $field = new xmldb_field(
+            'videonotification',
             XMLDB_TYPE_INTEGER,
             '1',
             null,
@@ -740,15 +764,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
         upgrade_mod_savepoint(true, 2020091703, 'videoassessment');
-    }
-
-    if ($oldversion < 2020091702) {
-        $table = new xmldb_table('videoassessment_grades');
-        $field = new xmldb_field('isnotifystudent', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, null, 1);
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-        upgrade_mod_savepoint(true, 2020091702, 'videoassessment');
     }
 
     if ($oldversion < 2020092202) {
@@ -889,8 +904,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2020111601, 'videoassessment');
     }
     if ($oldversion < 2022080801) {
+        // Videoassessment_aggregation: extra self-assessment bonus columns.
         $table = new xmldb_table('videoassessment_aggregation');
-
         $field = new xmldb_field('selffairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -900,19 +915,15 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             $dbman->add_field($table, $field);
         }
 
-    }
-    if ($oldversion < 2022080801) {
+        // Videoassessment_grades: comment format column.
         $table = new xmldb_table('videoassessment_grades');
-
         $field = new xmldb_field('submissioncommentformat', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
 
-    if ($oldversion < 2022080801) {
+        // Videoassessment: due-date / assessment-type / weighting columns.
         $table = new xmldb_table('videoassessment');
-
         $field = new xmldb_field('allowsubmissionsfromdate', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -929,7 +940,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
         $field = new xmldb_field('isselfassesstype', XMLDB_TYPE_INTEGER, 2, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -962,7 +972,6 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
         $field = new xmldb_field('numberofpeers', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -971,27 +980,17 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
-    if ($oldversion < 2022080801) {
-        $table = new xmldb_table('videoassessment');
-
         $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
-    if ($oldversion < 2022080801) {
-        $table = new xmldb_table('videoassessment');
-
         $field = new xmldb_field('gradepass_videoassessment', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-    }
 
-    if ($oldversion < 2022080801) {
+        // Videoassessment_aggregation: fairness / final score columns.
         $table = new xmldb_table('videoassessment_aggregation');
-
         $field = new xmldb_field('fairnessbonus', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
@@ -1000,6 +999,7 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+
         upgrade_mod_savepoint(true, 2022080801, 'videoassessment');
     }
 
@@ -1040,72 +1040,106 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2025120811) {
-        // Always install/reinstall default rubric template on this version upgrade
+        // Always install/reinstall default rubric template on this version upgrade.
         require_once($CFG->dirroot . '/mod/videoassessment/db/install.php');
-        
-        // Delete any existing default template first to ensure fresh installation
+
+        // Delete any existing default template first to ensure fresh installation.
         $systemcontext = \context_system::instance();
         $existingareas = $DB->get_records_sql(
             "SELECT ga.id, gd.id as definitionid
              FROM {grading_areas} ga
              JOIN {grading_definitions} gd ON gd.areaid = ga.id
-             WHERE ga.contextid = ? 
+             WHERE ga.contextid = ?
              AND ga.component = 'core_grading'
              AND gd.method = 'rubric'
              AND gd.name = ?",
             [$systemcontext->id, get_string('defaultrubrictemplate', 'videoassessment')]
         );
-        
-        // Delete existing template definitions and all related data
+
+        // Delete existing template definitions and all related data.
         foreach ($existingareas as $area) {
-            // Get all criteria IDs for this definition
+            // Get all criteria IDs for this definition.
             $criteriaids = $DB->get_fieldset_sql(
                 "SELECT id FROM {gradingform_rubric_criteria} WHERE definitionid = ?",
                 [$area->definitionid]
             );
-            
+
             if (!empty($criteriaids)) {
-                // Delete all levels for these criteria
-                list($insql, $inparams) = $DB->get_in_or_equal($criteriaids);
+                // Delete all levels for these criteria.
+                [$insql, $inparams] = $DB->get_in_or_equal($criteriaids);
                 $DB->execute("DELETE FROM {gradingform_rubric_levels} WHERE criterionid $insql", $inparams);
-                
-                // Delete all criteria
+
+                // Delete all criteria.
                 $DB->delete_records('gradingform_rubric_criteria', ['definitionid' => $area->definitionid]);
             }
-            
-            // Delete all instances first (this will cascade delete fillings)
+
+            // Delete all instances first (this will cascade delete fillings).
             $DB->delete_records('grading_instances', ['definitionid' => $area->definitionid]);
-            
-            // Delete the definition
+
+            // Delete the definition.
             $DB->delete_records('grading_definitions', ['id' => $area->definitionid]);
-            
-            // Delete the area
+
+            // Delete the area.
             $DB->delete_records('grading_areas', ['id' => $area->id]);
         }
-        
-        // Now create the default template (will create fresh)
+
+        // Now create the default template (will create fresh).
         create_default_rubric_template();
 
         upgrade_mod_savepoint(true, 2025120811, 'videoassessment');
     }
 
-    // Ensure gradepass fields are added (2025120815)
+    // Ensure gradepass fields are added (2025120815).
     if ($oldversion < 2025120815) {
         $table = new xmldb_table('videoassessment');
 
-        // Add gradepass field if it doesn't exist
+        // Add gradepass field if it doesn't exist.
         $field = new xmldb_field('gradepass', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
-        // Add gradepass_videoassessment field if it doesn't exist
+        // Add gradepass_videoassessment field if it doesn't exist.
         $field = new xmldb_field('gradepass_videoassessment', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, null, 0);
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
         upgrade_mod_savepoint(true, 2025120815, 'videoassessment');
+    }
+
+    if ($oldversion < 2026050100) {
+        // Issue #11: rename `order` column on the videoassessment table to
+        // `sortorder` because `order` is a PostgreSQL reserved keyword and
+        // every $DB->update_record('videoassessment', ...) call generated
+        // unparsable SQL on PostgreSQL deployments.
+        $table = new xmldb_table('videoassessment');
+        $oldfield = new xmldb_field('order', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        if ($dbman->field_exists($table, $oldfield)) {
+            $dbman->rename_field($table, $oldfield, 'sortorder');
+        }
+        upgrade_mod_savepoint(true, 2026050100, 'videoassessment');
+    }
+
+    if ($oldversion < 2026050200) {
+        // Issue #2: derive the three independent allow-* site settings
+        // from the legacy `preventvideouploads` toggle so existing sites
+        // keep their current effective behaviour. preventvideouploads = 1
+        // meant "no uploads / recording", which maps to the new flags
+        // allowvideouploads = 0 and allowvideorecording = 0; external
+        // links were never restricted by the legacy toggle and stay
+        // allowed.
+        $legacy = (int)get_config('videoassessment', 'preventvideouploads');
+        if (get_config('videoassessment', 'allowexternallinks') === false) {
+            set_config('allowexternallinks', 1, 'videoassessment');
+        }
+        if (get_config('videoassessment', 'allowvideouploads') === false) {
+            set_config('allowvideouploads', $legacy ? 0 : 1, 'videoassessment');
+        }
+        if (get_config('videoassessment', 'allowvideorecording') === false) {
+            set_config('allowvideorecording', $legacy ? 0 : 1, 'videoassessment');
+        }
+        upgrade_mod_savepoint(true, 2026050200, 'videoassessment');
     }
 
     return true;

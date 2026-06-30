@@ -25,13 +25,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 // List of observers.
-$observers = array(
-    array(
+$observers = [
+    [
         'eventname' => '\core\event\course_module_created',
         'callback'  => 'mod_videoassessment_observer::course_module_created',
-    ),
-    array(
+    ],
+    [
         'eventname' => '\core\event\course_module_updated',
         'callback'  => 'mod_videoassessment_observer::course_module_updated',
-    ),
-);
+    ],
+];

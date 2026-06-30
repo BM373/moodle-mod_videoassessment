@@ -26,7 +26,7 @@
  */
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/grade/grading/lib.php');
+require_once($CFG->dirroot . '/grade/grading/lib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 require_once($CFG->dirroot . '/mod/videoassessment/rubric/form_duplicate.php');
 
@@ -40,12 +40,12 @@ $course = $DB->get_record('course', ['id' => $cm->course]);
 $context = \context_module::instance($cm->id);
 require_capability('mod/videoassessment:grade', $context);
 $areas = []; // Array of area IDs for class, peer, and self in the grading_areas table.
-$definitionids = []; // Array of defination IDs in grading_definitions table
-$criteriaids = []; // Array of criteria IDs in gradingform_rubric_criteria table
+$definitionids = []; // Array of defination IDs in grading_definitions table.
+$criteriaids = []; // Array of criteria IDs in gradingform_rubric_criteria table.
 
-// Get data from videoassessment table
+// Get data from videoassessment table.
 $currentvideoassessment = $DB->get_record('videoassessment', ['id' => $cm->instance], 'training');
-// Get data from grading_areas table
+// Get data from grading_areas table.
 $areasgrading = $DB->get_records('grading_areas', ['contextid' => $context->id]);
 
 if (is_array($areasgrading)) {
@@ -67,11 +67,14 @@ if (is_array($areasgrading)) {
 $gradingdefinitionteacher = $DB->get_record('grading_definitions', ['areaid' => $areateacherid]);
 // Check if a teacher rubric exists for this context.
 if (!$gradingdefinitionteacher) {
-    redirect(new \moodle_url('/grade/grading/manage.php', ['areaid' => $areateacherid]), get_string('pleasedefinerubricforteacher', 'videoassessment'));
+    redirect(
+        new \moodle_url('/grade/grading/manage.php', ['areaid' => $areateacherid]),
+        get_string('pleasedefinerubricforteacher', 'videoassessment')
+    );
 }
-// Get information of Rubric
+// Get information of Rubric.
 $manager = get_grading_manager($areateacherid);
-// Get the currently active method
+// Get the currently active method.
 $method = $manager->get_active_method();
 
 $PAGE->requires->css(new \moodle_url('/mod/videoassessment/duplicate.css'));
@@ -80,18 +83,18 @@ $url = new moodle_url('/mod/videoassessment/rubric/duplicate.php', ['id' => $cmi
 $PAGE->set_url($url);
 $PAGE->add_body_class('duplicate-page');
 
-// Set default data for duplicate form
-$data = new stdClass;
+// Set default data for duplicate form.
+$data = new stdClass();
 $data->id = $cmid;
 $data->contextid = $context->id;
 
-// Create form duplicate
+// Create form duplicate.
 $dform = new \mod_videoassessment_rubric_form_duplicate('', ['areas' => $areas]);
 $dform->set_data($data);
 
-// Post form
+// Post form.
 if ($data = $dform->get_data()) {
-    // Check rubric in grading_definitions
+    // Check rubric in grading_definitions.
     $areas = $data->areas;
     $inareaids = implode(',', array_keys($areas));
     $areadefinitions = $DB->get_records_sql(
@@ -102,9 +105,9 @@ if ($data = $dform->get_data()) {
         ]
     );
 
-    // Insert into grading_definitions table
-    // Get id definitions of new record after insert
-    // $gradingdefinitionother : Object use insert data to grading_definitions table (data: peer, self, class)
+    // Insert into grading_definitions table.
+    // Get id definitions of new record after insert.
+    // $gradingdefinitionother is an Object used to insert into grading_definitions for peer, self, class.
     $transaction = $DB->start_delegated_transaction();
 
     try {
@@ -120,11 +123,17 @@ if ($data = $dform->get_data()) {
         }
 
         if (is_null($definitionids)) {
-            redirect(new \moodle_url('/mod/videoassessment/view.php', ['id' => $PAGE->cm->id]), get_string('duplicateerrors', 'videoassessment'));
+            redirect(
+                new \moodle_url('/mod/videoassessment/view.php', ['id' => $PAGE->cm->id]),
+                get_string('duplicateerrors', 'videoassessment')
+            );
         }
-        // Insert into gradingform_rubric_criteria table
-        // Get ids criteria of new record after insert
-        $gradingformcriteria = $DB->get_records('gradingform_rubric_criteria', ['definitionid' => $gradingdefinitionteacher->id]);
+        // Insert into gradingform_rubric_criteria table.
+        // Get ids criteria of new record after insert.
+        $gradingformcriteria = $DB->get_records(
+            'gradingform_rubric_criteria',
+            ['definitionid' => $gradingdefinitionteacher->id]
+        );
 
         if (is_array($gradingformcriteria)) {
             foreach ($definitionids as $definitionid) {
@@ -134,7 +143,10 @@ if ($data = $dform->get_data()) {
 
                     $criteriaid = $DB->insert_record('gradingform_rubric_criteria', $gradingformcriteriaother);
 
-                    $gradingformrubriclevels = $DB->get_records('gradingform_rubric_levels', ['criterionid' => $gradingformcriteriaitem->id]);
+                    $gradingformrubriclevels = $DB->get_records(
+                        'gradingform_rubric_levels',
+                        ['criterionid' => $gradingformcriteriaitem->id]
+                    );
 
                     foreach ($gradingformrubriclevels as $gradingformrubriclevel) {
                         $gradingrubriclevelteacherother = clone $gradingformrubriclevel;
@@ -146,14 +158,19 @@ if ($data = $dform->get_data()) {
         }
 
         $transaction->allow_commit();
-        redirect(new \moodle_url('/mod/videoassessment/view.php', ['id' => $PAGE->cm->id]), get_string('duplicatesuccess', 'videoassessment'));
+        redirect(
+            new \moodle_url('/mod/videoassessment/view.php', ['id' => $PAGE->cm->id]),
+            get_string('duplicatesuccess', 'videoassessment')
+        );
     } catch (Exception $e) {
         $transaction->rollback($e);
     }
-} else { // Default page
+} else { // Default page.
     echo $OUTPUT->header();
     echo $OUTPUT->heading(get_string('duplicaterubric', 'videoassessment'));
-    echo '<h3>' . $gradingdefinitionteacher->name . '<span class="status ready"> ' . get_string('readyforuse', 'videoassessment') . '</span></h3>';
+    $readylabel = get_string('readyforuse', 'videoassessment');
+    echo '<h3>' . $gradingdefinitionteacher->name
+        . '<span class="status ready"> ' . $readylabel . '</span></h3>';
 
     if (!empty($method)) {
         $output = $PAGE->get_renderer('core_grading');

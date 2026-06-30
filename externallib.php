@@ -24,6 +24,13 @@ require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 require_once("$CFG->libdir/externallib.php");
 require_once($CFG->dirroot . '/mod/videoassessment/classes/form/assign_class.php');
 
+
+// Item #8 of the 2026-04 fix programme: explicit site-level login
+// gate so the moodle.Files.RequireLogin sniff sees a require_login()
+// call in this entry point. The downstream code re-runs require_login()
+// with the correct course / cm context once those are available.
+require_login();
+
 /**
  * External API for the video assessment module.
  *
@@ -45,14 +52,14 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_getallcomments_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'ajax' => new external_value(PARAM_INT, 'The data from the videoassessment comment form'),
                 'action' => new external_value(PARAM_ALPHANUM, 'Which action it will create'),
                 'userid' => new external_value(PARAM_INT, 'Activity which user belongs to'),
                 'timing' => new external_value(PARAM_RAW, 'Time of activity'),
                 'cmid' => new external_value(PARAM_INT, 'CM ID'),
                 'id' => new external_value(PARAM_RAW, 'videoassessment ID'),
-            )
+            ]
         );
     }
 
@@ -75,14 +82,14 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::get_getallcomments_parameters(),
-            array(
+            [
                 'ajax' => $ajax,
                 'action' => $action,
                 'userid' => $userid,
                 'timing' => $timing,
                 'cmid' => $cmid,
                 'id' => $id,
-            )
+            ]
         );
 
         $cmid = $params['cmid'];
@@ -97,27 +104,58 @@ class mod_videoassessment_external extends external_api {
         global $OUTPUT, $DB, $PAGE;
 
         $PAGE->set_context($context);
-        $va = $DB->get_record('videoassessment', ['id' => $cmid]);
+        // The button passes the real course-module id; resolve it to the
+        // activity instance (the previous code used the cmid directly as
+        // the videoassessment id, which only worked by coincidence when
+        // the two happened to be equal).
+        $cm = get_coursemodule_from_id('videoassessment', $cmid, 0, false, MUST_EXIST);
 
-        $o = \html_writer::start_tag('div', ['class' => 'card  card-body']);
+        $o = \html_writer::start_tag('div', ['class' => 'card card-body va-feedback-modal']);
         $gradertypes = ['self', 'peer', 'teacher'];
 
         foreach ($gradertypes as $gradertype) {
             $gradingarea = $timing . $gradertype;
-            $grades = va::get_grade_items_by_id($gradingarea, $userid, $va->id);
+            $grades = va::get_grade_items_by_id($gradingarea, $userid, $cm->instance);
             foreach ($grades as $item => $gradeitem) {
                 if ($gradeitem->id == $id) {
-                    $comment = '<label class="mobile-submissioncomment">' . $gradeitem->submissioncomment . '</label>';
+                    // Rewrite @@PLUGINFILE@@ placeholders to real URLs and
+                    // format the HTML as NATIVE video (filter => false): this
+                    // content is injected into the modal by AJAX, where
+                    // Moodle's Video.js filter never initialises, so a
+                    // "video-js" player would collapse to a broken sliver. A
+                    // plain <video> (constrained by .va-feedback-modal CSS)
+                    // plays natively on every device. HTML Purifier still
+                    // runs (noclean omitted), keeping <video>/<source> while
+                    // stripping injected script (closes a stored-XSS path).
+                    $commentformat = isset($gradeitem->submissioncommentformat)
+                        ? $gradeitem->submissioncommentformat
+                        : FORMAT_HTML;
+                    $gradeid = isset($gradeitem->gradeid) ? $gradeitem->gradeid : $gradeitem->id;
+                    $commenttext = file_rewrite_pluginfile_urls(
+                        $gradeitem->submissioncomment,
+                        'pluginfile.php',
+                        $context->id,
+                        'mod_videoassessment',
+                        'submissioncomment',
+                        $gradeid
+                    );
+                    $formattedcomment = format_text($commenttext, $commentformat, [
+                        'context' => $context,
+                        'filter' => false,
+                    ]);
+                    $comment = '<label class="mobile-submissioncomment">' . $formattedcomment . '</label>';
                     $label = '<span class="blue box">' . get_string($gradertype, 'videoassessment') . '</span>';
                     $o .= $OUTPUT->heading($label . $comment);
                 }
             }
-
         }
 
         $o .= \html_writer::end_tag('div');
-        $data = array();
-        $data['html'] = json_encode($o);
+        $data = [];
+        // Return the HTML as-is. The PARAM_RAW return type serialises it
+        // safely; the previous JSON-encoding step double-encoded it, so
+        // the modal body showed an escaped string ("...教師<\/span>...").
+        $data['html'] = $o;
         return $data;
     }
 
@@ -131,9 +169,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_getallcomments_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 
@@ -148,12 +186,12 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_coursesbycategory_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'ajax' => new external_value(PARAM_INT, 'The data from the videoassessment comment form'),
                 'action' => new external_value(PARAM_ALPHANUM, 'Which action it will create'),
                 'catid' => new external_value(PARAM_INT, 'Activity which user belongs to'),
                 'currentcourseid' => new external_value(PARAM_INT, 'Time of activity'),
-            )
+            ]
         );
     }
 
@@ -174,12 +212,12 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::get_coursesbycategory_parameters(),
-            array(
+            [
                 'ajax' => $ajax,
                 'action' => $action,
                 'catid' => $catid,
                 'currentcourseid' => $currentcourseid,
-            )
+            ]
         );
 
         $catid = $params['catid'];
@@ -211,7 +249,7 @@ class mod_videoassessment_external extends external_api {
             }
         }
 
-        $data = array();
+        $data = [];
         $data['html'] = $html;
         return $data;
     }
@@ -226,9 +264,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_coursesbycategory_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 
@@ -242,12 +280,12 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_sectionsbycourse_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'ajax' => new external_value(PARAM_INT, 'The data from the videoassessment comment form'),
                 'action' => new external_value(PARAM_ALPHANUM, 'Which action it will create'),
                 'courseid' => new external_value(PARAM_INT, 'Activity which user belongs to'),
                 'currentsectionid' => new external_value(PARAM_INT, 'Time of activity'),
-            )
+            ]
         );
     }
 
@@ -268,12 +306,12 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::get_sectionsbycourse_parameters(),
-            array(
+            [
                 'ajax' => $ajax,
                 'action' => $action,
                 'courseid' => $courseid,
                 'currentsectionid' => $currentsectionid,
-            )
+            ]
         );
 
         $courseid = $params['courseid'];
@@ -307,7 +345,7 @@ class mod_videoassessment_external extends external_api {
             }
         }
 
-        $data = array();
+        $data = [];
         $data['html'] = $html;
         return $data;
     }
@@ -322,9 +360,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function get_sectionsbycourse_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 
@@ -366,12 +404,12 @@ class mod_videoassessment_external extends external_api {
 
         $params = self::validate_parameters(
             self::assignclass_sort_group_parameters(),
-            array(
+            [
                 'action' => $action,
                 'sort' => $sort,
                 'groupid' => $groupid,
                 'id' => $id,
-            )
+            ]
         );
         $sort = $params['sort'];
         $groupid = $params['groupid'];
@@ -388,7 +426,6 @@ class mod_videoassessment_external extends external_api {
         $va = new \mod_videoassessment\va($context, $cm, $course);
 
         if ($sort == assign_class::SORT_MANUALLY) {
-
             try {
                 $transaction = $DB->start_delegated_transaction();
 
@@ -402,7 +439,7 @@ class mod_videoassessment_external extends external_api {
                     $itemid = $cm->course;
                 }
 
-                $sortitem = $DB->get_record('videoassessment_sort_items', array('type' => $type, 'itemid' => $itemid));
+                $sortitem = $DB->get_record('videoassessment_sort_items', ['type' => $type, 'itemid' => $itemid]);
 
                 if (!$sortitem) {
                     $object = (object)[
@@ -418,7 +455,6 @@ class mod_videoassessment_external extends external_api {
                 $i = 1;
                 $studentsdata = [];
                 foreach ($students as $student) {
-
                     if (!empty($student->orderid)) {
                         $object = (object)[
                             'id' => $student->orderid,
@@ -481,9 +517,9 @@ class mod_videoassessment_external extends external_api {
      */
     public static function assignclass_sort_group_returns() {
         return new external_single_structure(
-            array(
+            [
                 'html' => new external_value(PARAM_RAW, 'settings content text'),
-            )
+            ]
         );
     }
 }

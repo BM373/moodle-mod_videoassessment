@@ -22,15 +22,28 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__.'/../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
-require_once(__DIR__.'/lib.php');
+require_once(__DIR__ . '/lib.php');
+
+
+// Item #8 of the 2026-04 fix programme: explicit site-level login
+// gate so the moodle.Files.RequireLogin sniff sees a require_login()
+// call in this entry point. The downstream code re-runs require_login()
+// with the correct course / cm context once those are available.
+require_login();
 
 try {
     $cmid = required_param('cmid', PARAM_INT);
 
     $bulkupload = new videoassessment_bulkupload($cmid);
     $bulkupload->require_capability();
+
+    // CSRF protection: amd/src/bulkupload.js sends M.cfg.sesskey with every
+    // request, so require a valid session key before the state-changing
+    // upload / progress actions below (which move an uploaded file, insert a
+    // DB record and dispatch a server-side FFmpeg conversion).
+    require_sesskey();
 
     if (isset($_FILES['file'])) {
         $code = $bulkupload->start_async($_FILES['file']);
@@ -45,7 +58,6 @@ try {
         echo $progress;
         exit;
     }
-
 } catch (Exception $ex) {
     header('HTTP/1.1 403 Forbidden');
     debugging($ex->__toString());

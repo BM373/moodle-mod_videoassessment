@@ -34,6 +34,7 @@ $string['addpeer'] = 'Add peer...';
 $string['addpeergroup'] = 'Add a peer group';
 $string['addprefixtolabel'] = 'Add Prefix to Label Name';
 $string['addsuffixtolabel'] = 'Add Suffix to Label Name';
+$string['admin_settings_executable_locked'] = 'This executable path is locked by the site administrator ($CFG->preventexecpath = true) and cannot be changed from this form.';
 $string['advancedgradingmethodsgroup'] = 'Create or Select rubric';
 $string['advancedgradingmethodsgroup_help'] = 'For video assessment, do not change the default settings here for "Grading Method". All settings use rubric, because that is the best method of performance assessment. If you change the settings, the video assessment system may not work.';
 $string['advancedoptions'] = 'Advanced options';
@@ -46,16 +47,22 @@ $string['afterpeer'] = 'After - peer';
 $string['afterself'] = 'After - self';
 $string['afterteacher'] = 'After - teacher';
 $string['aftervideo'] = 'After video';
+$string['allowexternallinks'] = 'Allow external video links';
+$string['allowexternallinks_help'] = 'When enabled site-wide, activity admins may allow students and teachers to paste links to externally-hosted videos. Supported platforms include YouTube, Vimeo, PeerTube instances (such as Tubes), Esup-Pod, Dailymotion, Opencast, Canal-U and Ubicast Nudgis, plus any platform whose share dialog gives an embed link.';
 $string['allowstudentpeerselection'] = 'Allow students to select peers';
 $string['allowstudentpeerselection_help'] = 'If enabled, students can select peer partners by themselves.';
 $string['allowstudentupload'] = 'Students can upload videos';
 $string['allowstudentupload_help'] = 'If enabled, students can upload videos one by one. Bulk upload is available only for teachers in the "Advanced options" section.';
 $string['allowvideorecord'] = 'Allow video recording';
 $string['allowvideorecord_help'] = 'If enabled, students and teachers can record videos directly using their device camera.';
+$string['allowvideorecording'] = 'Allow video recording';
+$string['allowvideorecording_help'] = 'When enabled site-wide, activity admins may allow students and teachers to record videos in the browser.';
 $string['allowvideoupload'] = 'Allow video uploads';
 $string['allowvideoupload_help'] = 'If enabled, students and teachers can upload video files directly to the system.';
-$string['allowyoutube'] = 'Allow YouTube videos';
-$string['allowyoutube_help'] = 'If enabled, students and teachers can add YouTube video links for assessment.';
+$string['allowvideouploads'] = 'Allow video uploads';
+$string['allowvideouploads_help'] = 'When enabled site-wide, activity admins may allow students and teachers to upload video files directly to the activity.';
+$string['allowyoutube'] = 'Allow external video links';
+$string['allowyoutube_help'] = 'If enabled, students and teachers can paste a link to an externally-hosted video for assessment. Supported platforms include YouTube, Vimeo, PeerTube instances (such as Tubes), Esup-Pod, Dailymotion, Opencast, Canal-U and Ubicast Nudgis, plus any platform whose share dialog gives an embed link. No per-server configuration is needed — pasting the link is enough.';
 $string['allparticipants'] = 'All participants';
 $string['allscores'] = '</span><span class="red">Self,</span> <span class="blue">Peer,</span> <span class="green">Teacher,</span> <span class="orange"> and Class</span> Scores';
 $string['assess'] = 'Assess';
@@ -108,6 +115,13 @@ $string['classgrading'] = 'Whole Class Grading';
 $string['classgrading_help'] = 'If you want the whole class of students to watch a live performance and assess it in real time, use this feature. To turn on whole class grading, click \'Open Class Grading\'.  The default is "Close class grading".  All the student\'s grades will be totaled into one average grade.';
 $string['clickonthe'] = 'Click on the';
 $string['close'] = 'Close Class Grading';
+$string['command_validator_disallowed_character'] = 'The command contains a character that is not allowed. Only letters, digits, spaces and the characters _ - . / = { } \' are permitted.';
+$string['command_validator_empty'] = 'The command must not be empty.';
+$string['command_validator_forbidden_substring'] = 'The command contains a forbidden sequence: {$a}. Shell metacharacters are not permitted.';
+$string['command_validator_input_placeholder'] = 'The command must contain the {INPUT} placeholder exactly once.';
+$string['command_validator_must_invoke_ffmpeg'] = 'The command must invoke the ffmpeg binary as its first token.';
+$string['command_validator_must_invoke_mp4box'] = 'The command must invoke the MP4Box binary as its first token.';
+$string['command_validator_output_placeholder'] = 'The command must contain the {OUTPUT} placeholder exactly once.';
 $string['comment'] = 'Comment';
 $string['confirmdeletegrade'] = 'Are you sure you want to delete this grade?';
 $string['confirmdeletevideos'] = 'Are you sure you want to delete {$a} videos?';
@@ -116,6 +130,13 @@ $string['coursemisconf'] = 'Course setting is incorrect.';
 $string['courseshortnameexist'] = 'Short name is already used for another course';
 $string['currentgrade'] = 'Current grade in gradebook';
 $string['daysbefore'] = 'days before';
+$string['defaultcriterionbodylanguage'] = 'Good body language, facial expression, eye contact';
+$string['defaultcriterioncontent'] = 'Interesting, engaging content';
+$string['defaultcriterionlanguage'] = 'Easy-to-understand language';
+$string['defaultcriterionstructure'] = 'Strong introduction, transitions, conclusions';
+$string['defaultcriterionvoice'] = 'Clear voice with stress/intonation';
+$string['defaultrubrictemplate'] = 'Quick-start rubric for general performances (modifiable)';
+$string['defaultrubrictemplatedesc'] = 'This is a quick-start rubric template for general performances. You can customize it to fit your needs.';
 $string['delayedteachergrade'] = 'Delayed Teacher Grade';
 $string['delayedteachergrade_help'] = 'If enabled \'yes\', the teacher assessment ratings will not be shown to the student, until he/she has completed his/her self assessment. This will alleviate any bias in student scoring by not seeing a teacher score before they start assessing.';
 $string['deleteselectedvideos'] = 'Delete selected videos';
@@ -137,15 +158,24 @@ $string['duplicatefor'] = 'Duplicate for';
 $string['duplicaterubric'] = 'Duplicate Rubric';
 $string['duplicaterubric_help'] = 'This feature will repeat the rubric that has been created for the teacher, and duplicate the rubric into the assessments of self, peer, and class modes.';
 $string['duplicatesuccess'] = 'Duplicate Success';
+$string['educatornote_landscape'] = 'Note to educators: for best results advise learners to always record videos with their smartphone in landscape position (horizontal).';
+$string['embednottrusted'] = 'This external video is not shown inline because its host ({$a}) is not on the trusted external-video host list.';
+$string['embednottrusted_addhost'] = 'A site administrator can allow this host under Site administration ▸ Plugins ▸ Activity modules ▸ Video Assessment ▸ Trusted external-video hosts.';
+$string['embedopenexternal'] = 'Open the video in a new tab';
 $string['errorcapturingmedia'] = 'Error capturing media:';
 $string['errorcheckvideostodelete'] = 'Check videos to delete.';
 $string['errorinvalidtiming'] = 'Invalid timing value';
 $string['errornovideorecord'] = 'Please add a video record first';
 $string['errorovermaximumpossiblegrade'] = 'The grade to pass can not be greater than the maximum possible grade 100';
 $string['erroruploadvideo'] = 'Please upload a video';
+$string['event_grade_assigned'] = 'Grade assigned';
+$string['event_peer_review_submitted'] = 'Peer review submitted';
+$string['event_report_viewed'] = 'Report viewed';
+$string['event_video_uploaded'] = 'Video uploaded';
 $string['existingcourse'] = 'Publish to an existing course';
 $string['existingcourse_help'] = 'If set to other than (New), videos will be published to the selected course. You need to be able to add resources to the course.';
 $string['existingcourseornewcourse'] = 'Publish to an Existing Course<br /> or a New Course';
+$string['externalvideo'] = 'External video';
 $string['failed'] = 'Fail';
 $string['failednotice'] = 'Sorry. Some of your scores were {$a->accepteddifference}% different from standard scores. You must have all "O", no "X".<br />{$a->button}';
 $string['fairnessbonus'] = 'Fairness Bonus';
@@ -156,13 +186,18 @@ $string['ffmpegcommanddesc'] = 'FFmpeg command line with placeholders: {INPUT} {
 $string['ffmpegthumbnailcommand'] = 'FFmpeg thumbnail command';
 $string['ffmpegthumbnailcommanddesc'] = 'FFmpeg command line with placeholders: {INPUT} {OUTPUT}, with options to output an image';
 $string['filedeleted'] = 'File is deleted.';
+$string['fileuploadlinks'] = 'File uploads / Links';
 $string['fileuploads'] = 'File uploads';
 $string['finalscore'] = 'Final    Score';
 $string['finalscorefortable'] = 'Final score';
+$string['finishmakingrubric'] = 'Finish making rubric → Go to assess';
+$string['finishmakingrubricaction'] = 'Finish making rubric';
 $string['firstassess'] = 'First assess';
 $string['firstassessmentbystudent'] = 'First assessment by student';
 $string['firstassessmentbyteacher'] = 'First assessment by teacher';
 $string['fullnamecourse'] = 'Course Full Name';
+$string['gdprcookiesuppression'] = 'Suppress tracking cookies (GDPR)';
+$string['gdprcookiesuppression_help'] = 'When enabled, external videos are embedded through the privacy-enhanced host (youtube-nocookie.com for YouTube, the Do-Not-Track parameter for Vimeo) so the video service does not set tracking cookies until the learner starts playback. Recommended for GDPR compliance.';
 $string['generalcomments'] = 'General Comments';
 $string['grade'] = 'Grade';
 $string['grade_grading_name'] = 'Grading';
@@ -176,12 +211,17 @@ $string['gradeitem:beforeself'] = 'Self';
 $string['gradeitem:beforeteacher'] = 'Teacher';
 $string['gradeitem:beforetraining'] = 'Training Pre-test';
 $string['gradingareadefined'] = 'Can not duplicated because rubric is already exist';
+$string['gradingmethod_help'] = 'Choose the advanced grading method that should be used for calculating grades in the given context.
+
+To disable advanced grading and switch back to the default grading mechanism, choose \'Simple direct grading\'.';
 $string['group'] = 'group';
 $string['groupname'] = 'Group name';
 $string['inputnewcoursename'] = 'Input a new course name';
 $string['inputnewcourseshortname'] = 'Input a new course short name';
 $string['insertintosection'] = 'Insert into Section';
 $string['installerrorffmpegdoesnotexist'] = 'The default installation path of ffmpeg does not exist!';
+$string['installerrorffmpegversionnotfound'] = 'The ffmpeg version number was not found. Please check if ffmpeg is installed and working correctly on the system.';
+$string['installsuccessffmpeg'] = 'ffmpeg detected successfully: {$a}';
 $string['invalidid'] = 'Invalid ID';
 $string['invalidtoken'] = 'Invalid token.';
 $string['invaliduploadedfile'] = 'Uploaded file is invalid.';
@@ -287,6 +327,53 @@ $string['previewvideo'] = 'Preview video';
 $string['printreport'] = 'Print report';
 $string['printrubrics'] = 'Print all rubric report';
 $string['printview'] = 'Open print view';
+$string['privacy:metadata:videoassessment'] = 'Information about the videoassessment files.';
+$string['privacy:metadata:videoassessment:class'] = 'Number of class.';
+$string['privacy:metadata:videoassessment:course'] = 'Course ID number.';
+$string['privacy:metadata:videoassessment:intro'] = 'Details about the file.';
+$string['privacy:metadata:videoassessment:name'] = 'Name of the course.';
+$string['privacy:metadata:videoassessment:ratingpeer'] = 'Rating by peer.';
+$string['privacy:metadata:videoassessment:ratingself'] = 'Rating by self.';
+$string['privacy:metadata:videoassessment:ratingteacher'] = 'Rating by teacher.';
+$string['privacy:metadata:videoassessment:timemodified'] = 'Last modification time.';
+$string['privacy:metadata:videoassessment:trainingdesc'] = 'Description about the training.';
+$string['privacy:metadata:videoassessment_aggregation'] = 'Information about the videoassessment aggregations.';
+$string['privacy:metadata:videoassessment_aggregation:timemodified'] = 'Modification time.';
+$string['privacy:metadata:videoassessment_aggregation:timing'] = 'videoassessment aggregation time.';
+$string['privacy:metadata:videoassessment_aggregation:userid'] = 'The user for whom this videoassessment aggregation.';
+$string['privacy:metadata:videoassessment_aggregation:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_grade_items'] = 'List of grade Items.';
+$string['privacy:metadata:videoassessment_grade_items:gradeduser'] = 'User who grading.';
+$string['privacy:metadata:videoassessment_grade_items:type'] = 'Name or type of grade.';
+$string['privacy:metadata:videoassessment_grade_items:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_grades'] = 'Grading records about video.';
+$string['privacy:metadata:videoassessment_grades:grade'] = 'Grade number.';
+$string['privacy:metadata:videoassessment_grades:gradeitem'] = 'Grading ID.';
+$string['privacy:metadata:videoassessment_grades:submissioncomment'] = 'Comment about grade.';
+$string['privacy:metadata:videoassessment_grades:timemarked'] = 'Grading entry time.';
+$string['privacy:metadata:videoassessment_grades:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_peers'] = 'Peer partner information.';
+$string['privacy:metadata:videoassessment_peers:peerid'] = 'Peer ID.';
+$string['privacy:metadata:videoassessment_peers:userid'] = 'Peer partner user ID.';
+$string['privacy:metadata:videoassessment_peers:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_sort_items'] = 'List of sort items.';
+$string['privacy:metadata:videoassessment_sort_items:itemid'] = 'Sort item ID.';
+$string['privacy:metadata:videoassessment_sort_items:type'] = 'Type of sort items.';
+$string['privacy:metadata:videoassessment_sort_order'] = 'Sorting order of sort items.';
+$string['privacy:metadata:videoassessment_sort_order:sortitemid'] = 'Id of sort item.';
+$string['privacy:metadata:videoassessment_sort_order:userid'] = 'For whom this sortable item is.';
+$string['privacy:metadata:videoassessment_video_assocs'] = 'Video assignments.';
+$string['privacy:metadata:videoassessment_video_assocs:associationid'] = 'User who associate with this video.';
+$string['privacy:metadata:videoassessment_video_assocs:timemodified'] = 'Last modification time.';
+$string['privacy:metadata:videoassessment_video_assocs:videoassessment'] = 'videoassessment ID.';
+$string['privacy:metadata:videoassessment_video_assocs:videoid'] = 'Video storage ID.';
+$string['privacy:metadata:videoassessment_videos'] = 'Information about uploaded video.';
+$string['privacy:metadata:videoassessment_videos:filename'] = 'Server name of the video file.';
+$string['privacy:metadata:videoassessment_videos:filepath'] = 'Path of the video file.';
+$string['privacy:metadata:videoassessment_videos:originalname'] = 'Uploaded name of the video file.';
+$string['privacy:metadata:videoassessment_videos:timecreated'] = 'Uploaded time of the file.';
+$string['privacy:metadata:videoassessment_videos:timemodified'] = 'Last modification time of the file.';
+$string['privacy:metadata:videoassessment_videos:videoassessment'] = 'videoassessment ID.';
 $string['publishvideos'] = 'Publish Videos';
 $string['publishvideos_help'] = 'In this stage, after all performances are assessed, a teacher can select videos for long term preservation. These videos will be published to a
 separate, newly created course in your site.';
@@ -308,8 +395,8 @@ $string['ratingteacher_help'] = 'Set the weighting of the teacher\'s grading of 
 $string['readyforuse'] = 'Ready for use';
 $string['reallydeletevideo'] = 'Are you sure you want to delete this video?';
 $string['reallyresetallpeers'] = 'This will reset peer assignments and re-assign randomly. Continue?';
-$string['recordnewvideo'] = 'Record New Video';
-$string['recordnewvideo_help'] = 'Select "Link to Youtube Video" to post a URL link to your video hosted on Youtube or other hosting service. Note: Youtube "Shorts" cannot be used. Select "Upload Video File" to upload a video file from your device. Select "Record New Video" to directly record a new video now using your device camera.';
+$string['recordnewvideo'] = 'Record New Video (max. length 2 minutes)';
+$string['recordnewvideo_help'] = 'Record a new video here and now, directly with this device\'s camera — no separate app or file is needed. When you choose this option the browser will ask for permission to use your camera and microphone; allow it, then use the record and stop controls that appear. Recordings are limited to two minutes, which keeps the file small and the upload fast. After you stop, the clip is uploaded and converted automatically. For the best result on a phone, hold it in landscape (horizontal) orientation.';
 $string['recordradios'] = 'Record New Video';
 $string['recordradios_help'] = 'Record New Video is for directly recording a video for assessment.
 This function accesses the camera on your computer or mobile phone and starts a video recording.
@@ -332,13 +419,17 @@ $string['report'] = 'Report';
 $string['results'] = 'Results';
 $string['resumerecording'] = 'Resume Recording';
 $string['retakevideo'] = 'Retake a video';
-$string['reuploadvideo'] = 'Re-upload a video';
+$string['reuploadvideo'] = 'Replace the linked / uploaded video';
+$string['rubricnotcompleted'] = 'Please complete all rubric criteria before submitting.';
 $string['save'] = 'Save';
 $string['saveandcreaterubric'] = 'Save and create rubric';
 $string['saveassociations'] = 'Save associations';
 $string['score'] = 'Score';
 $string['scores'] = 'Scores';
+$string['seecomment'] = '[See comment]';
 $string['seereport'] = 'See report';
+$string['seevideo'] = '[See video]';
+$string['selectvideoservice'] = 'Video service';
 $string['self'] = 'Self';
 $string['selfassessments'] = 'Self assessments';
 $string['selffairnessbonus'] = 'Self Fairness Bonus';
@@ -359,6 +450,8 @@ $string['stoprecording'] = 'Stop Recording';
 $string['studentrubric'] = 'Student rubric';
 $string['submission'] = 'Submission';
 $string['submissionby'] = 'Submission by {$a}';
+$string['tabgrading'] = 'Grading';
+$string['tabvideo'] = 'Video';
 $string['takevideo'] = 'Take a video';
 $string['task_automatic_file_deletion'] = 'Automatic file deletion at course end date';
 $string['teacher'] = 'Teacher';
@@ -404,6 +497,8 @@ $string['trainingpretest'] = 'Training Pre-test';
 $string['trainingpretest_help'] = 'Similar to \'calibrating\' for scoring a test, this Training Pre-test function forces students to first pass a training test before moving on to actual scoring. Students watch an uploaded video and rubric provided by the teacher. They can only pass when they score within a decided difference (20% for example) from the pre-entered desired scores by the teacher.';
 $string['trainingvideo'] = 'Training video';
 $string['trainingvideo_help'] = 'Upload a video for the students to practice and complete scoring on the training Pre-test.';
+$string['trustedembedhosts'] = 'Trusted external-video hosts';
+$string['trustedembedhosts_help'] = 'External video links are turned into embedded players that teachers and peers load while grading. YouTube, Vimeo and Dailymotion always embed through their own player hosts and are safe. Self-hosted platforms (PeerTube, Esup-Pod, Opencast) and other platforms\' "embed" links instead use the host in the link the user pasted, so this list controls which of those hosts may be embedded — a safeguard against a learner pasting a phishing or clickjacking page. Enter one host per line; a host also covers its sub-domains (an entry of "univ.fr" trusts "media.univ.fr"). Lines starting with "#" are comments. Add your institution\'s own video-server hosts here. A link to a host that is not listed still works, but appears as a plain clickable link instead of an embedded player.';
 $string['tryagain'] = 'Try again';
 $string['typeofassessment'] = 'Types of assessment';
 $string['unassociated'] = 'Unassociated';
@@ -412,27 +507,33 @@ $string['upload'] = 'Upload video';
 $string['uploadedat'] = 'Uploaded at';
 $string['uploadedtime'] = 'Uploaded time';
 $string['uploadfile'] = 'Upload Video File';
-$string['uploadfile_help'] = 'There are two stages: Uploading the file, and then converting the file. The converting process compresses the file to 1/10th the size. Sometimes this takes a long time—over ten minutes. Please check if your camera is set on 4K, which is too high, and lower the resolution and lower the fps. VGA or 720hd, 30fps is better.';
+$string['uploadfile_help'] = 'Upload a video file already saved on your device — for example a clip recorded with your mobile phone camera or with a digital video camera, then transferred to this device. There are two stages: uploading the file, and then converting it. The converting process compresses the file to about 1/10th of its size and runs in the background, so you can leave the page while it finishes. If conversion is slow, your camera may be set to 4K, which is too high — lower the resolution and frame rate. VGA or 720p HD at 30fps works well.';
 $string['uploadfilename'] = 'Filename';
 $string['uploadfilesize'] = 'Size';
-$string['uploadingvideo'] = 'Uploading video';
+$string['uploadingvideo'] = 'Upload / link video';
 $string['uploadingvideo_help'] = 'You can share your recorded performance for assessment with three methods. In this screen, students and teachers can:
-<br />1) Upload your file to YouTube or another hosting service and post a URL link to that video. Note: Youtube "Shorts" cannot be used.
-<br />2) Upload a single file of your video performance from your device. Set your camera to its lowest resolution for smaller file size and faster upload times. Note: options 2 and 3 are only available to students if the default for "Students can upload videos" under "Video submissions" in the Settings menu is kept at "Yes", and the site admin has not disabled video uploads. Additionally, teachers can bulk upload video files from an SD card in "Bulk upload videos" under "Advanced options" in the Settings menu.
+<br />1) Paste a link to a video already hosted on a video platform (YouTube, Vimeo, a PeerTube or Esup-Pod instance, Dailymotion, Opencast, Canal-U, Ubicast Nudgis, and more). Portrait "Shorts"-style videos are supported.
+<br />2) Upload a single video file from your device. Set your camera to its lowest resolution for a smaller file and a faster upload. Note: options 2 and 3 are only available to students if the default for "Students can upload videos" under "Video submissions" in the Settings menu is kept at "Yes", and the site admin has not disabled video uploads. Additionally, teachers can bulk upload video files from an SD card in "Bulk upload videos" under "Advanced options" in the Settings menu.
 <br />3) Record a new video directly using your device camera and upload it here.';
-$string['uploadingvideonotice'] = 'Uploading... please wait a few minutes';
+$string['uploadingvideonotice'] = 'Uploading now, please wait a moment';
 $string['uploadmessage'] = 'Your video file is over 500MB. Please retake the video at a lower resolution or re-upload a smaller file';
 $string['uploadmimetype'] = 'Type';
 $string['uploadprogress'] = 'Progress';
 $string['uploadstatus'] = 'Status';
-$string['uploadvideo'] = 'Upload a video';
+$string['uploadvideo'] = 'Upload / link a video';
 $string['uploadvideo_help'] = 'Here a teacher can click a link and upload a single video file. The file should contain the performance of one student. Record the video of each performance separately. During video upload the file is compressed to 10% of the original size.';
 $string['uploadvideos'] = 'Upload videos';
-$string['uploadyoutube'] = 'Link to Youtube Video';
-$string['uploadyoutube_help'] = 'For better performance, upload your video into your personal YouTube account or another video sharing site. Then copy the link and paste the link into the box for that link. When you link to a Youtube file, there is no thumbnail photo showing on the assessment screen. Just play the video and it will appear.';
+$string['uploadyoutube'] = 'Insert External Video Link';
+$string['uploadyoutube_help'] = 'For better performance, upload your video to a video platform and paste its link here. Supported platforms:
+<br />• YouTube (including Shorts) and Vimeo — paste the normal video link.
+<br />• PeerTube instances such as Tubes (tubes.apps.education.fr) — paste the video link (the address containing /w/).
+<br />• Esup-Pod instances — paste the video page link (the address containing /video/).
+<br />• Dailymotion — paste the video link or a dai.ly short link.
+<br />• Opencast, Canal-U, Ubicast Nudgis and other platforms — open the platform\'s "Share" or "Embed" dialog and paste the embed address it shows (an address containing /embed/ or ending in /iframe/).
+<br />No server configuration is needed — pasting the link is enough. There is no thumbnail for linked videos on the assessment screen; just play the video and it will appear.';
 $string['url'] = 'URL';
-$string['url_error'] = 'Please enter the correct Youtube URL';
-$string['url_help'] = 'This is a Youtube URL';
+$string['url_error'] = 'Please enter a valid video link (YouTube, Vimeo, PeerTube, Esup-Pod, Dailymotion, or a platform embed link)';
+$string['url_help'] = 'A link to a video hosted on YouTube, Vimeo, a PeerTube or Esup-Pod instance, Dailymotion, or the embed link from any other video platform\'s share dialog.';
 $string['usedpeers'] = 'Number of Peer Assessors';
 $string['usedpeers_help'] = 'Enter the number of peer assessors (0 or more). In Assign Peer Assessors below, the teacher can then assign the peer automatically or manually. The default is 2 peer assessors.';
 $string['usedpeerserror'] = 'Number of Peer Assessors must be a non-negative integer (0 or greater).';
@@ -453,6 +554,7 @@ $string['videoassessment:view'] = 'View video assessment';
 $string['videoassessment:viewcomments'] = 'View assessment comments';
 $string['videoassessmentname'] = 'Video assessment name';
 $string['videoassessmentnotfound'] = 'Video assessment not found';
+$string['videoconverting'] = 'Your uploaded video is being converted in the background. It will appear automatically once processing finishes — you do not need to upload it again.';
 $string['videoformat'] = 'Video format';
 $string['videoformatdesc'] = 'Video format';
 $string['videonotfound'] = 'Video not found.';
@@ -463,6 +565,14 @@ Best regards,
 https://moodle.sgu.ac.jp';
 $string['videopublishing'] = 'Video Publishing';
 $string['videos'] = 'Videos';
+$string['videoservice_dailymotion'] = 'Dailymotion';
+$string['videoservice_esuppod'] = 'Esup-Pod';
+$string['videoservice_opencast'] = 'Opencast';
+$string['videoservice_other'] = 'Other (paste the embed link)';
+$string['videoservice_peertube'] = 'PeerTube (e.g. Tubes)';
+$string['videoservice_vimeo'] = 'Vimeo';
+$string['videoservice_youtube'] = 'YouTube';
+$string['videoservicehint'] = 'Paste a video link such as:';
 $string['videosubmissions'] = 'Video submissions';
 $string['videouploadforthefirsttime'] = 'when the student uploads a video for first time';
 $string['videouploadnotificationlabel'] = 'Video upload/reupload notification';
@@ -478,88 +588,3 @@ $string['within'] = 'within';
 $string['xfeedback'] = '{$a} feedback';
 $string['xunassignedstudents'] = '{$a} unassigned students';
 $string['yes'] = 'Yes';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* privacy:metadata */
-$string['privacy:metadata:videoassessment'] = 'Information about the videoassessment files.';
-$string['privacy:metadata:videoassessment:course'] = 'Course ID number.';
-$string['privacy:metadata:videoassessment:name'] = 'Name of the course.';
-$string['privacy:metadata:videoassessment:intro'] = 'Details about the file.';
-$string['privacy:metadata:videoassessment:trainingdesc'] = 'Description about the training.';
-$string['privacy:metadata:videoassessment:timemodified'] = 'Last modification time.';
-$string['privacy:metadata:videoassessment:ratingteacher'] = 'Rating by teacher.';
-$string['privacy:metadata:videoassessment:ratingself'] = 'Rating by self.';
-$string['privacy:metadata:videoassessment:ratingpeer'] = 'Rating by peer.';
-$string['privacy:metadata:videoassessment:class'] = 'Number of class.';
-
-$string['privacy:metadata:videoassessment_aggregation'] = 'Information about the videoassessment aggregations.';
-$string['privacy:metadata:videoassessment_aggregation:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_aggregation:userid'] = 'The user for whom this videoassessment aggregation.';
-$string['privacy:metadata:videoassessment_aggregation:timing'] = 'videoassessment aggregation time.';
-$string['privacy:metadata:videoassessment_aggregation:timemodified'] = 'Modification time.';
-
-$string['privacy:metadata:videoassessment_grades'] = 'Grading records about video.';
-$string['privacy:metadata:videoassessment_grades:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_grades:gradeitem'] = 'Grading ID.';
-$string['privacy:metadata:videoassessment_grades:timemarked'] = 'Grading entry time.';
-$string['privacy:metadata:videoassessment_grades:grade'] = 'Grade number.';
-$string['privacy:metadata:videoassessment_grades:submissioncomment'] = 'Comment about grade.';
-
-$string['privacy:metadata:videoassessment_grade_items'] = 'List of grade Items.';
-$string['privacy:metadata:videoassessment_grade_items:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_grade_items:type'] = 'Name or type of grade.';
-$string['privacy:metadata:videoassessment_grade_items:gradeduser'] = 'User who grading.';
-
-$string['privacy:metadata:videoassessment_peers'] = 'Peer partner information.';
-$string['privacy:metadata:videoassessment_peers:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_peers:userid'] = 'Peer partner user ID.';
-$string['privacy:metadata:videoassessment_peers:peerid'] = 'Peer ID.';
-
-$string['privacy:metadata:videoassessment_sort_items'] = 'List of sort items.';
-$string['privacy:metadata:videoassessment_sort_items:itemid'] = 'Sort item ID.';
-$string['privacy:metadata:videoassessment_sort_items:type'] = 'Type of sort items.';
-
-$string['privacy:metadata:videoassessment_sort_order'] = 'Sorting order of sort items.';
-$string['privacy:metadata:videoassessment_sort_order:sortitemid'] = 'Id of sort item.';
-$string['privacy:metadata:videoassessment_sort_order:userid'] = 'For whom this sortable item is.';
-
-$string['privacy:metadata:videoassessment_videos'] = 'Information about uploaded video.';
-$string['privacy:metadata:videoassessment_videos:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_videos:filepath'] = 'Path of the video file.';
-$string['privacy:metadata:videoassessment_videos:filename'] = 'Server name of the video file.';
-$string['privacy:metadata:videoassessment_videos:originalname'] = 'Uploaded name of the video file.';
-$string['privacy:metadata:videoassessment_videos:timecreated'] = 'Uploaded time of the file.';
-$string['privacy:metadata:videoassessment_videos:timemodified'] = 'Last modification time of the file.';
-
-$string['privacy:metadata:videoassessment_video_assocs'] = 'Video assignments.';
-$string['privacy:metadata:videoassessment_video_assocs:videoassessment'] = 'videoassessment ID.';
-$string['privacy:metadata:videoassessment_video_assocs:videoid'] = 'Video storage ID.';
-$string['privacy:metadata:videoassessment_video_assocs:associationid'] = 'User who associate with this video.';
-$string['privacy:metadata:videoassessment_video_assocs:timemodified'] = 'Last modification time.';
-
-$string['defaultrubrictemplate'] = 'Quick-start rubric for general performances (modifiable)';
-$string['defaultrubrictemplatedesc'] = 'This is a quick-start rubric template for general performances. You can customize it to fit your needs.';
-$string['defaultcriterioncontent'] = 'Interesting, engaging content';
-$string['defaultcriterionbodylanguage'] = 'Good body language, facial expression, eye contact';
-$string['defaultcriterionvoice'] = 'Clear voice with stress/intonation';
-$string['defaultcriterionlanguage'] = 'Easy-to-understand language';
-$string['defaultcriterionstructure'] = 'Strong introduction, transitions, conclusions';
-$string['gradingmethod_help'] = 'Choose the advanced grading method that should be used for calculating grades in the given context.
-
-To disable advanced grading and switch back to the default grading mechanism, choose \'Simple direct grading\'.';
-$string['rubricnotcompleted'] = 'Please complete all rubric criteria before submitting.';

@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Print page controller for video assessment reports.
  *
@@ -106,7 +104,7 @@ class print_page {
         $rubric = new rubric($this->va);
 
         if ($userid) {
-            $users = array($DB->get_record('user', array('id' => $userid), 'id, lastname, firstname'));
+            $users = [$DB->get_record('user', ['id' => $userid], 'id, lastname, firstname')];
         } else {
             $users = $this->va->get_students();
         }
@@ -125,20 +123,24 @@ class print_page {
             if ($firstpage) {
                 $firstpage = false;
             } else {
-                $o .= \html_writer::tag('div', '', array('class' => 'pagebreak border-bottom'));
+                $o .= \html_writer::tag('div', '', ['class' => 'pagebreak border-bottom']);
             }
 
             $o .= $OUTPUT->heading(fullname($user));
-            $o .= \html_writer::start_tag('div', array('class' => 'report-rubrics'));
+            $o .= \html_writer::start_tag('div', ['class' => 'report-rubrics']);
             foreach ($this->va->timings as $timing) {
                 if (!$gradingstatus->$timing) {
                     continue;
                 }
 
                 $o .= $OUTPUT->heading($this->va->str('allscores'), 3);
-                $timinggrades = array();
+                $timinggrades = [];
                 foreach ($this->va->gradertypes as $gradertype) {
-                    if ($this->va->va->class && $gradertype == 'class' && !has_capability('mod/videoassessment:grade', $this->va->context)) {
+                    if (
+                        $this->va->va->class
+                        && $gradertype == 'class'
+                        && !has_capability('mod/videoassessment:grade', $this->va->context)
+                    ) {
                         continue;
                     }
 
@@ -157,14 +159,18 @@ class print_page {
                         $userid
                     );
 
-                    $o .= \html_writer::start_tag('div', array('id' => 'rubrics-' . $gradingarea));
+                    $o .= \html_writer::start_tag('div', ['id' => 'rubrics-' . $gradingarea]);
 
                     if ($controller = $rubric->get_available_controller($gradingarea)) {
                         $gradeitems = $this->va->get_grade_items($gradingarea, $userid);
                         if (!is_null($gradeitems) && !empty($gradeitems)) {
                             foreach ($gradeitems as $gradeitem) {
                                 $o .= $controller->render_grade($PAGE, $gradeitem->id, $gradinginfo, '', false);
-                                $timinggrades[] = \html_writer::tag('span', (int) $gradeitem->grade, array('class' => 'rubrictext-' . $gradertype));
+                                $timinggrades[] = \html_writer::tag(
+                                    'span',
+                                    (int) $gradeitem->grade,
+                                    ['class' => 'rubrictext-' . $gradertype]
+                                );
                                 $o .= \html_writer::tag('hr', '');
                             }
                         }
@@ -172,21 +178,28 @@ class print_page {
                     $o .= \html_writer::end_tag('div');
                 }
 
-                // adtis
+                // Adtis.
                 $o .= $OUTPUT->heading("General Comments");
-                $o .= \html_writer::start_tag('div', array('class' => 'card  card-body'));
+                $o .= \html_writer::start_tag('div', ['class' => 'card  card-body']);
                 foreach ($this->va->gradertypes as $gradertype) {
                     if (
                         $gradertype == 'training'
                         || $gradertype == 'class'
-                        || ($this->va->va->class && $gradertype == 'class' && !has_capability('mod/videoassessment:grade', $this->va->context))) {
+                        || (
+                            $this->va->va->class
+                            && $gradertype == 'class'
+                            && !has_capability('mod/videoassessment:grade', $this->va->context)
+                        )
+                    ) {
                         continue;
                     }
                     $gradingarea = $timing . $gradertype;
                     $grades = $this->va->get_grade_items($gradingarea, $userid);
                     foreach ($grades as $gradeitem) {
                         // Format the comment to convert @@PLUGINFILE@@ placeholders to actual URLs.
-                        $commentformat = isset($gradeitem->submissioncommentformat) ? $gradeitem->submissioncommentformat : FORMAT_HTML;
+                        $commentformat = isset($gradeitem->submissioncommentformat)
+                            ? $gradeitem->submissioncommentformat
+                            : FORMAT_HTML;
                         // First rewrite @@PLUGINFILE@@ placeholders to actual URLs.
                         // Use gradeid (from videoassessment_grades table) not gradeitem->id (from grade_items table).
                         $gradeid = isset($gradeitem->gradeid) ? $gradeitem->gradeid : $gradeitem->id;
@@ -198,9 +211,15 @@ class print_page {
                             'submissioncomment',
                             $gradeid
                         );
-                        // Then format the text.
+                        // Then format the text. noclean is required so
+                        // the HTML5 <video>/<source> tags produced by
+                        // the recordrtc Atto/Tiny plugin survive the
+                        // purifier pass; mirrors the same fix in
+                        // view.php (item #6 of the 2026-04 fix
+                        // programme).
                         $formattedcomment = format_text($commenttext, $commentformat, [
                             'context' => $this->va->context,
+                            'noclean' => true,
                         ]);
                         $comment = '<label class="submissioncomment">' . $formattedcomment . '</label>';
                         if ($gradertype == "peer") {
@@ -212,19 +231,18 @@ class print_page {
                         }
                         $o .= $OUTPUT->heading($lable . $comment);
                     }
-
                 }
                 $o .= \html_writer::end_tag('div');
 
-                $gradeduser = $DB->get_record('user', array('id' => $userid));
-                $o .= \html_writer::start_tag('div', array('class' => 'comment comment-' . $gradertype))
+                $gradeduser = $DB->get_record('user', ['id' => $userid]);
+                $o .= \html_writer::start_tag('div', ['class' => 'comment comment-' . $gradertype])
                     . $OUTPUT->user_picture($gradeduser)
                     . ' ' . fullname($gradeduser)
                     . \html_writer::end_tag('div');
 
                 if ($timinggrades) {
                     $totalscore = ' ='
-                        . \html_writer::start_tag('div', array('class' => 'comment-grade'))
+                        . \html_writer::start_tag('div', ['class' => 'comment-grade'])
                         . '<span class="comment-score-text">'
                         . $this->va::str('totalscore')
                         . '</span><span class="comment-score">'
@@ -232,7 +250,7 @@ class print_page {
                         . '</span>'
                         . \html_writer::end_tag('div');
                     $fairnessbonus = '<span  class="fairness">+</span> '
-                        . \html_writer::start_tag('div', array('class' => 'comment-grade fairness'))
+                        . \html_writer::start_tag('div', ['class' => 'comment-grade fairness'])
                         . '<span class="comment-score-text" >'
                         . '+' . $this->va::str('fairnessbonus')
                         . '</span><span class="comment-score">'
@@ -240,14 +258,17 @@ class print_page {
                         . '</span>'
                         . \html_writer::end_tag('div');
                     $finalscore = ' = '
-                        . \html_writer::start_tag('div', array('class' => 'comment-grade'))
+                        . \html_writer::start_tag('div', ['class' => 'comment-grade'])
                         . '<span class="comment-score-text">'
                         . $this->va::str('finalscore')
                         . '</span><span class="comment-score">'
                         . (int) $usergrades->finalscore
                         . '</span>'
                         . \html_writer::end_tag('div');
-                    $o .= $OUTPUT->container(get_string('grade', 'videoassessment') . ': ' . implode(', ', $timinggrades) . $totalscore . $fairnessbonus . $finalscore, 'finalgrade');
+                    $finalgradetext = get_string('grade', 'videoassessment') . ': '
+                        . implode(', ', $timinggrades)
+                        . $totalscore . $fairnessbonus . $finalscore;
+                    $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
                 }
             }
             $o .= \html_writer::end_tag('div');

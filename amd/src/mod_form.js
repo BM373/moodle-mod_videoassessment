@@ -21,7 +21,7 @@
  * @copyright  2024 Don Hinkleman (hinkelman@mac.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery'], function ($) {
+define(['jquery'], function($) {
 
     /**
      * Initializes the behavior of the training selector.
@@ -42,7 +42,7 @@ define(['jquery'], function ($) {
                 desc.hide();
             }
 
-            training.on('change', function () {
+            training.on('change', function() {
                 if ($(this).val() == 1) {
                     video.show();
                     point.show();
@@ -64,7 +64,7 @@ define(['jquery'], function ($) {
      */
     function initQuickSetupPeerChange() {
         const peerAssess = $('#id_peerassess');
-        peerAssess.on('change', function () {
+        peerAssess.on('change', function() {
             if ($(this).val() > 0) {
                 $('#id_numberofpeers').find('option[value="1"]').prop('selected', true);
             }
@@ -96,7 +96,7 @@ define(['jquery'], function ($) {
                     fields.forEach(f => $(f).hide());
                 }
 
-                toggle.on('change', function () {
+                toggle.on('change', function() {
                     if ($(this).val() == 1) {
                         fields.forEach(f => $(f).show());
                     } else {
@@ -149,7 +149,7 @@ define(['jquery'], function ($) {
             $('#fgroup_id_recordradios').hide();
         }
 
-        $('.col-md-3').each(function () {
+        $('.col-md-3').each(function() {
             if ($(this).children().length == 0) {
                 $(this).remove();
             }
@@ -211,7 +211,7 @@ define(['jquery'], function ($) {
      */
     function initNotificationFormChange() {
         const toggleGroup = (btnClass, groupId) => {
-            $(document).on('click', btnClass, function (e) {
+            $(document).on('click', btnClass, function(e) {
                 e.preventDefault();
                 const btn = $(this);
                 if (btn.hasClass('expanded')) {
@@ -276,7 +276,9 @@ define(['jquery'], function ($) {
          * When Peer % changes from 0 to > 0, set Number of Peer Assessors to 2 (if it was 0).
          */
         const syncFromPeerRating = () => {
-            if (isSyncing) return;
+            if (isSyncing) {
+ return;
+}
             isSyncing = true;
 
             const peerRatingVal = parseInt(peerRating.val()) || 0;
@@ -299,7 +301,9 @@ define(['jquery'], function ($) {
          * When Number of Peer Assessors changes from 0 to > 0, set Peer % to 10 (if it was 0).
          */
         const syncFromUsedPeers = () => {
-            if (isSyncing) return;
+            if (isSyncing) {
+ return;
+}
             isSyncing = true;
 
             const peerRatingVal = parseInt(peerRating.val()) || 0;
@@ -342,8 +346,6 @@ define(['jquery'], function ($) {
         // Find the grading method select (it's the first advancedgradingmethod_ field).
         const gradingMethodSelect = $('select[name^="advancedgradingmethod_"]').first();
         const rubricButton = $('#id_submitbutton_rubric');
-        const redirectField = $('input[name="redirect_to_rubric"]');
-        const submitButton2 = $('#id_submitbutton2'); // Save and display button
 
         if (!rubricButton.length) {
             return;
@@ -379,7 +381,7 @@ define(['jquery'], function ($) {
         rubricButton.on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Set the redirect flag in the form.
             let field = $('input[name="redirect_to_rubric"]');
             if (field.length) {
@@ -388,43 +390,43 @@ define(['jquery'], function ($) {
                 field = $('<input type="hidden" name="redirect_to_rubric" value="1">');
                 $('form.mform').append(field);
             }
-            
+
             // Store the intent in sessionStorage with a timestamp and unique token.
             // The token ensures this specific redirect is only processed once.
             var token = Math.random().toString(36).substring(2, 15);
             var timestamp = Date.now();
             sessionStorage.setItem('videoassessment_check_grading_redirect', timestamp.toString() + ':' + token);
-            
+
             // Mark this token as processed immediately to prevent re-processing.
             var processedTokens = JSON.parse(sessionStorage.getItem('videoassessment_processed_tokens') || '[]');
             processedTokens.push(token);
             sessionStorage.setItem('videoassessment_processed_tokens', JSON.stringify(processedTokens));
-            
+
             // Find the form.
             const form = $('form.mform');
             if (!form.length) {
                 return;
             }
-            
+
             // Mark the form as submitted BEFORE submitting to prevent beforeunload warning.
             // Moodle's change checker checks for dataset.formSubmitted === "true" to determine
             // if a form has been submitted and should not trigger the warning.
             form[0].dataset.formSubmitted = "true";
             form[0].dataset.ignoreSubmission = "true";
-            
+
             // Also try to mark using Moodle's change checker API if available.
             require(['core_form/changechecker'], function(changeChecker) {
                 if (typeof changeChecker.markFormSubmitted === 'function') {
                     changeChecker.markFormSubmitted(form[0]);
                 }
             });
-            
+
             // Add submitbutton for "Save and display" behavior (goes to activity view page).
             // The redirect check will now work on the activity view page too.
             // Remove any existing submitbutton hidden inputs.
             form.find('input[name="submitbutton"][type="hidden"]').remove();
             form.append('<input type="hidden" name="submitbutton" value="1">');
-            
+
             // Submit the form. The formSubmitted flag should prevent the beforeunload warning.
             form[0].submit();
         });
@@ -437,32 +439,28 @@ define(['jquery'], function ($) {
     function checkGradingRedirect() {
         // Check sessionStorage for the redirect flag with timestamp.
         const redirectData = sessionStorage.getItem('videoassessment_check_grading_redirect');
-        
+
         if (redirectData) {
             const storedTime = parseInt(redirectData, 10);
             const now = Date.now();
-            
+
             // Only proceed if the redirect was set less than 30 seconds ago.
             if (now - storedTime < 30000) {
                 // Clear the flag immediately.
                 sessionStorage.removeItem('videoassessment_check_grading_redirect');
-                
-                console.log('Checking for grading redirect via AJAX...');
-                
+
                 // Call the AJAX endpoint to check if redirect is needed.
                 $.ajax({
                     url: M.cfg.wwwroot + '/mod/videoassessment/check_grading_redirect.php',
                     method: 'GET',
                     dataType: 'json',
                     success: function(response) {
-                        console.log('Grading redirect response:', response);
                         if (response.redirect && response.url) {
-                            console.log('Redirecting to:', response.url);
                             window.location.replace(response.url);
                         }
                     },
-                    error: function(xhr, status, error) {
-                        console.error('Error checking grading redirect:', error);
+                    error: function() {
+                        // Silently ignore errors; redirect check is best-effort.
                     }
                 });
             } else {

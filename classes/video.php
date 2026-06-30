@@ -16,8 +16,6 @@
 
 namespace mod_videoassessment;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Video object representing a video submission in video assessment.
  *
@@ -90,17 +88,33 @@ class video implements \renderable {
 
         $fs = get_file_storage();
 
-        if ($file = $fs->get_file($this->context->id, 'mod_videoassessment', 'video', 0, $data->filepath,
-                $data->filename)) {
+        if (
+            $file = $fs->get_file(
+                $this->context->id,
+                'mod_videoassessment',
+                'video',
+                0,
+                $data->filepath,
+                $data->filename
+            )
+        ) {
             $this->file = $file;
             $this->ready = true;
         }
         if ($data->tmpname == 'Youtube') {
             $this->ready = true;
         }
-        if ($data->thumbnailname
-                && $file = $fs->get_file($this->context->id, 'mod_videoassessment', 'video', 0, $data->filepath,
-                        $data->thumbnailname)) {
+        if (
+            $data->thumbnailname
+                && $file = $fs->get_file(
+                    $this->context->id,
+                    'mod_videoassessment',
+                    'video',
+                    0,
+                    $data->filepath,
+                    $data->thumbnailname
+                )
+        ) {
             $this->thumbnail = $file;
         }
     }
@@ -130,8 +144,14 @@ class video implements \renderable {
             return null;
         }
         return \moodle_url::make_pluginfile_url(
-                $this->context->id, 'mod_videoassessment', 'video', 0,
-                $this->file->get_filepath(), $this->file->get_filename(), $forcedownload);
+            $this->context->id,
+            'mod_videoassessment',
+            'video',
+            0,
+            $this->file->get_filepath(),
+            $this->file->get_filename(),
+            $forcedownload
+        );
     }
 
     /**
@@ -144,8 +164,13 @@ class video implements \renderable {
     public function get_thumbnail_url() {
         if ($this->thumbnail) {
             return \moodle_url::make_pluginfile_url(
-                    $this->context->id, 'mod_videoassessment', 'video', 0,
-                    $this->thumbnail->get_filepath(), $this->thumbnail->get_filename());
+                $this->context->id,
+                'mod_videoassessment',
+                'video',
+                0,
+                $this->thumbnail->get_filepath(),
+                $this->thumbnail->get_filename()
+            );
         }
         return null;
     }
@@ -161,7 +186,7 @@ class video implements \renderable {
      */
     public function render_thumbnail($defaultcontent = null) {
         if ($url = $this->get_thumbnail_url()) {
-            return \html_writer::empty_tag('img', array('src' => $url));
+            return \html_writer::empty_tag('img', ['src' => $url]);
         }
         return $defaultcontent;
     }
@@ -176,11 +201,11 @@ class video implements \renderable {
      * @return string HTML anchor tag with thumbnail image
      */
     public function render_thumbnail_with_preview($defaultcontent = null) {
-        return \html_writer::tag('a', $this->render_thumbnail($defaultcontent), array(
+        return \html_writer::tag('a', $this->render_thumbnail($defaultcontent), [
                 'href' => $this->get_url(),
                 'class' => 'videolink',
                 'data-videoid' => $this->data->id,
-        ));
+        ]);
     }
 
     /**
@@ -225,7 +250,7 @@ class video implements \renderable {
     public static function from_id(\context_module $context, $videoid) {
         global $DB;
 
-        $data = $DB->get_record('videoassessment_videos', array('id' => $videoid), '*', MUST_EXIST);
+        $data = $DB->get_record('videoassessment_videos', ['id' => $videoid], '*', MUST_EXIST);
         return new self($context, $data);
     }
 }

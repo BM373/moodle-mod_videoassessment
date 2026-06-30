@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/* eslint-disable @babel/new-cap */
 /**
  * Video assessment
  *
@@ -22,10 +23,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(['jquery'], function ($) {
+define(['jquery'], function($) {
     return {
-        mobilepublishvideo: function () {
-            $('#publish-category').change(function () {
+        mobilepublishvideo: function() {
+            $('#publish-category').change(function() {
                 var catid = $(this).val();
                 var currentcourseid = $('#publish-course').val();
                 var ajaxx = require("mod_videoassessment/ajaxcalls");
@@ -33,7 +34,7 @@ define(['jquery'], function ($) {
                 ajaxgcbc.getcoursesbycategory("getcoursesbycategory", catid, currentcourseid);
             }).change();
 
-            $('#publish-course').change(function () {
+            $('#publish-course').change(function() {
                 var courseid = $(this).val();
                 var currentsectionid = $('#publish-section').val();
 
@@ -52,7 +53,7 @@ define(['jquery'], function ($) {
                 }
             }).change();
 
-            $(document).on('change', '.video-check', function () {
+            $(document).on('change', '.video-check', function() {
                 var check = $(this).prop('checked');
                 var count = $('#video-count').val();
 
@@ -65,7 +66,7 @@ define(['jquery'], function ($) {
                 $('#video-count').val(count);
             });
 
-            $(document).on('change', '#all-video-check', function () {
+            $(document).on('change', '#all-video-check', function() {
                 var check = $(this).prop('checked');
                 var count;
 

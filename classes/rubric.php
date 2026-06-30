@@ -74,11 +74,11 @@ class rubric {
 
             $this->managers->$gradingarea = get_grading_manager($va->context, 'mod_videoassessment', $gradingarea);
             $this->controllers->$gradingarea = null;
-            
+
             // Check if there's an active method.
             $manager = $this->get_manager($gradingarea);
             $gradingmethod = $manager->get_active_method();
-            
+
             // If no active method but a rubric definition exists, set it to 'rubric'.
             if (!$gradingmethod) {
                 try {
@@ -86,7 +86,7 @@ class rubric {
                     if ($controller) {
                         $isdefined = $controller->is_form_defined();
                         $isavailable = $controller->is_form_available();
-                        
+
                         if ($isdefined && $isavailable) {
                             // Rubric exists and is ready, so set it as the active method.
                             $manager->set_active_method('rubric');
@@ -98,16 +98,19 @@ class rubric {
                             $gradingmethod = 'rubric';
                         }
                     }
-                } catch (Exception $e) {
-                    // No rubric available, continue.
+                } catch (\Exception $e) {
+                    debugging(
+                        'No rubric available for grading area: ' . $e->getMessage(),
+                        DEBUG_DEVELOPER
+                    );
                 }
             }
-            
+
             if ($gradingmethod) {
                 try {
                     $this->controllers->$gradingarea = $manager->get_controller($gradingmethod);
-                } catch (Exception $e) {
-                    // Controller creation failed, leave as null.
+                } catch (\Exception $e) {
+                    // Controller creation failed; leave as null and continue.
                     $this->controllers->$gradingarea = null;
                 }
             }
@@ -161,15 +164,15 @@ class rubric {
         if ($controller && $controller->is_form_available()) {
             return $controller;
         }
-        
+
         // If controller exists but form is not available, check why.
         if ($controller && $controller->is_form_defined() && !$controller->is_form_available()) {
             // Definition exists but not available - might be DRAFT status.
             // For now, still return it - the form will handle it.
-            // TODO: Check if we should allow DRAFT rubrics or require READY status.
+            // DRAFT rubrics are intentionally accepted; the form handles them.
             return $controller;
         }
-        
+
         // If controller wasn't created in constructor, try to create it now.
         // This can happen if the active method wasn't set when constructor ran.
         $manager = $this->get_manager($gradingarea);
@@ -192,11 +195,14 @@ class rubric {
                         return $rubriccontroller;
                     }
                 }
-            } catch (Exception $e) {
-                // No rubric available, continue to fallback.
+            } catch (\Exception $e) {
+                debugging(
+                    'Rubric controller lookup failed, falling back: ' . $e->getMessage(),
+                    DEBUG_DEVELOPER
+                );
             }
         }
-        
+
         // Fallback: If this is not the teacher area and no rubric exists,
         // try to use the teacher's rubric as a fallback.
         if ($gradingarea != 'beforeteacher' && strpos($gradingarea, 'teacher') === false) {
@@ -206,7 +212,7 @@ class rubric {
                 if ($teachercontroller && $teachercontroller->is_form_available()) {
                     // Auto-duplicate the rubric to this area so it's available.
                     videoassessment_auto_duplicate_rubric($teachermanager->get_context()->id);
-                    
+
                     // Reload the controller for this area after duplication.
                     $manager = $this->get_manager($gradingarea);
                     if ($manager) {
@@ -219,14 +225,17 @@ class rubric {
                                 $this->controllers->$gradingarea = $rubriccontroller;
                                 return $rubriccontroller;
                             }
-                        } catch (Exception $e) {
-                            // Still not available.
+                        } catch (\Exception $e) {
+                            debugging(
+                                'Rubric remained unavailable after duplication: ' . $e->getMessage(),
+                                DEBUG_DEVELOPER
+                            );
                         }
                     }
                 }
             }
         }
-        
+
         return null;
     }
 }
