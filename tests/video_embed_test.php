@@ -273,6 +273,11 @@ final class video_embed_test extends \advanced_testcase {
                 'opencast',
                 'https://opencast.univ.fr/~embed/!v/GlyZSol6GjU',
             ],
+            'opencast realm-nested /v/ rewritten to embed route' => [
+                'https://opencast.univ.fr/conferences/2021/summit/v/PrNmBYNL4_H',
+                'opencast',
+                'https://opencast.univ.fr/~embed/!v/PrNmBYNL4_H',
+            ],
             'opencast /play/' => [
                 'https://opencast.univ.fr/play/8d6a3c0f-25e7-4f6f-9f9e-12c44b3aef01',
                 'opencast',

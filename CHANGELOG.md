@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062809)`.
+  and set the release to `1.1.8 (Build: 2026062810)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -68,8 +68,10 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   player route `/~embed/!v/{id}` (the exact URL Tobira's own Share -> Embed dialog
   hands out; note the `!`). The `/v/{id}` page frame-busts inside an iframe ("This
   page can't be embedded") and `/~embed/v/{id}` without the `!` returns "Page not
-  found", so `resolve_opencast()` rewrites to the correct form; it also recognises
-  `/play/{id}`, the Paella and Theodul players.
+  found", so `resolve_opencast()` rewrites to the correct form. The `/v/{id}` link is
+  also matched when nested under a Tobira realm path (e.g.
+  `/conferences/2021/summit/v/{id}`) -- the id alone identifies the video. It also
+  recognises `/play/{id}`, the Paella and Theodul players.
 - Feedback-video indicator: when grader feedback contains a recorded `<video>`, the
   report's General Comments now shows a localised "[See video]" play-icon primary
   (blue) button on **every device** (it previously only appeared on a phone, and the
