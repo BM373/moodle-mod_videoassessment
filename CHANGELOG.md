@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062811)`.
+  and set the release to `1.1.8 (Build: 2026062812)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -60,6 +60,13 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
+- Mobile grading: on the 採点 (Grading) tab the recording now stays **visible as a
+  compact, height-capped band above the rubric** (2026-07 customer feedback: "the
+  video used to be visible above the rubric" — graders watch while they score). The
+  34vh cap keeps a tall portrait recording from burying the criteria, the 動画 tab
+  still gives the video the full viewport, and playback continues across tab switches
+  because the band is never display:none'd, parked or re-parented. Contract tests
+  updated to pin the new visible-band behaviour.
 - Mobile grading: the assess screen's mobile-portrait tab bar (動画 / 採点) defaulted
   to the Video tab, which parks the rubric off-screen — graders opened the page, saw
   only the video and read it as "the rubric doesn't show / can't grade on a phone".

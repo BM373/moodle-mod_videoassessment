@@ -531,12 +531,12 @@ final class record_preview_test extends \basic_testcase {
     }
 
     /**
-     * Audio-continuity contract for the assess tabs (item #7, 2026-06
-     * feedback round): students listen to the recording while they
-     * fill in the rubric, so switching to the grading tab must NOT
-     * stop playback. The video pane is parked off-screen at 1x1px
-     * instead of display:none, and nothing may call pause() on the
-     * players during a tab switch.
+     * Playback-continuity contract for the assess tabs (item #7,
+     * 2026-06 feedback round, revised 2026-07): graders watch/listen
+     * to the recording while they fill in the rubric, so the grading
+     * tab must keep the video VISIBLE as a height-capped compact band
+     * above the rubric (not parked, not display:none), and nothing may
+     * call pause() on the players during a tab switch.
      *
      * @coversNothing
      */
@@ -558,22 +558,30 @@ final class record_preview_test extends \basic_testcase {
         $this->assertStringContainsString(
             "'-10000px'",
             $js,
-            'assess_mobile_tabs.js must park hidden panes off-screen '
-                . 'so the media element keeps playing.'
+            'assess_mobile_tabs.js must park the hidden rubric pane '
+                . 'off-screen (video-tab view) rather than display:none.'
         );
         $css = file_get_contents(__DIR__ . '/../assess.css');
         $this->assertDoesNotMatchRegularExpression(
             '~vam-assess-tab-grading-active\s+\.assess-form-videos\s*\{[^}]*display\s*:\s*none~',
             $css,
             'assess.css must not display:none the video band when the '
-                . 'grading tab is active — the CSS backup rule must use '
-                . 'the same audio-safe off-screen technique as the JS.'
+                . 'grading tab is active — playback must continue.'
         );
-        $this->assertMatchesRegularExpression(
+        $this->assertDoesNotMatchRegularExpression(
             '~vam-assess-tab-grading-active\s+\.assess-form-videos\s*\{[^}]*left\s*:\s*-10000px~',
             $css,
-            'assess.css must park the video band off-screen when the '
-                . 'grading tab is active.'
+            'assess.css must not park the video band off-screen when '
+                . 'the grading tab is active — the 2026-07 feedback '
+                . 'requires the video to stay visible above the rubric.'
+        );
+        $this->assertMatchesRegularExpression(
+            '~vam-assess-tab-grading-active\s+\.assess-form-videos\s*\{[^}]*max-height\s*:\s*3[0-9]vh~',
+            $css,
+            'assess.css must compact the video band into a height-'
+                . 'capped strip above the rubric when the grading tab '
+                . 'is active, so a portrait recording cannot bury the '
+                . 'criteria.'
         );
     }
 

@@ -20,10 +20,12 @@
  * which for portrait recordings pushes the criteria almost entirely
  * off-screen (see Brendon's report on the Task List spreadsheet).
  * This module injects a sticky "動画 / 採点" tab bar at the top of
- * the screen so the learner / teacher can devote the full viewport
- * to one section at a time. Tab state is remembered in sessionStorage
- * so coming back to the page lands on whichever tab the user picked
- * last.
+ * the screen. The 動画 tab gives the recording the full viewport;
+ * the 採点 tab (the default) shows the rubric with the video kept
+ * visible as a height-capped compact band above it (assess.css), so
+ * the grader watches while scoring. Tab state is remembered in
+ * sessionStorage so coming back to the page lands on whichever tab
+ * the user picked last.
  *
  * Desktop and landscape phones are unaffected: the styles are scoped
  * via a matchMedia check before mounting and removed on orientation
@@ -239,10 +241,14 @@ define(['core/str'], function(Str) {
         refs.btnGrading.setAttribute('aria-selected', isVideo ? 'false' : 'true');
         styleTab(refs.btnVideo, isVideo);
         styleTab(refs.btnGrading, !isVideo);
-        // Park every plausible video wrapper, not just the primary
-        // one — some pages have multiple.
+        // The video band is never parked any more: on the grading tab
+        // assess.css compacts it into a height-capped strip above the
+        // rubric so graders watch while they score (2026-07 customer
+        // feedback — "the video used to be visible above the rubric").
+        // Clearing the inline overrides also heals any parking left
+        // over from a previous build or a remembered session.
         collectVideoTargets().forEach(function(el) {
-            setHidden(el, !isVideo);
+            setHidden(el, false);
         });
         setHidden(gradingContainer, isVideo);
         // Body padding-top so the breadcrumb / Moodle nav under the
