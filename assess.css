@@ -787,23 +787,32 @@
         object-fit: contain;
     }
 
-    /* Grading tab active: keep the video visible as a compact band
-       ABOVE the rubric (2026-07 customer feedback: "previously the
-       video was visible above the rubric" — graders watch while they
-       score). The band is height-capped so a tall portrait recording
-       cannot bury the criteria, which is the original reason the tabs
-       exist; the 動画 tab still gives the recording the full viewport.
-       Playback continues across switches because the element is never
-       display:none'd nor re-parented. */
+    /* Grading tab active: keep the video visible as a compact band that
+       STICKS to the top of the viewport (just under the 50px tab bar) so
+       it stays on screen while the grader scrolls the rubric (2026-07
+       customer feedback: "keep the video referenceable while scrolling
+       down" — graders watch while they score). The band is height-capped
+       so a tall portrait recording cannot bury the criteria, which is the
+       original reason the tabs exist; the 動画 tab still gives the
+       recording the full viewport. Playback continues across switches
+       because the element is never display:none'd nor re-parented. */
     body.vam-assess-tab-grading-active .assess-form-videos {
-        position: static !important;
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 50px !important;
+        z-index: 900 !important;
         float: none !important;
         width: 100% !important;
         height: auto !important;
         max-height: 34vh !important;
         overflow: hidden !important;
         margin: 0 0 8px 0 !important;
+        padding: 4px 0 !important;
         text-align: center !important;
+        background: #fff !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+        box-sizing: border-box !important;
         opacity: 1 !important;
         pointer-events: auto !important;
     }

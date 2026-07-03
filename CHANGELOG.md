@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062813)`.
+  and set the release to `1.1.8 (Build: 2026062814)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -69,7 +69,9 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 - Mobile grading: on the 採点 (Grading) tab the recording now stays **visible as a
   compact, height-capped band above the rubric** (2026-07 customer feedback: "the
   video used to be visible above the rubric" — graders watch while they score). The
-  34vh cap keeps a tall portrait recording from burying the criteria, the 動画 tab
+  band **sticks to the top of the viewport (just under the tab bar) so it stays
+  referenceable while the grader scrolls the rubric down** (further 2026-07 feedback).
+  The 34vh cap keeps a tall portrait recording from burying the criteria, the 動画 tab
   still gives the video the full viewport, and playback continues across tab switches
   because the band is never display:none'd, parked or re-parented. Contract tests
   updated to pin the new visible-band behaviour.
