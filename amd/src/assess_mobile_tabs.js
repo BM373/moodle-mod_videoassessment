@@ -318,15 +318,19 @@ define(['core/str'], function(Str) {
         });
 
         // Restore the last-picked tab so reloads (e.g. after saving a
-        // grade) land back on whatever the user was working on.
-        let initial = 'video';
+        // grade) land back on whatever the user was working on. The
+        // FIRST visit defaults to the grading tab: landing on the video
+        // tab hid the rubric off-screen and graders read that as "the
+        // rubric doesn't show / can't grade on mobile" (2026-06 report).
+        // The video is one tap away and keeps playing across switches.
+        let initial = 'grading';
         try {
             const remembered = window.sessionStorage.getItem(STORAGE_KEY);
             if (remembered === 'grading' || remembered === 'video') {
                 initial = remembered;
             }
         } catch (e) {
-            initial = 'video';
+            initial = 'grading';
         }
         setActive(initial, refs, gradingContainer);
     }
