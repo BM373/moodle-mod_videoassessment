@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062814)`.
+  and set the release to `1.1.8 (Build: 2026062815)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -60,6 +60,19 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
+- Mobile assess video aspect ratio (root fix). An external embed is an `<iframe>`
+  with no intrinsic aspect ratio, so sizing it with `width:100%` + `height:auto` (and
+  `assess.js` stripping its width/height attributes at runtime) stretched it into a
+  horizontal banner ("728x90"). Sizing is now owned entirely by the `.video-wrap` box,
+  which sets a fixed aspect ratio (16:9, or 9:16 for YouTube Shorts via `:has(.shorts)`)
+  and has the player fill it absolutely — so YouTube, Vimeo, Opencast Paella and
+  PeerTube all render correctly proportioned. The competing `assess.js` iframe rewrite
+  was removed.
+- Mobile assess video no longer disappears while its audio keeps playing. Focusing a
+  rubric comment box called an `assess.js` handler that set the video container to
+  `display:none`; an external iframe keeps its sound under `display:none`, so the video
+  vanished but the audio continued. That handler is now a no-op — the sticky video band
+  above the rubric already stays clear of the on-screen keyboard.
 - Plugin CSS cache-busting: `view.css`, `assess.css` and `getHTMLMediaElement.css`
   are linked directly (outside Moodle's revved theme pipeline), so a phone kept the
   old stylesheet long after an upgrade — testers repeatedly saw the previous build's

@@ -775,16 +775,13 @@
         max-height: 85vh;
         margin: 0;
     }
-    body.vam-assess-tab-video-active .assess-form-videos video,
-    body.vam-assess-tab-video-active .assess-form-videos iframe,
-    body.vam-assess-tab-video-active .assess-form-videos object,
-    body.vam-assess-tab-video-active .assess-form-videos embed,
-    body.vam-assess-tab-video-active .assess-form-videos .mediaplugin {
-        width: 100%;
-        max-width: 100%;
-        max-height: 85vh;
-        height: auto;
-        object-fit: contain;
+    /* The player is NOT sized directly: an <iframe> has no intrinsic
+       aspect ratio, so width:100% + height:auto stretched it into a
+       horizontal banner (the "728x90" report). The fixed-ratio .video-wrap
+       box (shared rule below) does the sizing; here the video tab just
+       caps its height. */
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap {
+        max-height: 78vh;
     }
 
     /* Grading tab active: keep the video visible as a compact band that
@@ -816,14 +813,47 @@
         opacity: 1 !important;
         pointer-events: auto !important;
     }
-    body.vam-assess-tab-grading-active .assess-form-videos video,
-    body.vam-assess-tab-grading-active .assess-form-videos iframe,
-    body.vam-assess-tab-grading-active .assess-form-videos object,
-    body.vam-assess-tab-grading-active .assess-form-videos embed,
-    body.vam-assess-tab-grading-active .assess-form-videos .mediaplugin {
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap {
+        max-height: 34vh;
+    }
+
+    /* Fixed-ratio box shared by both tabs. The .video-wrap sets the aspect
+       ratio; the player (iframe / <video>) fills it absolutely, so an
+       external embed (YouTube / Vimeo / Opencast Paella / PeerTube) is
+       always correctly proportioned instead of stretched. 16:9 by default;
+       portrait recordings (YouTube Shorts etc.) get a 9:16 box, centred and
+       height-capped by the max-height above. object-fit:contain keeps the
+       player's own content letterboxed rather than distorted. */
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap,
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        aspect-ratio: 16 / 9;
+        background: #000;
+        overflow: hidden;
+    }
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap:has(.shorts),
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap:has(.shorts) {
+        aspect-ratio: 9 / 16;
+    }
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap > iframe,
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap > video,
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap .mediaplugin,
+    body.vam-assess-tab-video-active .assess-form-videos .video-wrap .mediaplugin > video,
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap > iframe,
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap > video,
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap .mediaplugin,
+    body.vam-assess-tab-grading-active .assess-form-videos .video-wrap .mediaplugin > video {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
         max-width: 100% !important;
-        max-height: 34vh !important;
-        height: auto;
+        max-height: 100% !important;
+        margin: 0 !important;
         object-fit: contain;
     }
     /* Grading tab active: full-width rubric. */
