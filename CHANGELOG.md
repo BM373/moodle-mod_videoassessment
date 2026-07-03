@@ -18,7 +18,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### Changed
 - `version.php`: declare support for Moodle 4.5 LTS through 5.2 (`$plugin->supported = [405, 502]`),
   raise the minimum required Moodle version to 4.5 LTS (`$plugin->requires = 2024100700`),
-  and set the release to `1.1.8 (Build: 2026062812)`.
+  and set the release to `1.1.8 (Build: 2026062813)`.
 - `README.md` refreshed for the 1.1.x release line: corrected the supported Moodle
   range (4.5 LTS – 5.2), added a current-version banner, noted PostgreSQL support,
   and replaced the inline change log with a pointer to `CHANGELOG.md`.
@@ -60,6 +60,12 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   unlisted host degrades to a plain link instead of an iframe.
 
 ### Fixed (post-release testing)
+- Plugin CSS cache-busting: `view.css`, `assess.css` and `getHTMLMediaElement.css`
+  are linked directly (outside Moodle's revved theme pipeline), so a phone kept the
+  old stylesheet long after an upgrade — testers repeatedly saw the previous build's
+  mobile layout (e.g. an off-screen-parked video band) until they hard-refreshed.
+  The links now carry a `?v={plugin version}` query, so every release invalidates
+  the browser cache automatically.
 - Mobile grading: on the 採点 (Grading) tab the recording now stays **visible as a
   compact, height-capped band above the rubric** (2026-07 customer feedback: "the
   video used to be visible above the rubric" — graders watch while they score). The

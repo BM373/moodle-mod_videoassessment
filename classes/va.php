@@ -285,22 +285,29 @@ class va {
                 break;
         }
 
+        // Bust browser caches of the plugin's raw CSS on every release:
+        // these files are linked directly (not through Moodle's revved
+        // theme pipeline), so without a version query a phone keeps the
+        // old stylesheet long after an upgrade — which shipped stale
+        // mobile-layout rules to testers more than once.
+        $cssrev = ['v' => (string) get_config('mod_videoassessment', 'version')];
+
         if ($action == '') {
             // Use a layout that displays a scrollbar for horizontally long pages.
             $PAGE->set_pagelayout('report');
-            $PAGE->requires->css('/mod/videoassessment/view.css');
+            $PAGE->requires->css(new \moodle_url('/mod/videoassessment/view.css', $cssrev));
             $PAGE->requires->css('/mod/videoassessment/font/font-awesome/css/font-awesome.min.css');
         }
 
         if ($action == 'report' || $action == 'publish' || $action == 'upload') {
-            $PAGE->requires->css('/mod/videoassessment/view.css');
-            $PAGE->requires->css('/mod/videoassessment/getHTMLMediaElement.css');
+            $PAGE->requires->css(new \moodle_url('/mod/videoassessment/view.css', $cssrev));
+            $PAGE->requires->css(new \moodle_url('/mod/videoassessment/getHTMLMediaElement.css', $cssrev));
         }
 
         if ($action == 'assess' || $action == 'trainingresult') {
             $PAGE->set_pagelayout('report');
             $PAGE->blocks->show_only_fake_blocks();
-            $PAGE->requires->css('/mod/videoassessment/assess.css');
+            $PAGE->requires->css(new \moodle_url('/mod/videoassessment/assess.css', $cssrev));
             $PAGE->add_body_class('assess-page');
         }
         $o .= $this->output->header($this);
