@@ -576,12 +576,11 @@ final class record_preview_test extends \basic_testcase {
                 . 'requires the video to stay visible above the rubric.'
         );
         $this->assertMatchesRegularExpression(
-            '~vam-assess-tab-grading-active\s+\.assess-form-videos\s*\{[^}]*max-height\s*:\s*3[0-9]vh~',
+            '~vam-assess-tab-grading-active\s+\.assess-form-videos\s+\.video-wrap\s*\{[^}]*max-height\s*:\s*3[0-9]vh~',
             $css,
-            'assess.css must compact the video band into a height-'
-                . 'capped strip above the rubric when the grading tab '
-                . 'is active, so a portrait recording cannot bury the '
-                . 'criteria.'
+            'assess.css must height-cap the recording box (.video-wrap) '
+                . 'above the rubric when the grading tab is active, so a '
+                . 'portrait recording cannot bury the criteria.'
         );
     }
 

@@ -36,21 +36,13 @@ define(['jquery', 'core/str'], function($, str) {
             }
 
 
-            // Handle YouTube iframes on mobile devices.
-            $('iframe').each(function() {
-                const iframe = this;
-                if (iframe.addEventListener) {
-                    iframe.addEventListener('load', function() {
-                        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
-                            const $iframe = $(iframe);
-                            $iframe.attr('style', 'width:100% !important;top:0;left:0;position:static');
-                            $iframe.attr('allowfullscreen', 'false');
-                            $iframe.removeAttr('width');
-                            $iframe.removeAttr('height');
-                        }
-                    });
-                }
-            });
+            // NOTE: earlier builds rewrote every embed <iframe> on load
+            // (inline width:100%;position:static, stripped width/height
+            // attributes, allowfullscreen=false). That fought the CSS and
+            // left an external player as a horizontal banner with no fixed
+            // ratio. Sizing is now owned entirely by the .video-wrap
+            // aspect-ratio box in assess.css, so the JS no longer touches
+            // the iframe.
             var rubrics_passed = $('input[name="rubrics_passed"]').val();
 
             if (typeof (rubrics_passed) != 'undefined') {
@@ -101,36 +93,28 @@ define(['jquery', 'core/str'], function($, str) {
             /**
              *
              */
-            function getVideoContainer() {
-                var $container = $('.assess-form-videos, .path-mod-videoassessment .assess-form-videos');
-                if ($container.length > 0) {
-                }
-                return $container;
-            }
-
-            /**
-             *
-             */
             function hideVideo() {
-                if (isMobile()) {
-                    var $videoContainer = getVideoContainer();
-                    if ($videoContainer.length > 0) {
-                        $videoContainer.css('display', 'none');
-                    }
-                } else {
-                }
+                // No-op. Earlier builds hid the video (display:none) when a
+                // rubric remark textarea was focused, so the on-screen
+                // keyboard would not cover it. The mobile assess screen now
+                // keeps the recording in a sticky compact band above the
+                // rubric (assess_mobile_tabs.js + assess.css) that already
+                // stays clear of the keyboard, so hiding it here only made
+                // the video vanish while its audio kept playing — an
+                // external iframe (YouTube/Opencast) keeps its sound under
+                // display:none (2026-07 customer report). Kept as a named
+                // no-op so the existing focus/click handlers need not be
+                // unpicked.
+                return;
             }
 
             /**
              *
              */
             function showVideo() {
-                if (isMobile()) {
-                    var $videoContainer = getVideoContainer();
-                    if ($videoContainer.length > 0) {
-                        $videoContainer.css('display', '');
-                    }
-                }
+                // No-op counterpart to hideVideo(): the sticky band above
+                // the rubric is always shown.
+                return;
             }
 
             // Handle rubric remark textareas.
