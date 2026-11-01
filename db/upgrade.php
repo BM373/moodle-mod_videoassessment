@@ -1171,8 +1171,8 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
             new xmldb_field('aifeedback', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0'),
             new xmldb_field('aifeedbackinstructions', XMLDB_TYPE_TEXT),
             new xmldb_field('aifeedbackkeywords', XMLDB_TYPE_TEXT),
-            new xmldb_field('aifeedbacklang', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, ''),
-            new xmldb_field('aitranscribelang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, ''),
+            new xmldb_field('aifeedbacklang', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null),
+            new xmldb_field('aitranscribelang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null),
         ];
         foreach ($fields as $field) {
             if (!$dbman->field_exists($table, $field)) {

@@ -99,8 +99,8 @@
         <FIELD NAME="aifeedback" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether learners can get AI feedback on spoken (audio-only) attempts"/>
         <FIELD NAME="aifeedbackinstructions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task and criteria the AI judges the speech against"/>
         <FIELD NAME="aifeedbackkeywords" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Words or phrases the learner should use, one per line"/>
-        <FIELD NAME="aifeedbacklang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="Language of the AI feedback; empty means the learner's language"/>
-        <FIELD NAME="aitranscribelang" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="ISO-639-1 language spoken in the recordings; empty means auto-detect"/>
+        <FIELD NAME="aifeedbacklang" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="Language of the AI feedback; empty means the learner's language"/>
+        <FIELD NAME="aitranscribelang" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ISO-639-1 language spoken in the recordings; empty means auto-detect"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
