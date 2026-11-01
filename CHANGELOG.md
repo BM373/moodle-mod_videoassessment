@@ -72,7 +72,18 @@ affect every activity, not only AI feedback (*Fixed in 1.3.0-beta2*).
   anywhere but the Moodle server, because AWS keys do not expire.
 - **Moodle 5.3 is supported** (`$plugin->supported = [405, 503]`). The CI
   matrix adds `MOODLE_503_STABLE` and runs PostgreSQL 17, which Moodle 5.3
-  requires; MariaDB 11.4 already met its minimum.
+  requires; MariaDB 11.4 already met its minimum. Moodle 5.3 refuses to
+  install a module that still declares `FEATURE_GROUPMEMBERSONLY`, which
+  core has ignored since Moodle 2.8, so `videoassessment_supports()` no
+  longer declares it.
+- `aifeedbacklang` and `aitranscribelang` no longer declare `DEFAULT=""`.
+  XMLDB printed a debugging message for it on every install. The database
+  is unchanged (NOT NULL char columns still get the default `''`), so no
+  upgrade step is needed.
+- On Moodle 5.1 and later the teacher's detail of a failed AI request
+  showed only the code (for example "429"), because 5.1 moved the reason
+  to a separate field. It now shows the code and the reason on every
+  version.
 
 #### Fixed in 1.3.0-beta2 (backup and restore, all earlier releases)
 - **Most activity settings were lost on restore.** The 1.1.8 backup held
