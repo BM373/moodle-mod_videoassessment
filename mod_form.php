@@ -271,6 +271,9 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             ');
         }
 
+        // AI SPEECH FEEDBACK (audio only, stage 1 of the AI work).
+        $this->add_ai_feedback_settings();
+
         // 5. NOTIFICATIONS.
         $this->add_notifications();
 
@@ -669,6 +672,99 @@ class mod_videoassessment_mod_form extends moodleform_mod {
     public function manage_video() {
         // This method is deprecated. Video management is now in add_advanced_options().
         return;
+    }
+
+    /**
+     * Add the AI speech feedback settings.
+     *
+     * Learners record or upload speech, it is transcribed, and the site's
+     * AI provider comments on the transcript against the teacher's task and
+     * target words. Only the audio is used (no video), which keeps the data
+     * sent to outside services to a minimum.
+     *
+     * @return void
+     */
+    protected function add_ai_feedback_settings(): void {
+        global $OUTPUT;
+        $mform = $this->_form;
+
+        $mform->addElement('header', 'aifeedbackhdr', get_string('aifeedback', 'videoassessment'));
+        $mform->setExpanded('aifeedbackhdr', false);
+
+        if (!\mod_videoassessment\aifeedback\attempt_manager::site_ready()) {
+            $mform->addElement('static', 'aifeedbacknotready', '', $OUTPUT->notification(
+                get_string('aifb_sitenotready', 'videoassessment'),
+                \core\output\notification::NOTIFY_WARNING,
+                false
+            ));
+        }
+
+        $mform->addElement('advcheckbox', 'aifeedback', get_string('aifeedbackenable', 'videoassessment'));
+        $mform->addHelpButton('aifeedback', 'aifeedbackenable', 'videoassessment');
+        $mform->setDefault('aifeedback', 0);
+
+        $mform->addElement(
+            'textarea',
+            'aifeedbackinstructions',
+            get_string('aifeedbackinstructions', 'videoassessment'),
+            ['rows' => 6, 'cols' => 60]
+        );
+        $mform->setType('aifeedbackinstructions', PARAM_TEXT);
+        $mform->addHelpButton('aifeedbackinstructions', 'aifeedbackinstructions', 'videoassessment');
+        $mform->hideIf('aifeedbackinstructions', 'aifeedback', 'notchecked');
+
+        $mform->addElement(
+            'textarea',
+            'aifeedbackkeywords',
+            get_string('aifeedbackkeywords', 'videoassessment'),
+            ['rows' => 4, 'cols' => 60]
+        );
+        $mform->setType('aifeedbackkeywords', PARAM_TEXT);
+        $mform->addHelpButton('aifeedbackkeywords', 'aifeedbackkeywords', 'videoassessment');
+        $mform->hideIf('aifeedbackkeywords', 'aifeedback', 'notchecked');
+
+        $languages = $this->ai_language_options();
+        $mform->addElement(
+            'select',
+            'aitranscribelang',
+            get_string('aitranscribelang', 'videoassessment'),
+            ['' => get_string('aitranscribelang_auto', 'videoassessment')] + $languages
+        );
+        $mform->addHelpButton('aitranscribelang', 'aitranscribelang', 'videoassessment');
+        $mform->hideIf('aitranscribelang', 'aifeedback', 'notchecked');
+
+        $mform->addElement(
+            'select',
+            'aifeedbacklang',
+            get_string('aifeedbacklang', 'videoassessment'),
+            ['' => get_string('aifeedbacklang_learner', 'videoassessment')] + $languages
+        );
+        $mform->addHelpButton('aifeedbacklang', 'aifeedbacklang', 'videoassessment');
+        $mform->hideIf('aifeedbacklang', 'aifeedback', 'notchecked');
+    }
+
+    /**
+     * Languages offered for speech and feedback.
+     *
+     * The site's installed language packs plus the languages most used
+     * with this module, keyed by ISO-639-1 code.
+     *
+     * @return array<string, string> Code => name in the current language.
+     */
+    protected function ai_language_options(): array {
+        $names = get_string_manager()->get_list_of_languages();
+        $codes = ['en', 'ja', 'fr', 'de', 'es', 'zh', 'ko'];
+        foreach (array_keys(get_string_manager()->get_list_of_translations()) as $code) {
+            $codes[] = explode('_', $code)[0];
+        }
+        $options = [];
+        foreach (array_unique($codes) as $code) {
+            if (isset($names[$code])) {
+                $options[$code] = $names[$code];
+            }
+        }
+        \core_collator::asort($options);
+        return $options;
     }
 
     /**
@@ -1138,7 +1234,7 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $o .= html_writer::start_tag('thead');
         $o .= html_writer::start_tag('tr');
         $o .= html_writer::tag('th', get_string('fullname'));
-        $o .= html_writer::tag('th', get_string('peers', 'videoassessment'));
+        $o .= html_writer::tag('th', get_string('peerassessors', 'videoassessment'));
         $o .= html_writer::end_tag('tr');
         $o .= html_writer::end_tag('thead');
         $o .= html_writer::start_tag('tbody');

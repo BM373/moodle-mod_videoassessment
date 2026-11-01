@@ -62,6 +62,13 @@ class va {
     const TABLE_GRADES = 'videoassessment_grades';
 
     /**
+     * Grader types whose saved assessment locks the learner's video.
+     *
+     * @var string[]
+     */
+    const LOCKING_GRADER_TYPES = ['self', 'peer', 'teacher', 'class'];
+
+    /**
      * Filter flag: show all videos.
      *
      * @var int
@@ -248,7 +255,16 @@ class va {
 
         $this->action = $action;
 
-        $mutatingactions = ['peeradd', 'peerdel', 'randompeer', 'assocadd', 'assocdel', 'videodel', 'deletevideo'];
+        $mutatingactions = [
+            'peeradd',
+            'peerdel',
+            'randompeer',
+            'assocadd',
+            'assocdel',
+            'videodel',
+            'deletevideo',
+            'resetsubmission',
+        ];
 
         if (in_array($action, $mutatingactions)) {
             require_sesskey();
@@ -280,6 +296,9 @@ class va {
             case 'deletevideo':
                 $this->delete_one_video_by_id();
                 break;
+            case 'resetsubmission':
+                $this->view_reset_submission();
+                break;
             case 'downloadxls':
                 $this->download_xls_report();
                 break;
@@ -297,6 +316,15 @@ class va {
             $PAGE->set_pagelayout('report');
             $PAGE->requires->css(new \moodle_url('/mod/videoassessment/view.css', $cssrev));
             $PAGE->requires->css('/mod/videoassessment/font/font-awesome/css/font-awesome.min.css');
+        }
+
+        // These checks run before the header is generated, so a refusal
+        // renders as a normal error page and a redirect carries its notice.
+        if ($action == 'report') {
+            $this->require_report_access(optional_param('userid', 0, PARAM_INT));
+        }
+        if ($action == 'assess') {
+            $this->guard_assess_request();
         }
 
         if ($action == 'report' || $action == 'publish' || $action == 'upload') {
@@ -466,6 +494,21 @@ class va {
             && (int)($_FILES['mobilevideo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK
         ) {
             $mobilevideofile = $_FILES['mobilevideo'];
+        }
+
+        // 2026-07 request #2: once the learner's video has been assessed
+        // it can no longer be replaced or re-linked. Checked before the
+        // form runs so a page opened earlier cannot slip a new video in.
+        $targetuser = $this->is_teacher() ? optional_param('user', 0, PARAM_INT) : (int)$USER->id;
+        $targettiming = optional_param('timing', '', PARAM_ALPHA) ?: 'before';
+        if ($targetuser && $this->has_started_assessment($targetuser, $targettiming)) {
+            $o .= $OUTPUT->notification(
+                self::str($this->is_teacher() ? 'videolockedteacher' : 'videolocked'),
+                \core\output\notification::NOTIFY_ERROR,
+                false
+            );
+            $o .= $OUTPUT->continue_button($this->viewurl);
+            return $o;
         }
 
         $form = new form\video_upload(null, (object) ['va' => $this]);
@@ -782,7 +825,7 @@ class va {
         ];
         $headers = [
             util::get_fullname_label(),
-            self::str('peers'),
+            self::str('peerassessors'),
         ];
         $table->define_columns($columns);
         $table->define_headers($headers);
@@ -1226,6 +1269,27 @@ class va {
     }
 
     /**
+     * Handle the teacher's "Delete video / link and assessments" button.
+     *
+     * @return void
+     */
+    private function view_reset_submission(): void {
+        global $DB;
+
+        $this->teacher_only();
+        $user = $DB->get_record('user', ['id' => required_param('userid', PARAM_INT)], '*', MUST_EXIST);
+
+        $this->reset_submission((int)$user->id);
+
+        redirect(
+            $this->viewurl,
+            self::str('resetsubmissiondone', fullname($user)),
+            null,
+            \core\output\notification::NOTIFY_SUCCESS
+        );
+    }
+
+    /**
      * Delete a single video by id provided in the request.
      *
      * Uses the `videoid` request param, deletes the stored file through the
@@ -1234,8 +1298,30 @@ class va {
      * @return void
      */
     public function delete_one_video_by_id() {
-        global $DB;
+        global $DB, $USER;
         $videoid = required_param('videoid', PARAM_INT);
+
+        if (!$DB->record_exists('videoassessment_videos', ['id' => $videoid, 'videoassessment' => $this->instance])) {
+            throw new \moodle_exception('invaliddata');
+        }
+        $assocs = $DB->get_records('videoassessment_video_assocs', [
+            'videoassessment' => $this->instance,
+            'videoid' => $videoid,
+        ]);
+        $owners = array_map(fn($assoc) => (int)$assoc->associationid, $assocs);
+        if (!$this->is_teacher() && !in_array((int)$USER->id, $owners, true)) {
+            throw new \moodle_exception('nopermissions', 'error', '', get_string('delete'));
+        }
+        // 2026-07 request #2: an assessed video stays until the teacher resets it.
+        foreach ($assocs as $assoc) {
+            if ($this->has_started_assessment((int)$assoc->associationid, $assoc->timing)) {
+                throw new \moodle_exception(
+                    $this->is_teacher() ? 'videolockedteacher' : 'videolocked',
+                    self::VA,
+                    $this->viewurl
+                );
+            }
+        }
 
         $video = video::from_id($this->context, $videoid);
         $video->delete_file();
@@ -1315,6 +1401,32 @@ class va {
             }
         }
         return null;
+    }
+
+    /**
+     * Identify the videos currently associated with a learner.
+     *
+     * The assess form carries this value so a submission can be matched
+     * against the video the assessor was shown (2026-07 request #2).
+     * Uses the association rather than the file, so a background
+     * conversion finishing in the meantime does not change it.
+     *
+     * @param int $userid The learner.
+     * @return string e.g. "12-0" (before-video id, after-video id; 0 = none).
+     */
+    public function get_video_signature(int $userid): string {
+        global $DB;
+
+        $ids = [];
+        foreach (['before', 'after'] as $timing) {
+            $assocs = $DB->get_records('videoassessment_video_assocs', [
+                'videoassessment' => $this->instance,
+                'timing' => $timing,
+                'associationid' => $userid,
+            ], 'id');
+            $ids[] = $assocs ? (int)reset($assocs)->videoid : 0;
+        }
+        return implode('-', $ids);
     }
 
     /**
@@ -1681,6 +1793,17 @@ class va {
         if ($this->cm->showdescription == 1) {
             $o .= $this->va->intro;
         }
+        // AI speech feedback (audio only): its own page, linked from the top.
+        if (!empty($this->va->aifeedback)) {
+            $o .= \html_writer::div(
+                \html_writer::link(
+                    new \moodle_url('/mod/videoassessment/aifeedback.php', ['id' => $this->cm->id]),
+                    self::str($this->is_teacher() ? 'aifb_openteacher' : 'aifb_open'),
+                    ['class' => 'btn ' . ($this->is_teacher() ? 'btn-secondary' : 'btn-primary')]
+                ),
+                'va-aifb-entry mb-3'
+            );
+        }
         $time = time();
         $gradetable = new grade_table($this);
         if ($this->is_teacher()) {
@@ -1760,6 +1883,54 @@ class va {
         $o .= $this->output->render_mod_videoassessment_info_status($this->va);
 
         return $o;
+    }
+
+    /**
+     * Refuse assess requests that must not reach the assessment form.
+     *
+     * - 2026-07 request #3: with a Self weighting of 0% there is no
+     *   self-assessment screen, not even through a direct URL.
+     * - 2026-07 request #2: if the learner replaced or removed the video
+     *   while the form was open, the posted assessment would describe a
+     *   video that is no longer there, so it is dropped and the assessor
+     *   is sent back to assess the current video.
+     *
+     * @return void
+     */
+    private function guard_assess_request(): void {
+        $userid = optional_param('userid', 0, PARAM_INT);
+        $gradertype = optional_param('gradertype', '', PARAM_ALPHA);
+        if ($gradertype != 'class' && $gradertype != 'training') {
+            $gradertype = $this->get_grader_type($userid);
+        }
+
+        if ($gradertype == 'self' && !$this->is_self_assessment_enabled()) {
+            redirect(
+                $this->viewurl,
+                self::str('selfassessmentdisabled'),
+                null,
+                \core\output\notification::NOTIFY_INFO
+            );
+        }
+
+        $postedvideos = optional_param('assessedvideos', null, PARAM_ALPHANUMEXT);
+        if (
+            $gradertype != 'training'
+            && $postedvideos !== null
+            && optional_param('cancel', null, PARAM_RAW) === null
+            && $postedvideos !== $this->get_video_signature($userid)
+        ) {
+            $params = ['action' => 'assess', 'userid' => $userid];
+            if ($gradertype == 'class') {
+                $params['gradertype'] = 'class';
+            }
+            redirect(
+                new \moodle_url($this->viewurl, $params),
+                self::str('videochangedduringassessment'),
+                null,
+                \core\output\notification::NOTIFY_WARNING
+            );
+        }
     }
 
     /**
@@ -1991,6 +2162,7 @@ class va {
             'gradingdisabled' => false,
             'gradertype' => $gradertype,
             'rubricspassed' => $rubricspassed,
+            'assessedvideos' => $this->get_video_signature((int)$user->id),
         ];
 
         $gradingareas = ['before' . $gradertype];
@@ -2559,6 +2731,21 @@ class va {
     }
 
     /**
+     * A learner may read only their own report; teachers may read any.
+     *
+     * @param int $userid The learner whose report is requested.
+     * @return void
+     * @throws \moodle_exception When a learner asks for someone else's report.
+     */
+    private function require_report_access(int $userid): void {
+        global $USER;
+
+        if (!$this->is_teacher() && $userid != $USER->id) {
+            throw new \moodle_exception('nopermissions', 'error', '', self::str('seereport'));
+        }
+    }
+
+    /**
      * Render the per-user assessment report view.
      *
      * Displays associated videos, grades, and rubric details for a user.
@@ -2566,7 +2753,7 @@ class va {
      * @return string Rendered HTML for the report view
      */
     private function view_report() {
-        global $PAGE, $OUTPUT, $DB;
+        global $PAGE, $OUTPUT, $DB, $USER;
 
         $PAGE->requires->js_call_amd('mod_videoassessment/module', 'reportCombineRubrics');
 
@@ -2574,13 +2761,18 @@ class va {
 
         $userid = optional_param('userid', 0, PARAM_INT);
 
+        $this->require_report_access($userid);
+        $islearner = !$this->is_teacher();
+
         $rubric = new rubric($this);
 
         $gradingstatus = $this->get_grading_status($userid);
         $usergrades = $this->get_aggregated_grades($userid);
+        // Delayed Teacher Grade: keep the teacher's ratings, comments and
+        // the total from the learner until they have self-assessed.
         $hideteacher = (object) [
-            'before' => $usergrades->gradebeforeself == -1 && $this->va->delayedteachergrade && !$this->is_teacher(),
-            'after' => $usergrades->gradeafterself == -1 && $this->va->delayedteachergrade && !$this->is_teacher(),
+            'before' => $islearner && $this->is_teacher_grade_hidden_from_learner($usergrades, 'before'),
+            'after' => $islearner && $this->is_teacher_grade_hidden_from_learner($usergrades, 'after'),
         ];
 
         $o .= \html_writer::start_tag('div', ['class' => 'report-rubrics']);
@@ -2646,6 +2838,9 @@ class va {
                             }
                         }
 
+                        if ($gradertype == 'teacher' && $hideteacher->$timing) {
+                            continue;
+                        }
                         $timinggrades[] = \html_writer::tag('span', (int) $displaygrade, ['class' => 'rubrictext-' . $gradertype]);
                     }
                 }
@@ -2659,8 +2854,7 @@ class va {
                 if (
                     $gradertype == 'training'
                     || $gradertype == 'class'
-                    || ($this->va->class && $gradertype == 'class'
-                    && !has_capability('mod/videoassessment:grade', $this->context))
+                    || ($gradertype == 'teacher' && $hideteacher->$timing)
                 ) {
                     continue;
                 }
@@ -2779,13 +2973,28 @@ class va {
                     . (int) $usergrades->finalscore . '</span>'
                     . \html_writer::end_tag('div');
                 $finalgradetext = get_string('grade', 'videoassessment') . ': '
-                    . implode(', ', $timinggrades)
-                    . $totalscore . $selffairnessbonus . $fairnessbonus . $finalscore;
+                    . implode(', ', $timinggrades);
+                // Learners see the total under the same rule as the scores table.
+                if (!$islearner || $this->is_total_visible($usergrades, $timing)) {
+                    $finalgradetext .= $totalscore . $selffairnessbonus . $fairnessbonus . $finalscore;
+                }
                 $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
             }
         }
         $o .= \html_writer::end_tag('div');
         $PAGE->requires->js_call_amd('mod_videoassessment/videoassessment', 'mobileshowallcomment', []);
+
+        // 2026-07 request #1: the learner has now read their report.
+        if ($userid == $USER->id) {
+            report_tracker::mark_viewed((int)$this->instance, (int)$userid);
+        }
+        event\report_viewed::create([
+            'context' => $this->context,
+            'objectid' => $this->instance,
+            'relateduserid' => $userid,
+            'other' => ['videoassessmentid' => $this->instance],
+        ])->trigger();
+
         return $o;
     }
 
@@ -3130,6 +3339,169 @@ class va {
         }
 
         return $status;
+    }
+
+    /**
+     * Whether learners assess their own video in this activity.
+     *
+     * 2026-07 request #3: with a Self weighting of 0% a self-assessment
+     * adds nothing to the total, so the self-assessment screen and its
+     * "First assess" button are switched off.
+     *
+     * @return bool
+     */
+    public function is_self_assessment_enabled(): bool {
+        return (int)$this->va->ratingself > 0;
+    }
+
+    /**
+     * Whether "Delayed Teacher Grade" currently hides the teacher's
+     * assessment from the learner who owns the video.
+     *
+     * The delay stops a learner from seeing the teacher's score before
+     * self-assessing. With a Self weighting of 0% there is no
+     * self-assessment to wait for, so the learner sees the teacher's
+     * assessment straight away (2026-07 request #4).
+     *
+     * @param \stdClass $agg Aggregated grades of the learner (see get_aggregated_grades()).
+     * @param string $timing 'before' or 'after'.
+     * @return bool
+     */
+    public function is_teacher_grade_hidden_from_learner(\stdClass $agg, string $timing = 'before'): bool {
+        return !empty($this->va->delayedteachergrade)
+            && $this->is_self_assessment_enabled()
+            && (int)($agg->{'grade' . $timing . 'self'} ?? -1) == -1;
+    }
+
+    /**
+     * Whether the total score may be shown to the teacher and the learner.
+     *
+     * With self-assessment in use the total stays hidden until the
+     * learner has self-assessed (the long-standing behaviour). With a
+     * Self weighting of 0% that rule hid the total forever, so the
+     * total appears once the teacher has assessed instead, or, when the
+     * teacher weighting is 0% as well, once any assessment exists
+     * (2026-07 request #4). Peer assessors never see another learner's
+     * total.
+     *
+     * @param \stdClass $agg Aggregated grades of the learner (see get_aggregated_grades()).
+     * @param string $timing 'before' or 'after'.
+     * @return bool
+     */
+    public function is_total_visible(\stdClass $agg, string $timing = 'before'): bool {
+        if ($this->is_self_assessment_enabled()) {
+            return (int)($agg->{'grade' . $timing . 'self'} ?? -1) != -1;
+        }
+        if ((int)$this->va->ratingteacher > 0) {
+            return (int)($agg->{'grade' . $timing . 'teacher'} ?? -1) != -1;
+        }
+        foreach (['peer', 'class'] as $gradertype) {
+            if ((int)($agg->{'grade' . $timing . $gradertype} ?? -1) != -1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether anyone has saved an assessment of the learner's video.
+     *
+     * 2026-07 request #2: once a self, peer, teacher or class assessment
+     * has been saved, the video must stay the one the feedback refers
+     * to, so it can no longer be deleted, replaced or re-linked. Only
+     * the teacher's "Delete video / link and assessments" reset
+     * (reset_submission()) unlocks it again. Training pre-test grades
+     * concern the training video and do not count.
+     *
+     * @param int $userid The learner who owns the video.
+     * @param string $timing 'before' or 'after'.
+     * @return bool
+     */
+    public function has_started_assessment(int $userid, string $timing = 'before'): bool {
+        global $DB;
+
+        $areas = [];
+        foreach (self::LOCKING_GRADER_TYPES as $gradertype) {
+            $areas[] = $timing . $gradertype;
+        }
+        [$insql, $params] = $DB->get_in_or_equal($areas, SQL_PARAMS_NAMED);
+        $params += ['va' => $this->instance, 'va2' => $this->instance, 'userid' => $userid];
+
+        return $DB->record_exists_sql(
+            "SELECT g.id
+               FROM {videoassessment_grades} g
+               JOIN {videoassessment_grade_items} gi ON gi.id = g.gradeitem
+              WHERE g.videoassessment = :va
+                AND gi.videoassessment = :va2
+                AND gi.gradeduser = :userid
+                AND gi.type $insql",
+            $params
+        );
+    }
+
+    /**
+     * Delete a learner's video / link and every assessment of it.
+     *
+     * 2026-07 request #2: for the rare case where an assessed video
+     * must be changed. The learner goes back to the "nothing submitted"
+     * state and can upload again. A video that is also associated with
+     * other learners keeps its file; only this learner's association
+     * is removed.
+     *
+     * @param int $userid The learner whose submission is reset.
+     * @return void
+     */
+    public function reset_submission(int $userid): void {
+        global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
+
+        $assocs = $DB->get_records('videoassessment_video_assocs', [
+            'videoassessment' => $this->instance,
+            'associationid' => $userid,
+        ]);
+        foreach ($assocs as $assoc) {
+            $DB->delete_records('videoassessment_video_assocs', ['id' => $assoc->id]);
+            if (
+                !$DB->record_exists('videoassessment_video_assocs', ['videoid' => $assoc->videoid])
+                && $DB->record_exists('videoassessment_videos', ['id' => $assoc->videoid])
+            ) {
+                $this->delete_one_video($assoc->videoid);
+            }
+        }
+
+        $areas = [];
+        foreach (['before', 'after'] as $timing) {
+            foreach (self::LOCKING_GRADER_TYPES as $gradertype) {
+                $areas[] = $timing . $gradertype;
+            }
+        }
+        [$insql, $params] = $DB->get_in_or_equal($areas, SQL_PARAMS_NAMED);
+        $params += ['va' => $this->instance, 'userid' => $userid];
+        $itemids = $DB->get_fieldset_select(
+            'videoassessment_grade_items',
+            'id',
+            "videoassessment = :va AND gradeduser = :userid AND type $insql",
+            $params
+        );
+        if ($itemids) {
+            $fs = get_file_storage();
+            [$iteminsql, $itemparams] = $DB->get_in_or_equal($itemids);
+            $gradeids = $DB->get_fieldset_select('videoassessment_grades', 'id', "gradeitem $iteminsql", $itemparams);
+            foreach ($gradeids as $gradeid) {
+                $fs->delete_area_files($this->context->id, 'mod_videoassessment', 'submissioncomment', $gradeid);
+            }
+            // The rubric fillings live in core grading, keyed by our grade item ids.
+            \core_grading\privacy\provider::delete_data_for_instances($this->context, $itemids);
+            $DB->delete_records_list('videoassessment_grades', 'gradeitem', $itemids);
+            $DB->delete_records_list('videoassessment_grade_items', 'id', $itemids);
+        }
+
+        $DB->delete_records('videoassessment_aggregation', ['videoassessment' => $this->instance, 'userid' => $userid]);
+        $this->update_grade_item(['userid' => $userid, 'rawgrade' => null]);
+        report_tracker::reset((int)$this->instance, $userid);
+
+        $transaction->allow_commit();
     }
 
     /**

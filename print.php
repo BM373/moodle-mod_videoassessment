@@ -41,6 +41,18 @@ $context = context_module::instance($cm->id);
 require_capability('mod/videoassessment:exportownsubmission', $context);
 
 $va = new mod_videoassessment\va($context, $cm, $course);
+
+// Without a userid the page prints every learner's report, so only
+// teachers may use it that way; a learner may print their own only.
+if (!$va->is_teacher() && optional_param('userid', 0, PARAM_INT) != $USER->id) {
+    throw new moodle_exception('nopermissions', 'error', '', get_string('printreport', 'videoassessment'));
+}
+
+// 2026-07 request #1: printing their own report counts as reading it.
+if (optional_param('userid', 0, PARAM_INT) == $USER->id) {
+    \mod_videoassessment\report_tracker::mark_viewed((int)$cm->instance, (int)$USER->id);
+}
+
 $pp = new mod_videoassessment\print_page($va);
 
 // Item #10: emit a fine-grained "report viewed" event so analytics can

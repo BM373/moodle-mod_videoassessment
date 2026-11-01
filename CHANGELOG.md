@@ -7,6 +7,202 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 
 ## [Unreleased]
 
+### AI speech feedback, stage 1: audio only (release 1.3.0-beta2, build `2026102700`)
+
+Agreed at the October 2026 meeting: the first year of AI feedback works on
+audio only, so no video leaves the site. 1.3.0-beta (build `2026102601`)
+was tried on the demo site with real AWS services on 2026-10-26; beta2
+fixes what that run showed and adds course backups (see *Changed in
+1.3.0-beta2* below). It also fixes older backup and restore bugs that
+affect every activity, not only AI feedback (*Fixed in 1.3.0-beta2*).
+
+#### Added
+- **AI speech feedback page.** When the activity setting *Give learners AI
+  feedback on their speech* is on, learners record themselves in the
+  browser (audio only) or upload an audio file. The recording is
+  transcribed and the site's AI provider comments on the transcript: the
+  learner's own words are shown with good phrases (S1, S2...) and weak
+  phrases (I1, I2...) marked, followed by the numbered comments, a
+  suggested rewording, a next step, and a checklist of the teacher's
+  target words. Learners can retry as often as they like; practice does
+  not change any grade.
+- **Teacher settings:** task and criteria for the AI, target words (checked
+  exactly by the module, not by the AI), language spoken, language of the
+  feedback (default: each learner's own language).
+- **Teacher overview** of every learner's attempts, feedback ready and
+  feedback read, with each attempt's recording, transcript and feedback,
+  for following engagement.
+- **Site settings** for the transcription service: any OpenAI-compatible
+  `/audio/transcriptions` endpoint (OpenAI, a gateway, or a self-hosted
+  Whisper server), API key and model. With OpenAI's endpoint and no key
+  of its own, the key of Moodle's OpenAI AI provider is reused; that key
+  is never sent to another host.
+- **Amazon Web Services option** (decided at the October 2026 meeting, so
+  data goes through a service that does not train on it): the written
+  feedback can come from **Amazon Bedrock** (Converse API; default model
+  `jp.anthropic.claude-haiku-5-5`, which keeps requests in Japan) and the
+  transcription from **Amazon Transcribe** (batch job through the site's S3
+  bucket; the recording, the transcript file and the job are deleted as
+  soon as the text is read). Both use one IAM access key set in the plugin
+  settings; requests are signed with Signature Version 4 in the plugin, so
+  no AWS SDK is needed. README.md lists the AWS resources and the IAM
+  policy the key needs.
+- New table `videoassessment_aifb_attempts`, file area `aifbaudio`, web
+  services `mod_videoassessment_process_ai_feedback` and
+  `mod_videoassessment_get_ai_feedback_status`, ad-hoc task
+  `process_ai_feedback`.
+
+#### Changed in 1.3.0-beta2
+- **Overlapping quotes are marked.** When the AI quotes the same words as
+  a strength and as an improvement (Claude Haiku 5.5 did so on the demo
+  site despite being told not to), the shared words now carry both marks,
+  in green over orange with a dashed underline, followed by both numbers.
+  Before, the second quote was left unmarked and only its comment showed.
+  A quote inside a longer one splits the longer mark around it, and a
+  phrase that occurs twice is marked at the occurrence not yet taken.
+- **Course backups include the attempts.** With user data, a backup now
+  holds every attempt's transcript, feedback, status and times, and its
+  recording (file area `aifbaudio`); restore maps them to the restored
+  learners. An attempt that was being processed comes back queued and is
+  processed again the next time the learner (or a teacher) opens it;
+  nothing is sent to the AI during the restore itself. Without user data
+  only the activity settings are copied, as before.
+- The *Access key ID* and *Bedrock model* setting descriptions now say to
+  allow a changed model in the IAM policy too, and to refuse the key from
+  anywhere but the Moodle server, because AWS keys do not expire.
+
+#### Fixed in 1.3.0-beta2 (backup and restore, all earlier releases)
+- **Most activity settings were lost on restore.** The 1.1.8 backup held
+  only 16 of the activity's 88 settings, so a restored or duplicated activity
+  fell back to the defaults for, among others, the class and training
+  assessments, the open, due and cut-off dates, the allowed video sources,
+  the notification and reminder e-mails and their templates, the fairness
+  bonuses and the pass grade. Every setting is now backed up. The dates
+  move with the course start date like those of core activities.
+- **Assessments lost their rubric.** Restore looked for
+  `grade_items/grade_item` under the wrong path (`gradeitems/gradeitem`),
+  so no grade item was restored, every restored grade pointed at item 0,
+  and rubric fillings were not linked to anything. Grade items are now
+  restored and mapped for core's grading restore, so the restored rubric
+  fillings belong to the right learner and assessor again.
+- **Peer assignments were not backed up**, although restore expected them.
+- **Restored data that was left out:** the class and training parts of the
+  aggregated grades (`gradebeforeclass`, `gradebeforetraining`,
+  `passtraining`), the *notify student* flag of an assessment, the files
+  attached to assessment comments, the files in the activity description,
+  the report visits behind *New Report Available / Report Viewed* (1.2.0),
+  and each video's `tmpname`. `tmpname` is `Youtube` for an external video
+  link, so a restored link was taken for an uploaded file that does not
+  exist and was not shown.
+- **The training video is linked again** when user data is restored.
+  Without user data the training video is not copied: it is stored with
+  the learners' videos, and the restored activity has no training video.
+- Rows whose learner or assessor is not part of the restore are skipped
+  instead of being stored with user id 0, and every user referenced by
+  videos, peers, assessments, aggregated grades and report visits is now
+  annotated, so assessors who have left the course are kept.
+- Backups made with earlier releases do not contain what they left out;
+  restoring them still gives the defaults for those settings.
+
+#### Design notes
+- With *Moodle AI providers*, the written feedback goes through Moodle's AI
+  subsystem (*Generate text*): the site admin chooses the provider (OpenAI
+  or Azure OpenAI in Moodle 4.5) and every request is logged by Moodle.
+  Moodle 4.5 has no Bedrock provider, so Bedrock is called directly.
+  Either way learners must accept the site's AI usage policy before their
+  first recording.
+- Bedrock's speech-input models were tried for transcription first:
+  Voxtral is listed with speech input but answers "Model does not support
+  audio modality" in every region tried (October 2026), so Transcribe is
+  used.
+- A Transcribe job that has not finished after 4 minutes is not a failure:
+  the attempt is queued again and the next try picks up the same job.
+- Processing starts from the learner's browser right after the upload, so
+  feedback usually appears within a minute; the ad-hoc task finishes any
+  attempt the browser left (closed tab, time-out).
+- Privacy: attempts, transcripts, feedback and recordings are declared,
+  exported and deleted through the privacy API, and the transcription
+  service is declared as an external location.
+
+#### Known limitations
+- The recorder needs a browser with MediaRecorder (current Chrome, Edge,
+  Firefox, Safari); otherwise learners upload a file.
+- Amazon Transcribe may use audio to improve AWS services unless the AWS
+  organisation applies an AI services opt-out policy for Transcribe.
+  Speech recognisers also tend to "correct" grammar slips (a test phrase
+  "our team is build" came back as "our team has built"), so some errors
+  never reach the feedback.
+
+### Customer-requested 2026-07 fixes (release 1.2.0, build `2026101100`)
+
+> **Upgrade note.** Report visits were not recorded before 1.2.0, so after
+> upgrading every learner who already has peer or teacher feedback they
+> can see is shown as **New Report Available** until they open their
+> report once. A teacher score still held back by *Delayed Teacher Grade*
+> is labelled only once the learner has self-assessed and can see it.
+
+#### Added
+- **#1 New Report Available / Report Viewed.** The scores table shows a
+  yellow "New Report Available" label next to *See report* while a
+  learner has feedback they have not opened yet, and a green check with
+  "Report Viewed" once they have, for both the teacher and the learner.
+  Visits are stored in the new table `videoassessment_report_views`
+  (one row per learner and activity, `db/upgrade.php` step `2026101100`)
+  by `mod_videoassessment\report_tracker`. A report counts as updated
+  when a peer or teacher assessment is saved after the last visit; the
+  learner's own self-assessment does not count, and a teacher
+  assessment held back by *Delayed Teacher Grade* counts from the moment
+  the learner self-assesses (when it becomes visible to them). Opening
+  the report (or printing it) marks it as viewed; opening it also fires
+  `\mod_videoassessment\event\report_viewed` with the learner as
+  related user. The privacy provider declares, exports and deletes the
+  new table.
+- **#2 "Delete video / link and assessments" (teacher).** Once a video
+  has been assessed, the teacher's re-upload / re-embed button is
+  replaced by this button. After a confirmation dialog it deletes the
+  learner's video or link (the file is kept only if another learner
+  shares it), every self / peer / teacher / class assessment of it with
+  rubric fillings and feedback files, the aggregated and gradebook
+  grades, and the report visit, so the learner can upload again
+  (`va::reset_submission()`, action `resetsubmission`).
+
+#### Changed
+- **#2 Video locked once assessed.** Learners and teachers can delete,
+  re-upload or re-link a video freely until the first self, peer,
+  teacher or class assessment is saved (`va::has_started_assessment()`).
+  After that the learner's buttons disappear, and the upload page and
+  the delete action refuse the change (also for pages opened before the
+  assessment was saved). If the learner replaces the video while an
+  assessor has the assess form open, the assessor's submission is not
+  saved and they are asked to assess the current video (the form now
+  carries the id of the video it was opened for).
+- **#3 No self-assessment when Self weighting is 0%.** The learner's
+  *First assess* / *Assess again* button is removed, the self-assessment
+  URL redirects back with a notice, and the learner's thumbnail plays
+  the video in a popup instead of opening the assess screen.
+- **#4 Delayed Teacher Grade with Self weighting 0%.** There is no
+  self-assessment to wait for, so the learner sees the teacher score
+  straight away, and the total (for the teacher and the learner) appears
+  once the teacher has assessed instead of never. With self-assessment in
+  use the existing rule is unchanged. Peer assessors still never see the
+  teacher score or the total. Help texts of *Self weighting* and
+  *Delayed Teacher Grade* explain the 0% behaviour.
+- **#5 Peers ⇒ Peer Assessors.** The column header of the peer
+  assignment table on the activity settings page and on the Peers page
+  now reads "Peer Assessors" (new string `peerassessors`).
+
+#### Security
+- A learner can no longer open another learner's report by changing the
+  `userid` of `view.php?action=report`, nor print other learners'
+  reports through `print.php` (without a `userid` it printed every
+  learner's report).
+- The report and the printed report no longer show a learner the
+  teacher's score, comments and the total while *Delayed Teacher Grade*
+  still hides the teacher's rubric from them (the printed report ignored
+  the setting altogether).
+- `action=deletevideo` now checks that the video belongs to the activity
+  and, for learners, to themselves.
+
 ## [1.1.8] - 2026-06-28
 
 ### Added

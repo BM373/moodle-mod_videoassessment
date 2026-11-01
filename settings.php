@@ -236,4 +236,126 @@ if ($ADMIN->fulltree) {
             PARAM_RAW
         )
     );
+
+    // AI feedback on spoken attempts. Two choices: where the written
+    // feedback comes from (Moodle's AI providers or Amazon Bedrock) and
+    // which service transcribes the recording (an OpenAI-compatible
+    // endpoint or Amazon Transcribe). The AWS options share one IAM key.
+    $settings->add(new admin_setting_heading(
+        'videoassessment/aifeedbackheading',
+        new lang_string('aifeedbacksettings', 'videoassessment'),
+        new lang_string('aifeedbacksettings_desc', 'videoassessment')
+    ));
+    $settings->add(
+        new admin_setting_configselect(
+            'videoassessment/aifeedbackengine',
+            new lang_string('aifeedbackengine', 'videoassessment'),
+            new lang_string('aifeedbackengine_desc', 'videoassessment'),
+            \mod_videoassessment\aifeedback\analyser::ENGINE_COREAI,
+            [
+                \mod_videoassessment\aifeedback\analyser::ENGINE_COREAI =>
+                    new lang_string('aifeedbackengine_coreai', 'videoassessment'),
+                \mod_videoassessment\aifeedback\analyser::ENGINE_BEDROCK =>
+                    new lang_string('aifeedbackengine_bedrock', 'videoassessment'),
+            ]
+        )
+    );
+    $settings->add(
+        new admin_setting_configselect(
+            'videoassessment/aitranscribeservice',
+            new lang_string('aitranscribeservice', 'videoassessment'),
+            new lang_string('aitranscribeservice_desc', 'videoassessment'),
+            \mod_videoassessment\aifeedback\transcriber::SERVICE_OPENAI,
+            [
+                \mod_videoassessment\aifeedback\transcriber::SERVICE_OPENAI =>
+                    new lang_string('aitranscribeservice_openai', 'videoassessment'),
+                \mod_videoassessment\aifeedback\transcriber::SERVICE_AWS =>
+                    new lang_string('aitranscribeservice_aws', 'videoassessment'),
+            ]
+        )
+    );
+    $settings->add(
+        new admin_setting_configtext(
+            'videoassessment/aitranscribeendpoint',
+            new lang_string('aitranscribeendpoint', 'videoassessment'),
+            new lang_string('aitranscribeendpoint_desc', 'videoassessment'),
+            \mod_videoassessment\aifeedback\transcriber::DEFAULT_ENDPOINT,
+            PARAM_URL
+        )
+    );
+    $settings->add(
+        new admin_setting_configpasswordunmask(
+            'videoassessment/aitranscribeapikey',
+            new lang_string('aitranscribeapikey', 'videoassessment'),
+            new lang_string('aitranscribeapikey_desc', 'videoassessment'),
+            ''
+        )
+    );
+    $settings->add(
+        new admin_setting_configtext(
+            'videoassessment/aitranscribemodel',
+            new lang_string('aitranscribemodel', 'videoassessment'),
+            new lang_string('aitranscribemodel_desc', 'videoassessment'),
+            \mod_videoassessment\aifeedback\transcriber::DEFAULT_MODEL,
+            PARAM_TEXT
+        )
+    );
+    foreach (['aitranscribeendpoint', 'aitranscribeapikey', 'aitranscribemodel'] as $name) {
+        $settings->hide_if(
+            'videoassessment/' . $name,
+            'videoassessment/aitranscribeservice',
+            'eq',
+            \mod_videoassessment\aifeedback\transcriber::SERVICE_AWS
+        );
+    }
+
+    $settings->add(new admin_setting_heading(
+        'videoassessment/awsheading',
+        new lang_string('awssettings', 'videoassessment'),
+        new lang_string('awssettings_desc', 'videoassessment')
+    ));
+    $settings->add(
+        new admin_setting_configtext(
+            'videoassessment/awsregion',
+            new lang_string('awsregion', 'videoassessment'),
+            new lang_string('awsregion_desc', 'videoassessment'),
+            \mod_videoassessment\aifeedback\aws_client::DEFAULT_REGION,
+            '/^[a-z]{2}(-[a-z]+)+-\d$/'
+        )
+    );
+    $settings->add(
+        new admin_setting_configtext(
+            'videoassessment/awsaccesskeyid',
+            new lang_string('awsaccesskeyid', 'videoassessment'),
+            new lang_string('awsaccesskeyid_desc', 'videoassessment'),
+            '',
+            PARAM_ALPHANUM
+        )
+    );
+    $settings->add(
+        new admin_setting_configpasswordunmask(
+            'videoassessment/awssecretaccesskey',
+            new lang_string('awssecretaccesskey', 'videoassessment'),
+            new lang_string('awssecretaccesskey_desc', 'videoassessment'),
+            ''
+        )
+    );
+    $settings->add(
+        new admin_setting_configtext(
+            'videoassessment/awsbedrockmodel',
+            new lang_string('awsbedrockmodel', 'videoassessment'),
+            new lang_string('awsbedrockmodel_desc', 'videoassessment'),
+            \mod_videoassessment\aifeedback\analyser::DEFAULT_BEDROCK_MODEL,
+            PARAM_TEXT
+        )
+    );
+    $settings->add(
+        new admin_setting_configtext(
+            'videoassessment/awss3bucket',
+            new lang_string('awss3bucket', 'videoassessment'),
+            new lang_string('awss3bucket_desc', 'videoassessment'),
+            '',
+            '/^([a-z0-9][a-z0-9-]{1,61}[a-z0-9])?$/'
+        )
+    );
 }

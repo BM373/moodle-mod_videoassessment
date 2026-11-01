@@ -102,6 +102,7 @@ class print_page {
         $userid = optional_param('userid', 0, PARAM_INT);
 
         $rubric = new rubric($this->va);
+        $islearner = !$this->va->is_teacher();
 
         if ($userid) {
             $users = [$DB->get_record('user', ['id' => $userid], 'id, lastname, firstname')];
@@ -132,6 +133,8 @@ class print_page {
                 if (!$gradingstatus->$timing) {
                     continue;
                 }
+                // Same Delayed Teacher Grade rule as the on-screen report.
+                $hideteacher = $islearner && $this->va->is_teacher_grade_hidden_from_learner($usergrades, $timing);
 
                 $o .= $OUTPUT->heading($this->va->str('allscores'), 3);
                 $timinggrades = [];
@@ -165,6 +168,9 @@ class print_page {
                         $gradeitems = $this->va->get_grade_items($gradingarea, $userid);
                         if (!is_null($gradeitems) && !empty($gradeitems)) {
                             foreach ($gradeitems as $gradeitem) {
+                                if ($gradertype == 'teacher' && $hideteacher) {
+                                    continue;
+                                }
                                 $o .= $controller->render_grade($PAGE, $gradeitem->id, $gradinginfo, '', false);
                                 $timinggrades[] = \html_writer::tag(
                                     'span',
@@ -185,11 +191,7 @@ class print_page {
                     if (
                         $gradertype == 'training'
                         || $gradertype == 'class'
-                        || (
-                            $this->va->va->class
-                            && $gradertype == 'class'
-                            && !has_capability('mod/videoassessment:grade', $this->va->context)
-                        )
+                        || ($gradertype == 'teacher' && $hideteacher)
                     ) {
                         continue;
                     }
@@ -266,8 +268,10 @@ class print_page {
                         . '</span>'
                         . \html_writer::end_tag('div');
                     $finalgradetext = get_string('grade', 'videoassessment') . ': '
-                        . implode(', ', $timinggrades)
-                        . $totalscore . $fairnessbonus . $finalscore;
+                        . implode(', ', $timinggrades);
+                    if (!$islearner || $this->va->is_total_visible($usergrades, $timing)) {
+                        $finalgradetext .= $totalscore . $fairnessbonus . $finalscore;
+                    }
                     $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
                 }
             }

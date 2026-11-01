@@ -21,7 +21,9 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
+use core_privacy\local\request\transform;
 use core_privacy\local\request\writer;
+use mod_videoassessment\aifeedback\attempt_manager;
 use context_module;
 
 /**
@@ -111,6 +113,32 @@ class provider implements
             'timemodified' => 'privacy:metadata:videoassessment_video_assocs:timemodified',
         ], 'privacy:metadata:videoassessment_video_assocs');
 
+        $collection->add_database_table('videoassessment_report_views', [
+            'videoassessment' => 'privacy:metadata:videoassessment_report_views:videoassessment',
+            'userid' => 'privacy:metadata:videoassessment_report_views:userid',
+            'timeviewed' => 'privacy:metadata:videoassessment_report_views:timeviewed',
+        ], 'privacy:metadata:videoassessment_report_views');
+
+        // AI speech feedback: recordings, transcripts and the AI's comments.
+        $collection->add_database_table('videoassessment_aifb_attempts', [
+            'userid' => 'privacy:metadata:videoassessment_aifb_attempts:userid',
+            'transcript' => 'privacy:metadata:videoassessment_aifb_attempts:transcript',
+            'feedback' => 'privacy:metadata:videoassessment_aifb_attempts:feedback',
+            'timecreated' => 'privacy:metadata:videoassessment_aifb_attempts:timecreated',
+            'timeviewed' => 'privacy:metadata:videoassessment_aifb_attempts:timeviewed',
+        ], 'privacy:metadata:videoassessment_aifb_attempts');
+        $collection->add_external_location_link('aitranscription', [
+            'audio' => 'privacy:metadata:aitranscription:audio',
+            'language' => 'privacy:metadata:aitranscription:language',
+        ], 'privacy:metadata:aitranscription');
+        $collection->add_external_location_link('aws', [
+            'audio' => 'privacy:metadata:aws:audio',
+            'language' => 'privacy:metadata:aws:language',
+            'transcript' => 'privacy:metadata:aws:transcript',
+        ], 'privacy:metadata:aws');
+        $collection->add_subsystem_link('core_ai', [], 'privacy:metadata:core_ai');
+        $collection->add_subsystem_link('core_files', [], 'privacy:metadata:core_files');
+
         return $collection;
     }
     /**
@@ -133,6 +161,8 @@ class provider implements
             'userid2' => $userid,
             'userid3' => $userid,
             'userid4' => $userid,
+            'userid5' => $userid,
+            'userid6' => $userid,
         ];
 
         // Check if user has any data.
@@ -140,9 +170,14 @@ class provider implements
         $peerscount = $DB->count_records('videoassessment_peers', ['userid' => $userid]);
         $sortcount = $DB->count_records('videoassessment_sort_order', ['userid' => $userid]);
         $gradeitemscount = $DB->count_records('videoassessment_grade_items', ['gradeduser' => $userid]);
+        $reportviewscount = $DB->count_records('videoassessment_report_views', ['userid' => $userid]);
+        $aifbcount = $DB->count_records(attempt_manager::TABLE, ['userid' => $userid]);
 
         // Only proceed if user has data.
-        if ($aggregationcount == 0 && $peerscount == 0 && $sortcount == 0 && $gradeitemscount == 0) {
+        if (
+            $aggregationcount == 0 && $peerscount == 0 && $sortcount == 0 && $gradeitemscount == 0
+            && $reportviewscount == 0 && $aifbcount == 0
+        ) {
             return $contextlist;
         }
 
@@ -159,6 +194,10 @@ class provider implements
                     SELECT DISTINCT sortitemid FROM {videoassessment_sort_order} WHERE userid = :userid3
                     UNION
                     SELECT DISTINCT videoassessment FROM {videoassessment_grade_items} WHERE gradeduser = :userid4
+                    UNION
+                    SELECT DISTINCT videoassessment FROM {videoassessment_report_views} WHERE userid = :userid5
+                    UNION
+                    SELECT DISTINCT videoassessment FROM {videoassessment_aifb_attempts} WHERE userid = :userid6
                 )";
 
         $contextlist->add_from_sql($sql, $params);
@@ -218,6 +257,24 @@ class provider implements
                   JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
                   JOIN {videoassessment} vv ON vv.id = cm.instance
                   JOIN {videoassessment_grade_items} gi ON gi.videoassessment = vv.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // Videoassessment_report_views learners.
+        $sql = "SELECT rv.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {videoassessment} vv ON vv.id = cm.instance
+                  JOIN {videoassessment_report_views} rv ON rv.videoassessment = vv.id
+                 WHERE cm.id = :instanceid";
+        $userlist->add_from_sql('userid', $sql, $params);
+
+        // AI speech feedback learners.
+        $sql = "SELECT ab.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modulename
+                  JOIN {videoassessment} vv ON vv.id = cm.instance
+                  JOIN {videoassessment_aifb_attempts} ab ON ab.videoassessment = vv.id
                  WHERE cm.id = :instanceid";
         $userlist->add_from_sql('userid', $sql, $params);
     }
@@ -308,6 +365,46 @@ class provider implements
                     'video_assocs',
                 ], (object) ['video_assocs' => array_values($videoassocs)]);
             }
+
+            // Export report visits.
+            $reportviews = $DB->get_records('videoassessment_report_views', [
+                'videoassessment' => $videoassessmentid,
+                'userid' => $user->id,
+            ]);
+
+            if ($reportviews) {
+                writer::with_context($context)->export_data([
+                    get_string('pluginname', 'mod_videoassessment'),
+                    'report_views',
+                ], (object) ['report_views' => array_values($reportviews)]);
+            }
+
+            // Export AI speech feedback attempts with their recordings.
+            $attempts = $DB->get_records(attempt_manager::TABLE, [
+                'videoassessment' => $videoassessmentid,
+                'userid' => $user->id,
+            ], 'attempt');
+            foreach ($attempts as $attempt) {
+                $subcontext = [
+                    get_string('pluginname', 'mod_videoassessment'),
+                    get_string('aifeedback', 'mod_videoassessment'),
+                    get_string('aifb_attempt', 'mod_videoassessment', $attempt->attempt),
+                ];
+                writer::with_context($context)->export_data($subcontext, (object) [
+                    'attempt' => $attempt->attempt,
+                    'timecreated' => transform::datetime($attempt->timecreated),
+                    'duration' => $attempt->duration,
+                    'transcript' => $attempt->transcript,
+                    'feedback' => json_decode((string)$attempt->feedback),
+                    'timeviewed' => $attempt->timeviewed ? transform::datetime($attempt->timeviewed) : null,
+                ]);
+                writer::with_context($context)->export_area_files(
+                    $subcontext,
+                    'mod_videoassessment',
+                    attempt_manager::FILEAREA,
+                    $attempt->id
+                );
+            }
         }
     }
 
@@ -341,6 +438,8 @@ class provider implements
         $DB->delete_records('videoassessment_grade_items', ['videoassessment' => $videoassessmentid]);
         $DB->delete_records('videoassessment_videos', ['videoassessment' => $videoassessmentid]);
         $DB->delete_records('videoassessment_video_assocs', ['videoassessment' => $videoassessmentid]);
+        $DB->delete_records('videoassessment_report_views', ['videoassessment' => $videoassessmentid]);
+        attempt_manager::delete_attempts($videoassessmentid, $context->id);
     }
 
     /**
@@ -374,6 +473,8 @@ class provider implements
                 'videoassessment_video_assocs',
                 ['videoassessment' => $videoassessmentid, 'associationid' => $userid]
             );
+            $DB->delete_records('videoassessment_report_views', ['videoassessment' => $videoassessmentid, 'userid' => $userid]);
+            attempt_manager::delete_attempts($videoassessmentid, $context->id, [$userid]);
         }
     }
 
@@ -412,5 +513,7 @@ class provider implements
         $DB->delete_records_select('videoassessment_grades', $vagradeitem, $params);
         $DB->delete_records_select('videoassessment_grade_items', $vagraded, $params);
         $DB->delete_records_select('videoassessment_video_assocs', $vaassoc, $params);
+        $DB->delete_records_select('videoassessment_report_views', $vauser, $params);
+        attempt_manager::delete_attempts($videoassessmentid, $context->id, $userlist->get_userids());
     }
 }

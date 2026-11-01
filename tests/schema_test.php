@@ -61,6 +61,8 @@ final class schema_test extends \advanced_testcase {
             ['videoassessment_peers'],
             ['videoassessment_sort_items'],
             ['videoassessment_sort_order'],
+            ['videoassessment_report_views'],
+            ['videoassessment_aifb_attempts'],
         ];
     }
 

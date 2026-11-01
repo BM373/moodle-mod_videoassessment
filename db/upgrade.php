@@ -1142,5 +1142,67 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2026050200, 'videoassessment');
     }
 
+    if ($oldversion < 2026101100) {
+        // 2026-07 request #1: remember when each learner last opened
+        // their own report, so the scores table can show "New Report
+        // Available" / "Report Viewed". Nothing was recorded before
+        // this version, so every learner who already has feedback
+        // starts in the "New Report Available" state.
+        $table = new xmldb_table('videoassessment_report_views');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('videoassessment', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timeviewed', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('videoassessment', XMLDB_KEY_FOREIGN, ['videoassessment'], 'videoassessment', ['id']);
+        $table->add_index('userid-videoassessment', XMLDB_INDEX_UNIQUE, ['userid', 'videoassessment']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_mod_savepoint(true, 2026101100, 'videoassessment');
+    }
+
+    if ($oldversion < 2026102600) {
+        // AI feedback on spoken attempts (audio only, stage 1 of the
+        // AI work agreed in October 2026): per-activity settings plus
+        // one row per recording a learner sends.
+        $table = new xmldb_table('videoassessment');
+        $fields = [
+            new xmldb_field('aifeedback', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0'),
+            new xmldb_field('aifeedbackinstructions', XMLDB_TYPE_TEXT),
+            new xmldb_field('aifeedbackkeywords', XMLDB_TYPE_TEXT),
+            new xmldb_field('aifeedbacklang', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, ''),
+            new xmldb_field('aitranscribelang', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, ''),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        $table = new xmldb_table('videoassessment_aifb_attempts');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('videoassessment', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('attempt', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1');
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('duration', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('transcript', XMLDB_TYPE_TEXT);
+        $table->add_field('feedback', XMLDB_TYPE_TEXT);
+        $table->add_field('errormessage', XMLDB_TYPE_TEXT);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timeprocessed', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timeviewed', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('videoassessment', XMLDB_KEY_FOREIGN, ['videoassessment'], 'videoassessment', ['id']);
+        $table->add_index('videoassessment-userid', XMLDB_INDEX_NOTUNIQUE, ['videoassessment', 'userid']);
+        $table->add_index('status', XMLDB_INDEX_NOTUNIQUE, ['status']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_mod_savepoint(true, 2026102600, 'videoassessment');
+    }
+
     return true;
 }

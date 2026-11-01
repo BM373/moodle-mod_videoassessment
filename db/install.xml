@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/videoassessment/db" VERSION="20241029" COMMENT="XMLDB file for Moodle mod/videoassessment"
+<XMLDB PATH="mod/videoassessment/db" VERSION="20261011" COMMENT="XMLDB file for Moodle mod/videoassessment"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -96,6 +96,11 @@
         <FIELD NAME="autodeletefiles" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="gradepass" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="gradepass_videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="aifeedback" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether learners can get AI feedback on spoken (audio-only) attempts"/>
+        <FIELD NAME="aifeedbackinstructions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task and criteria the AI judges the speech against"/>
+        <FIELD NAME="aifeedbackkeywords" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Words or phrases the learner should use, one per line"/>
+        <FIELD NAME="aifeedbacklang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="Language of the AI feedback; empty means the learner's language"/>
+        <FIELD NAME="aitranscribelang" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="ISO-639-1 language spoken in the recordings; empty means auto-detect"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -231,6 +236,46 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="sortitemid" TYPE="foreign" FIELDS="sortitemid" REFTABLE="videoassessment_sort_items" REFFIELDS="id"/>
       </KEYS>
+    </TABLE>
+    <TABLE NAME="videoassessment_report_views" COMMENT="When each learner last opened their own assessment report">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timeviewed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid-videoassessment" UNIQUE="true" FIELDS="userid, videoassessment"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="videoassessment_aifb_attempts" COMMENT="Spoken attempts sent for AI feedback: audio, transcript and the AI's comments">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="attempt" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 for the learner's first attempt in this activity, then 2, 3..."/>
+        <FIELD NAME="status" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 queued, 1 processing, 2 done, 3 failed"/>
+        <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Recording length in seconds as reported by the browser; 0 when unknown"/>
+        <FIELD NAME="transcript" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="feedback" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The AI feedback as JSON"/>
+        <FIELD NAME="errormessage" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timeprocessed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timeviewed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the learner first saw the finished feedback"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="videoassessment" TYPE="foreign" FIELDS="videoassessment" REFTABLE="videoassessment" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="videoassessment-userid" UNIQUE="false" FIELDS="videoassessment, userid"/>
+        <INDEX NAME="status" UNIQUE="false" FIELDS="status"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

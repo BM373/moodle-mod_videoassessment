@@ -1,0 +1,74 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_videoassessment/aifeedback_recorder
+
+    Audio recorder and upload form for AI speech feedback. Without
+    JavaScript (or a microphone) the upload part still works; the
+    recorder fills the same file field and submits the form.
+
+    Context variables required for this template:
+    * actionurl, sesskey, maxbytes, maxminutes, accept
+
+    Example context (json):
+    {
+        "actionurl": "https://example.com/mod/videoassessment/aifeedback.php?id=3",
+        "sesskey": "abc", "maxbytes": 26214400, "maxminutes": 10, "accept": "audio/*,.webm"
+    }
+}}
+<div class="card mb-4 va-aifb-recorder" data-region="aifb-recorder">
+    <div class="card-body">
+        <form method="post" action="{{actionurl}}" enctype="multipart/form-data" data-region="aifb-form">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="submit">
+            <input type="hidden" name="duration" value="0" data-region="aifb-duration">
+            <input type="hidden" name="MAX_FILE_SIZE" value="{{maxbytes}}">
+
+            <div class="va-aifb-mic d-none" data-region="aifb-mic">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <button type="button" class="btn btn-danger mr-2 me-2" data-action="aifb-record">
+                        <span aria-hidden="true">●</span> {{#str}}aifb_record, mod_videoassessment{{/str}}
+                    </button>
+                    <button type="button" class="btn btn-secondary mr-2 me-2 d-none" data-action="aifb-stop">
+                        <span aria-hidden="true">■</span> {{#str}}aifb_stop, mod_videoassessment{{/str}}
+                    </button>
+                    <span class="va-aifb-timer d-none" data-region="aifb-timer" role="timer" aria-live="off">0:00</span>
+                </div>
+                <div class="d-none mb-2" data-region="aifb-preview">
+                    <audio controls class="va-aifb-audio mb-2" data-region="aifb-preview-audio"></audio>
+                    <div>
+                        <button type="button" class="btn btn-primary mr-2 me-2" data-action="aifb-send">{{#str}}aifb_send, mod_videoassessment{{/str}}</button>
+                        <button type="button" class="btn btn-outline-secondary" data-action="aifb-again">{{#str}}aifb_recordagain, mod_videoassessment{{/str}}</button>
+                    </div>
+                </div>
+                <p class="small text-muted mb-3">{{#str}}aifb_maxlength, mod_videoassessment, {{maxminutes}}{{/str}}</p>
+            </div>
+            <div class="alert alert-warning d-none" data-region="aifb-nomic">{{#str}}aifb_nomic, mod_videoassessment{{/str}}</div>
+
+            <details class="va-aifb-upload" data-region="aifb-upload">
+                <summary>{{#str}}aifb_upload, mod_videoassessment{{/str}}</summary>
+                <div class="mt-2">
+                    <input type="file" name="audio" accept="{{accept}}" class="form-control mb-2" data-region="aifb-file" aria-label="{{#str}}aifb_upload, mod_videoassessment{{/str}}">
+                    <button type="submit" class="btn btn-secondary" data-action="aifb-upload">{{#str}}aifb_uploadsend, mod_videoassessment{{/str}}</button>
+                </div>
+            </details>
+            <div class="alert alert-info d-none mt-2" data-region="aifb-sending" role="status">
+                <span class="spinner-border spinner-border-sm mr-2 me-2" aria-hidden="true"></span>{{#str}}aifb_sending, mod_videoassessment{{/str}}
+            </div>
+        </form>
+    </div>
+</div>
