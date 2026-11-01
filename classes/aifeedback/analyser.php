@@ -141,10 +141,28 @@ class analyser {
                 'videoassessment',
                 '',
                 null,
-                $response->get_errorcode() . ' ' . $response->get_errormessage()
+                self::describe_ai_error($response)
             );
         }
         return (string)($response->get_response_data()['generatedcontent'] ?? '');
+    }
+
+    /**
+     * Error code, error and details of a failed AI action, for teachers.
+     *
+     * Moodle 5.1 added a short error ({@see \core_ai\aiactions\responses\response_base::get_error()})
+     * before the details, which now are optional; up to 5.0 the details were the only text.
+     *
+     * @param \core_ai\aiactions\responses\response_base $response The failed response.
+     * @return string For example "429 Rate limit reached".
+     */
+    public static function describe_ai_error(\core_ai\aiactions\responses\response_base $response): string {
+        $parts = [(string)$response->get_errorcode()];
+        if (method_exists($response, 'get_error')) {
+            $parts[] = trim($response->get_error());
+        }
+        $parts[] = trim($response->get_errormessage());
+        return implode(' ', array_unique(array_filter($parts, fn($part) => $part !== '')));
     }
 
     /**

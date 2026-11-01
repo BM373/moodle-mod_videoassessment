@@ -185,6 +185,28 @@ final class aifeedback_text_test extends \advanced_testcase {
     }
 
     /**
+     * A failed AI action is described with its code and its text on every
+     * Moodle version: up to 5.0 the third argument is the message, from 5.1
+     * it is the error and a fourth argument holds the details.
+     */
+    public function test_describe_ai_error(): void {
+        $response = new \core_ai\aiactions\responses\response_generate_text(false, 429, 'Rate limit reached');
+        $this->assertSame('429 Rate limit reached', analyser::describe_ai_error($response));
+
+        $response = new \core_ai\aiactions\responses\response_generate_text(
+            false,
+            503,
+            'Service unavailable',
+            'Upstream timed out'
+        );
+        $text = analyser::describe_ai_error($response);
+        $this->assertStringStartsWith('503 Service unavailable', $text);
+        if (method_exists($response, 'get_error')) {
+            $this->assertSame('503 Service unavailable Upstream timed out', $text);
+        }
+    }
+
+    /**
      * The prompt carries the task, the keyword check, the fenced transcript and the language.
      */
     public function test_build_prompt(): void {
