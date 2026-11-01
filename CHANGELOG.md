@@ -70,6 +70,9 @@ affect every activity, not only AI feedback (*Fixed in 1.3.0-beta2*).
 - The *Access key ID* and *Bedrock model* setting descriptions now say to
   allow a changed model in the IAM policy too, and to refuse the key from
   anywhere but the Moodle server, because AWS keys do not expire.
+- **Moodle 5.3 is supported** (`$plugin->supported = [405, 503]`). The CI
+  matrix adds `MOODLE_503_STABLE` and runs PostgreSQL 17, which Moodle 5.3
+  requires; MariaDB 11.4 already met its minimum.
 
 #### Fixed in 1.3.0-beta2 (backup and restore, all earlier releases)
 - **Most activity settings were lost on restore.** The 1.1.8 backup held

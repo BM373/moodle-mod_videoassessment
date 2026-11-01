@@ -6,7 +6,7 @@ Current version: **1.3.0-beta2** (Build: 2026102700)
 Requirements
 ------------
 
-* Moodle 4.5 LTS to 5.2
+* Moodle 4.5 LTS to 5.3
 * PHP 8.1 or later (8.3 recommended)
 * ffmpeg
 * MP4Box (Optional - Legacy)
@@ -215,7 +215,7 @@ Changelog
 The full, per-release change history is maintained in
 [CHANGELOG.md](CHANGELOG.md) (Keep a Changelog / Semantic Versioning).
 
-The current release line covers Moodle 4.5 LTS through 5.2 support, PostgreSQL
+The current release line covers Moodle 4.5 LTS through 5.3 support, PostgreSQL
 compatibility, the 2026-04 customer-requested fixes (#1–#13), and external
 video-host embedding (YouTube, Vimeo, PeerTube, Esup-Pod, Dailymotion,
 Opencast) with a fail-closed trusted-host allowlist. 1.2.0 adds the
