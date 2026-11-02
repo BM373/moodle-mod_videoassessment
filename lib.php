@@ -520,6 +520,9 @@ function videoassessment_delete_instance($id) {
     $DB->delete_records('videoassessment_peers', ['videoassessment' => $id]);
     $DB->delete_records('videoassessment_videos', ['videoassessment' => $id]);
     $DB->delete_records('videoassessment_video_assocs', ['videoassessment' => $id]);
+    $DB->delete_records('videoassessment_report_views', ['videoassessment' => $id]);
+    // The recordings go with the module context; only the rows are left to remove.
+    $DB->delete_records(\mod_videoassessment\aifeedback\attempt_manager::TABLE, ['videoassessment' => $id]);
 
     return true;
 }
@@ -538,8 +541,6 @@ function videoassessment_supports($feature) {
         case FEATURE_GROUPS:
             return true;
         case FEATURE_GROUPINGS:
-            return true;
-        case FEATURE_GROUPMEMBERSONLY:
             return true;
         case FEATURE_MOD_INTRO:
             return true;
@@ -602,7 +603,36 @@ function videoassessment_grading_areas_list() {
  * @throws moodle_exception If user lacks required capabilities
  */
 function mod_videoassessment_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
-    global $CFG, $DB;
+    global $CFG, $DB, $USER;
+
+    // Recordings sent for AI feedback: the learner who made them and teachers only.
+    if ($filearea === \mod_videoassessment\aifeedback\attempt_manager::FILEAREA) {
+        require_course_login($course, true, $cm);
+        $attemptid = (int)array_shift($args);
+        $attempt = $DB->get_record(
+            \mod_videoassessment\aifeedback\attempt_manager::TABLE,
+            ['id' => $attemptid, 'videoassessment' => $cm->instance]
+        );
+        if (
+            !$attempt ||
+            ((int)$attempt->userid !== (int)$USER->id && !has_capability('mod/videoassessment:grade', $context))
+        ) {
+            send_file_not_found();
+        }
+        $file = get_file_storage()->get_file(
+            $context->id,
+            'mod_videoassessment',
+            $filearea,
+            $attemptid,
+            '/',
+            (string)array_pop($args)
+        );
+        if (!$file || $file->is_directory()) {
+            send_file_not_found();
+        }
+        \core\session\manager::write_close();
+        send_stored_file($file, 0, 0, $forcedownload);
+    }
 
     // Handle editor fileareas (like submissioncomment) which have itemid in args.
     if ($filearea === 'submissioncomment') {

@@ -20,7 +20,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -57,6 +57,7 @@ jobs:
           - 'MOODLE_500_STABLE'
           - 'MOODLE_501_STABLE'
           - 'MOODLE_502_STABLE'
+          - 'MOODLE_503_STABLE'
 
     env:
       DB: ${{ matrix.database }}

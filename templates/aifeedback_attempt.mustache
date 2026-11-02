@@ -1,0 +1,148 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_videoassessment/aifeedback_attempt
+
+    One spoken attempt with its AI feedback: the transcript with the good
+    and weak phrases marked and numbered, and the numbered comments.
+
+    Context variables required for this template:
+    * id, heading, time, duration, audiourl, statuslabel, statusclass
+    * pending, failed, done, canretry, errortext, sesskey, cmid, userid
+    * collapsed - older attempt: the feedback is folded away behind a summary line
+    * summary, transcripthtml (escaped HTML with marks), nextstep
+    * strengths [{ref, quote, comment, found}], improvements [{ref, quote, comment, suggestion, found}]
+    * keywords [{keyword, used}]
+
+    Example context (json):
+    {
+        "id": 12, "heading": "Attempt 2", "time": "26/10/26, 19:40", "duration": "1 min 32 secs",
+        "audiourl": "", "statuslabel": "Feedback ready", "statusclass": "done",
+        "pending": false, "failed": false, "done": true, "canretry": false, "collapsed": false,
+        "sesskey": "abc", "cmid": 3, "userid": 0,
+        "summary": "A clear speech with a good opening.",
+        "transcripthtml": "Today I want to talk about <mark class=\"va-aifb-mark va-aifb-strength\">space debris</mark><span class=\"va-aifb-ref va-aifb-strength\">S1</span>.",
+        "hasstrengths": true,
+        "strengths": [{"ref": "S1", "quote": "space debris", "comment": "Topic stated at once.", "found": true}],
+        "hasimprovements": true,
+        "improvements": [{"ref": "I1", "quote": "very very big", "comment": "Repetition.", "suggestion": "enormous", "found": false}],
+        "haskeywords": true,
+        "keywords": [{"keyword": "firstly", "used": true}, {"keyword": "in conclusion", "used": false}],
+        "nextstep": "Add a conclusion."
+    }
+}}
+<div class="card mb-3 va-aifb-attempt va-aifb-status-{{statusclass}}" data-region="aifb-attempt" data-attemptid="{{id}}">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <h4 class="h5 mb-0 mr-2 me-2">{{heading}}</h4>
+            <span class="text-muted small mr-2 me-2">{{time}}{{#duration}} · {{duration}}{{/duration}}</span>
+            <span class="badge {{#done}}bg-success text-white{{/done}}{{#failed}}bg-danger text-white{{/failed}}{{#pending}}bg-info text-white{{/pending}}" data-region="aifb-status">{{statuslabel}}</span>
+        </div>
+        {{#audiourl}}
+            <audio controls preload="none" class="va-aifb-audio mb-2" src="{{audiourl}}"></audio>
+        {{/audiourl}}
+
+        {{#pending}}
+            <div class="alert alert-info mb-0 d-flex align-items-center" role="status">
+                <span class="spinner-border spinner-border-sm mr-2 me-2" aria-hidden="true"></span>
+                <span>{{#str}}aifb_working, mod_videoassessment{{/str}}</span>
+            </div>
+        {{/pending}}
+
+        {{#failed}}
+            <div class="alert alert-danger mb-2">{{errortext}}</div>
+            {{#canretry}}
+                <form method="post" action="{{config.wwwroot}}/mod/videoassessment/aifeedback.php">
+                    <input type="hidden" name="id" value="{{cmid}}">
+                    <input type="hidden" name="action" value="retry">
+                    <input type="hidden" name="attemptid" value="{{id}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    {{#userid}}<input type="hidden" name="userid" value="{{userid}}">{{/userid}}
+                    <button type="submit" class="btn btn-secondary btn-sm">{{#str}}aifb_retry, mod_videoassessment{{/str}}</button>
+                </form>
+            {{/canretry}}
+        {{/failed}}
+
+        {{#done}}
+            {{#collapsed}}<details class="va-aifb-older"><summary>{{#str}}aifb_showfeedback, mod_videoassessment{{/str}}</summary>{{/collapsed}}
+            {{#summary}}
+                <h5 class="h6 mt-2">{{#str}}aifb_summary, mod_videoassessment{{/str}}</h5>
+                <p>{{summary}}</p>
+            {{/summary}}
+
+            <h5 class="h6">{{#str}}aifb_transcript, mod_videoassessment{{/str}}</h5>
+            <div class="va-aifb-transcript">{{{transcripthtml}}}</div>
+            <p class="small text-muted va-aifb-legend">
+                <mark class="va-aifb-mark va-aifb-strength">{{#str}}aifb_strengths, mod_videoassessment{{/str}}</mark>
+                <mark class="va-aifb-mark va-aifb-improvement">{{#str}}aifb_improvements, mod_videoassessment{{/str}}</mark>
+            </p>
+
+            <div class="row">
+                {{#hasstrengths}}
+                <div class="col-md-6">
+                    <h5 class="h6 va-aifb-heading-strength">{{#str}}aifb_strengths, mod_videoassessment{{/str}}</h5>
+                    <ol class="list-unstyled va-aifb-items">
+                        {{#strengths}}
+                        <li class="mb-2">
+                            <span class="va-aifb-ref va-aifb-strength">{{ref}}</span>
+                            {{#quote}}<q>{{quote}}</q>{{/quote}}
+                            {{^found}}{{#quote}}<span class="small text-muted">{{#str}}aifb_notfound, mod_videoassessment{{/str}}</span>{{/quote}}{{/found}}
+                            <div>{{comment}}</div>
+                        </li>
+                        {{/strengths}}
+                    </ol>
+                </div>
+                {{/hasstrengths}}
+                {{#hasimprovements}}
+                <div class="col-md-6">
+                    <h5 class="h6 va-aifb-heading-improvement">{{#str}}aifb_improvements, mod_videoassessment{{/str}}</h5>
+                    <ol class="list-unstyled va-aifb-items">
+                        {{#improvements}}
+                        <li class="mb-2">
+                            <span class="va-aifb-ref va-aifb-improvement">{{ref}}</span>
+                            {{#quote}}<q>{{quote}}</q>{{/quote}}
+                            {{^found}}{{#quote}}<span class="small text-muted">{{#str}}aifb_notfound, mod_videoassessment{{/str}}</span>{{/quote}}{{/found}}
+                            <div>{{comment}}</div>
+                            {{#suggestion}}<div class="va-aifb-suggestion"><strong>{{#str}}aifb_suggestion, mod_videoassessment{{/str}}</strong> {{suggestion}}</div>{{/suggestion}}
+                        </li>
+                        {{/improvements}}
+                    </ol>
+                </div>
+                {{/hasimprovements}}
+            </div>
+
+            {{#haskeywords}}
+                <h5 class="h6">{{#str}}aifb_keywords, mod_videoassessment{{/str}}</h5>
+                <ul class="list-inline va-aifb-keywords">
+                    {{#keywords}}
+                    <li class="list-inline-item badge {{#used}}bg-success text-white{{/used}}{{^used}}bg-light text-dark border{{/used}}">
+                        {{#used}}✓{{/used}}{{^used}}✗{{/used}} {{keyword}}
+                        <span class="sr-only visually-hidden">{{#used}}{{#str}}aifb_used, mod_videoassessment{{/str}}{{/used}}{{^used}}{{#str}}aifb_notused, mod_videoassessment{{/str}}{{/used}}</span>
+                    </li>
+                    {{/keywords}}
+                </ul>
+            {{/haskeywords}}
+
+            {{#nextstep}}
+                <div class="alert alert-secondary mb-0">
+                    <strong>{{#str}}aifb_nextstep, mod_videoassessment{{/str}}</strong> {{nextstep}}
+                </div>
+            {{/nextstep}}
+            {{#collapsed}}</details>{{/collapsed}}
+        {{/done}}
+    </div>
+</div>

@@ -240,11 +240,9 @@ class grade_table {
         $this->setup_header();
         $this->add_user_data($user);
 
-        if ($this->va->va->delayedteachergrade) {
-            if ($user->gradebeforeself == -1) {
-                $this->data[2][4] = $this->hiddengradetext;
-                $this->data[2][5] = $this->hiddengradetext;
-            }
+        if ($this->va->is_teacher_grade_hidden_from_learner($user, 'before')) {
+            $this->data[2][4] = $this->hiddengradetext;
+            $this->data[2][5] = $this->hiddengradetext;
         }
 
         return $this->print_html();
@@ -735,7 +733,8 @@ class grade_table {
                         ['action' => 'report', 'userid' => $user->id]
                     ),
                     va::str('seereport')
-                );
+                )
+                . $this->render_report_status((int) $user->id);
 
             $url = new \moodle_url(
                 '/mod/videoassessment/print.php',
@@ -804,9 +803,9 @@ class grade_table {
         $row[$s + $n + 3] = $this->format_grade($user->{'grade' . $timing . 'self'});
         $row[$s + $n + 4] = $this->format_grade($user->{'grade' . $timing . 'peer'});
         $row[$s + $n + 5] = $this->format_grade($user->{'grade' . $timing . 'teacher'});
-        $selfempty = $user->{'grade' . $timing . 'self'} === '-1';
-        $finalcell = $selfempty ? $this->format_grade(null) : $this->format_grade($user->finalscore);
-        $row[$s + $n + 6] = $selfempty
+        $totalhidden = !$this->va->is_total_visible($user, $timing);
+        $finalcell = $totalhidden ? $this->format_grade(null) : $this->format_grade($user->finalscore);
+        $row[$s + $n + 6] = $totalhidden
             ? $this->format_grade(null)
             : $this->format_grade($user->{'grade' . $timing});
 
@@ -837,6 +836,15 @@ class grade_table {
         $class[$s + $n + 2] = $class[$s + $n + 3] = $class[$s + $n + 4] = $class[$s + $n + 5] = 'mark';
         $class[$s + $n + 6] = 'totalmark';
 
+        // 2026-07 request #2: the video can be deleted, replaced or
+        // re-linked freely until someone assesses it. After that the
+        // learner's buttons disappear and the teacher's turn into
+        // "Delete video / link and assessments", which resets the learner.
+        $ownerorteacher = $this->va->is_teacher() || $user->id == $USER->id;
+        $locked = $ownerorteacher && $this->va->has_started_assessment((int) $user->id, $timing);
+        $canchange = $ownerorteacher && !$locked;
+        $canreset = $locked && $this->va->is_teacher();
+
         if ($video = $this->va->get_associated_video($user->id, $timing)) {
             $url = $video->get_url(true);
             if ($video->data->tmpname == 'Youtube') {
@@ -860,6 +868,18 @@ class grade_table {
                     ['action' => 'assess', 'userid' => $user->id]
                 );
             }
+            $thumbaction = null;
+            if ($user->id == $USER->id && !$this->va->is_teacher() && !$this->va->is_self_assessment_enabled()) {
+                // There is no self-assessment screen to open (request #3), so play the video in a popup.
+                $viewurl = new \moodle_url('/mod/videoassessment/videopreview.php', [
+                    'id' => $this->cm->id,
+                    'userid' => $user->id,
+                    'timing' => $timing,
+                    'width' => 800,
+                    'height' => 450,
+                ]);
+                $thumbaction = new \popup_action('click', $viewurl, 'videopreview', ['width' => 840, 'height' => 500]);
+            }
             $newspan = '';
             if ($this->is_emptygrade($user->{'grade' . $timing . 'teacher'}) || $video->data->timecreated > $user->timemodified) {
                 $newspan = '<span>★new</span>';
@@ -867,13 +887,10 @@ class grade_table {
 
             $row[$s + 1] = \html_writer::tag(
                 'div',
-                $OUTPUT->action_link($viewurl, $content, null) . $newspan
+                $OUTPUT->action_link($viewurl, $content, $thumbaction) . $newspan
             );
             $flag = $this->availability_date_check($this->va->va);
-            if (
-                ($this->va->is_teacher() ||
-                $user->id == $USER->id)
-            ) {
+            if ($canchange) {
                 $newbuttonclass = '';
                 if ($flag == 1) {
                     $newbuttonclass = 'button-assessagain';
@@ -953,6 +970,9 @@ class grade_table {
                     }
                 }
             }
+            if ($canreset) {
+                $row[$s + 1] .= $this->render_reset_button($user);
+            }
             if ($video->data->tmpname != 'Youtube' && $this->va->is_teacher()) {
                 $row[$s + 1] .= \html_writer::tag(
                     'div',
@@ -961,12 +981,7 @@ class grade_table {
                 );
             }
         } else {
-            if (
-                $this->va->is_teacher() ||
-                $user->id == $USER->id &&
-                $this->is_emptygrade($user->{'grade' . $timing . 'peer'}) &&
-                $this->is_emptygrade($user->{'grade' . $timing . 'teacher'})
-            ) {
+            if ($canchange) {
                 $str = $mobile ? va::str('takevideo') : va::str('uploadvideo');
                 $actionmodel = 2;
                 $uploadparams = [
@@ -984,6 +999,9 @@ class grade_table {
                         ['class' => 'button-upload']
                     )
                 );
+            } else if ($canreset) {
+                // Assessed, but the video was removed before this version locked it.
+                $row[$s + 1] = $this->render_reset_button($user);
             } else {
                 $row[$s + 1] = get_string('novideo', 'videoassessment');
             }
@@ -993,6 +1011,10 @@ class grade_table {
             $type = 'class';
         } else {
             $type = $this->va->get_grader_type($user->id);
+        }
+        if ($type == 'self' && !$this->va->is_self_assessment_enabled()) {
+            // 2026-07 request #3: no self-assessment when Self weighting is 0%.
+            $type = null;
         }
 
         if ($type) {
@@ -1041,6 +1063,55 @@ class grade_table {
             }
         }
         $this->add_data($row, $class);
+    }
+
+    /**
+     * Render the "New Report Available" / "Report Viewed" label (2026-07 request #1).
+     *
+     * @param int $userid The learner whose report is labelled.
+     * @return string HTML, empty when there is nothing to label.
+     */
+    private function render_report_status(int $userid): string {
+        global $OUTPUT;
+
+        switch (report_tracker::get_status($this->va, $userid)) {
+            case report_tracker::STATUS_NEW:
+                return ' ' . \html_writer::span(
+                    va::str('reportnew'),
+                    'videoassessment-report-status videoassessment-report-new'
+                );
+            case report_tracker::STATUS_VIEWED:
+                return ' ' . \html_writer::span(
+                    $OUTPUT->pix_icon('i/valid', '') . va::str('reportviewed'),
+                    'videoassessment-report-status videoassessment-report-viewed'
+                );
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * Render the teacher's "Delete video / link and assessments" button.
+     *
+     * Posts to the resetsubmission action after a confirmation dialog,
+     * because the deletion cannot be undone (2026-07 request #2).
+     *
+     * @param \stdClass $user The learner (needs id and name fields).
+     * @return string HTML
+     */
+    private function render_reset_button(\stdClass $user): string {
+        global $OUTPUT;
+
+        $button = new \core\output\single_button(
+            new \moodle_url($this->va->viewurl, ['action' => 'resetsubmission', 'userid' => $user->id]),
+            va::str('resetsubmission'),
+            'post',
+            \core\output\single_button::BUTTON_DANGER
+        );
+        $button->class .= ' videoassessment-resetsubmission';
+        $button->add_confirm_action(va::str('resetsubmissionconfirm', fullname($user)));
+
+        return $OUTPUT->render($button);
     }
 
     /**

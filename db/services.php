@@ -83,4 +83,18 @@ $functions = [
         'capabilities'  => 'mod/videoassessment:managesorting',
         'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'mod_videoassessment_process_ai_feedback' => [
+        'classname'     => \mod_videoassessment\external\process_ai_feedback::class,
+        'description'   => 'Transcribe and analyse a spoken attempt for AI feedback.',
+        'type'          => 'write',
+        'ajax'          => true,
+        'capabilities'  => 'mod/videoassessment:submit',
+    ],
+    'mod_videoassessment_get_ai_feedback_status' => [
+        'classname'     => \mod_videoassessment\external\get_ai_feedback_status::class,
+        'description'   => 'Return the processing status of a spoken attempt.',
+        'type'          => 'read',
+        'ajax'          => true,
+        'capabilities'  => 'mod/videoassessment:submit',
+    ],
 ];

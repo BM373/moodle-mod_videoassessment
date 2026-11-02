@@ -512,3 +512,111 @@ body.dragging * {
     max-width: 100%;
     height: auto;
 }
+
+/* 2026-07 request #1: report read status next to "See report". */
+.path-mod-videoassessment .videoassessment-report-status {
+    display: inline-block;
+    margin-left: 4px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+.path-mod-videoassessment .videoassessment-report-new {
+    padding: 0 4px;
+    background-color: #fff200;
+    color: #000;
+}
+.path-mod-videoassessment .videoassessment-report-viewed,
+.path-mod-videoassessment .videoassessment-report-viewed .icon {
+    color: #1e7e34;
+}
+
+/* 2026-07 request #2: teacher's "Delete video / link and assessments" button. */
+.path-mod-videoassessment .videoassessment-resetsubmission {
+    margin-top: 5px;
+}
+.path-mod-videoassessment .videoassessment-resetsubmission .btn {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: bold;
+    white-space: normal;
+}
+
+/* AI speech feedback (audio only). Marks keep enough contrast on white
+   and are told apart by the S/I reference number, not by colour alone. */
+.path-mod-videoassessment .va-aifb-transcript {
+    white-space: pre-wrap;
+    line-height: 1.9;
+    padding: 12px 14px;
+    margin-bottom: 6px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+}
+.path-mod-videoassessment .va-aifb-mark {
+    padding: 1px 2px;
+    border-radius: 2px;
+    color: #000;
+}
+.path-mod-videoassessment .va-aifb-mark.va-aifb-strength {
+    background-color: #c8f0d0;
+    border-bottom: 2px solid #1e7e34;
+}
+.path-mod-videoassessment .va-aifb-mark.va-aifb-improvement {
+    background-color: #ffe3b8;
+    border-bottom: 2px solid #b35900;
+}
+/* Words quoted both as a strength and as an improvement. */
+.path-mod-videoassessment .va-aifb-mark.va-aifb-strength.va-aifb-improvement {
+    background-color: #ffe3b8;
+    background-image: linear-gradient(#c8f0d0 50%, #ffe3b8 50%);
+    border-bottom: 2px dashed #b35900;
+}
+.path-mod-videoassessment .va-aifb-ref {
+    display: inline-block;
+    vertical-align: text-top;
+    line-height: 1.5;
+    min-width: 1.8em;
+    margin: 0 2px;
+    padding: 0 4px;
+    border-radius: 8px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+}
+.path-mod-videoassessment .va-aifb-ref.va-aifb-strength {
+    background-color: #1e7e34;
+}
+.path-mod-videoassessment .va-aifb-ref.va-aifb-improvement {
+    background-color: #b35900;
+}
+.path-mod-videoassessment .va-aifb-items q {
+    font-style: italic;
+}
+.path-mod-videoassessment .va-aifb-suggestion {
+    margin-top: 2px;
+    padding-left: 8px;
+    border-left: 3px solid #b35900;
+}
+.path-mod-videoassessment .va-aifb-audio {
+    width: 100%;
+    max-width: 480px;
+}
+.path-mod-videoassessment .va-aifb-timer {
+    font-variant-numeric: tabular-nums;
+    font-weight: bold;
+    color: #c82333;
+}
+.path-mod-videoassessment .va-aifb-policytext {
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+}
+.path-mod-videoassessment .va-aifb-older > summary {
+    margin: 4px 0 8px;
+    color: #0f6cbf;
+    cursor: pointer;
+}

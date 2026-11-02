@@ -77,6 +77,11 @@ class assess extends \moodleform {
         $mform->setType('filter', PARAM_INT);
         $mform->addElement('hidden', 'gradertype', $data->gradertype);
         $mform->setType('gradertype', PARAM_ALPHA);
+        if (isset($data->assessedvideos)) {
+            // Lets va::guard_assess_request() drop a submission for a video replaced meanwhile.
+            $mform->addElement('hidden', 'assessedvideos', $data->assessedvideos);
+            $mform->setType('assessedvideos', PARAM_ALPHANUMEXT);
+        }
 
         if (!empty($data->rubricspassed)) {
             $mform->addElement('hidden', 'rubrics_passed', json_encode($data->rubricspassed));
