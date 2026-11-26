@@ -8,3 +8,9 @@ font/font-awesome/** -text
 DetectRTC.js -text
 RecordRTC.js -text
 jquery-sortable.js -text
+
+# Development files left out of `git archive`, so out of the release ZIP
+# (and GitHub's source archives).
+.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
