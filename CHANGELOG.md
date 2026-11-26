@@ -7,6 +7,18 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 
 ## [Unreleased]
 
+### GitHub releases from `version.php`
+
+#### Added
+- **A push to `main` whose CI passes publishes a GitHub release.** The new job
+  *Release from version.php* in `moodle-ci.yml` runs after every other job has
+  passed. It takes `$plugin->release` from `version.php`, tags the commit with
+  the version at its start (`1.3.0-beta6 (Build: 2026111000)` becomes the tag
+  `v1.3.0-beta6`) and uses the whole string as the release title. A version with
+  a suffix such as `-beta6` is marked as a pre-release. The notes link to this
+  changelog and list the merged pull requests. When that release already exists,
+  nothing is published, so a new release needs a new `$plugin->release`.
+
 ### Transcripts by email (release 1.3.0-beta6, build `2026111000`)
 
 #### Added

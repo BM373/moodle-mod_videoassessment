@@ -173,3 +173,60 @@ jobs:
           echo "Coverage gate placeholder."
           echo "100% line coverage will be enforced via phpunit.xml.dist <coverage>"
           echo "and a follow-up CLI check, once test files start landing."
+
+  release:
+    # After every job above has passed on a push to main, publish a GitHub release
+    # named after $plugin->release in version.php, unless that release exists.
+    name: Release from version.php
+    needs: [test, coverage-gate]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - name: Check out plugin code
+        uses: actions/checkout@v5
+
+      # No third-party action runs in this job, because it can write to the
+      # repository: the runner image's own PHP is enough to read version.php.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          php --version | head -n 1
+          # version.php needs the constants Moodle defines before it reads the file.
+          release=$(php -r '
+            define("MOODLE_INTERNAL", true);
+            define("MATURITY_ALPHA", 50);
+            define("MATURITY_BETA", 100);
+            define("MATURITY_RC", 150);
+            define("MATURITY_STABLE", 200);
+            $plugin = new stdClass();
+            require "version.php";
+            echo $plugin->release ?? "";
+          ')
+          # "1.3.0-beta6 (Build: 2026111000)" -> tag v1.3.0-beta6.
+          version=${release%% *}
+          if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error file=version.php::\$plugin->release '$release' does not start with a version such as 1.2.3 or 1.2.3-beta1."
+            exit 1
+          fi
+          tag="v$version"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "::notice::Release $tag already exists, so nothing is published. Change \$plugin->release in version.php for a new release."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::Tag $tag exists but has no release. Delete the tag or create the release by hand."
+            exit 1
+          fi
+          # A version with a suffix such as -beta6 or -rc1 is a pre-release.
+          if [[ $version == *-* ]]; then set -- --prerelease; else set --; fi
+          notes="Release \`$release\` from \`version.php\`. The changes are listed in [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/$tag/CHANGELOG.md)."
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$release" --notes "$notes" --generate-notes "$@"
+          echo "::notice::Published release $tag ($release) for $GITHUB_SHA."
