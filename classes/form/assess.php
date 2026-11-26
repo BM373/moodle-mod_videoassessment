@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mod_videoassessment\form;
+
 use mod_videoassessment\va;
 
 /**

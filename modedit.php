@@ -67,7 +67,8 @@ if (!empty($add)) {
     $data->return = 0;
     $data->sr = $sectionreturn;
     $data->add = $add;
-    if (!empty($type)) { // Legacy alias retained for backward compatibility with very old themes.
+    // Legacy alias retained for backward compatibility with very old themes.
+    if (!empty($type)) {
         $data->type = $type;
     }
 
