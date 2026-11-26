@@ -68,6 +68,7 @@ if (!$manager->is_enabled()) {
 if ($action === 'acceptpolicy') {
     require_sesskey();
     \core_ai\manager::user_policy_accepted($USER->id, $context->id);
+    attempt_manager::queue_user_videos($va, (int)$USER->id);
     redirect($url);
 }
 
@@ -133,6 +134,7 @@ function mod_videoassessment_aifb_attempt_context(
     $data = [
         'id' => $attempt->id,
         'heading' => get_string('aifb_attempt', 'videoassessment', $attempt->attempt),
+        'fromvideo' => !empty($attempt->videoid),
         'time' => userdate($attempt->timecreated, get_string('strftimedatetimeshort', 'langconfig')),
         'duration' => $attempt->duration ? format_time((int)$attempt->duration) : '',
         'audiourl' => $audiourl ? $audiourl->out(false) : '',
@@ -239,6 +241,7 @@ if ($isteacher && $userid) {
 // site admin) can open the learner page with ?mine=1 to try the feature.
 if ($isteacher && !$mine) {
     $summary = $manager->get_summary();
+    $pending = $manager->get_pending_counts();
     $learners = get_enrolled_users($context, 'mod/videoassessment:submit', 0, 'u.*', 'u.lastname, u.firstname');
     $table = new html_table();
     $table->head = [
@@ -253,9 +256,24 @@ if ($isteacher && !$mine) {
     $table->attributes['class'] = 'generaltable va-aifb-overview';
     foreach ($learners as $learner) {
         $row = $summary[$learner->id] ?? null;
+        $waiting = $pending[$learner->id] ?? (object)['analysing' => 0, 'videos' => 0, 'consent' => 0];
+        // Submitted videos count from the start, before they have an attempt.
+        $total = ($row ? (int)$row->attempts : 0) + $waiting->videos;
+        $analysing = $waiting->analysing + $waiting->videos;
+        $count = $analysing ? get_string(
+            'aifb_count_analysing',
+            'videoassessment',
+            (object)['total' => $total, 'analysing' => $analysing]
+        ) : (string)$total;
+        if ($waiting->consent) {
+            $count .= html_writer::div(
+                get_string('aifb_count_consent', 'videoassessment', $waiting->consent),
+                'small text-muted'
+            );
+        }
         $table->data[] = [
             fullname($learner),
-            $row ? (int)$row->attempts : 0,
+            $count,
             $row ? (int)$row->done : 0,
             $row ? (int)$row->viewed : 0,
             $row ? userdate($row->firstattempt, get_string('strftimedatetimeshort', 'langconfig')) : '-',
@@ -300,6 +318,9 @@ if ($instructions !== '' || $keywords) {
 if ($siteready && $cansubmit) {
     if (!$policyaccepted) {
         $policy = html_writer::tag('p', get_string('aifb_policyintro', 'videoassessment'));
+        if (!empty($va->aifeedbackauto)) {
+            $policy .= html_writer::tag('p', get_string('aifb_policyvideonote', 'videoassessment'));
+        }
         $policy .= html_writer::div(get_string('userpolicy', 'ai'), 'va-aifb-policytext');
         $policy .= html_writer::start_tag('form', ['method' => 'post', 'action' => $url->out(false)]);
         $policy .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);

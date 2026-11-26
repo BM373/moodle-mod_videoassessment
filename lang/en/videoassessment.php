@@ -52,20 +52,29 @@ $string['aifb_attempts'] = 'Your attempts';
 $string['aifb_attemptscount'] = 'Attempts';
 $string['aifb_back'] = 'Back to all learners';
 $string['aifb_backtoactivity'] = 'Back to the activity';
+$string['aifb_count_analysing'] = '{$a->total} (of which {$a->analysing} being analysed by AI)';
+$string['aifb_count_consent'] = 'Submitted videos waiting for the learner to accept the AI policy: {$a}';
 $string['aifb_disclaimer'] = 'This feedback is written by AI from an automatic transcript and can be wrong. Your teacher\'s assessment is what counts.';
 $string['aifb_donecount'] = 'Feedback ready';
+$string['aifb_email_intro'] = 'Your video for "{$a->activity}" in {$a->course} has been transcribed. This is what you said, as the transcription heard it.';
+$string['aifb_email_link'] = 'The passages the AI refers to are marked in your transcript on the AI feedback page:';
+$string['aifb_email_nofeedback'] = 'The AI could not comment on your speech this time. You can try the analysis again on the AI feedback page:';
+$string['aifb_email_quote'] = '"{$a}"';
+$string['aifb_email_subject'] = 'Transcript of your video: {$a}';
 $string['aifb_error_analyse'] = 'The AI could not comment on your recording. Please try again later.';
 $string['aifb_error_badresponse'] = 'The AI\'s answer could not be read. Please try again.';
 $string['aifb_error_emptytranscript'] = 'No speech was found in the recording. Check your microphone and try again.';
 $string['aifb_error_format'] = 'This file type cannot be used. Please upload one of: {$a}.';
+$string['aifb_error_noaudio'] = 'No sound could be read from the submitted video.';
 $string['aifb_error_noaws'] = 'The AWS access key, secret key or region is missing in the plugin settings.';
 $string['aifb_error_nofile'] = 'No recording was received. Please try again.';
 $string['aifb_error_notranscriber'] = 'Transcription is not set up on this site.';
 $string['aifb_error_toolarge'] = 'The recording is too large (25 MB at most). Please make it shorter.';
 $string['aifb_error_transcribe'] = 'Your recording could not be transcribed. Please try again later.';
 $string['aifb_firstattempt'] = 'First attempt';
+$string['aifb_fromvideo'] = 'From the submitted video';
 $string['aifb_improvements'] = 'What to improve';
-$string['aifb_intro'] = 'Record yourself speaking (audio only) or upload an audio file. Your words are turned into text and the AI marks what went well and what to improve. Read the feedback, then try again as many times as you like.';
+$string['aifb_intro'] = 'Here you read the AI\'s feedback on your speech. When you submit a video in this activity, its sound is transcribed, the AI marks what went well and what to improve, and you also get the transcript by email. To practise, record yourself (audio only) or upload an audio file, and try again as many times as you like.';
 $string['aifb_keywords'] = 'Target words';
 $string['aifb_lastattempt'] = 'Last attempt';
 $string['aifb_learner'] = 'Learner';
@@ -80,6 +89,7 @@ $string['aifb_open'] = 'Practise with AI speech feedback';
 $string['aifb_openteacher'] = 'AI speech feedback: learners\' attempts';
 $string['aifb_overview'] = 'Learners\' attempts';
 $string['aifb_policyintro'] = 'Before your first recording, please read and accept the site\'s AI usage policy.';
+$string['aifb_policyvideonote'] = 'After you accept, your submitted video is also sent for AI feedback, and you get its transcript and the AI\'s comments by email. Only its sound is sent.';
 $string['aifb_record'] = 'Start recording';
 $string['aifb_recordagain'] = 'Record again';
 $string['aifb_retry'] = 'Try the analysis again';
@@ -108,9 +118,13 @@ $string['aifb_used'] = 'used';
 $string['aifb_viewattempts'] = 'View';
 $string['aifb_viewedcount'] = 'Feedback read';
 $string['aifb_working'] = 'Transcribing and analysing the recording. This usually takes less than a minute; the page updates by itself.';
+$string['aifbteacherconsent'] = 'Count uploads by teachers as accepted';
+$string['aifbteacherconsent_desc'] = 'When a teacher submits a video for a learner, send its sound for AI feedback even if the learner has not accepted the AI usage policy. The learner still has to accept it to use the practice page. Check that this fits the data policy of your institution.';
 $string['aifeedback'] = 'AI speech feedback';
+$string['aifeedbackauto'] = 'Also send submitted videos for AI feedback automatically';
+$string['aifeedbackauto_help'] = 'When a video file is submitted, its sound is taken out and sent for AI feedback at the site\'s next cron run, without waiting for the video to be converted. The learner gets the transcript and the AI\'s comments by email (a Moodle notification, so the learner\'s notification preferences apply), and they also appear on the AI feedback page. Only the audio is sent. Learners who have not accepted the AI usage policy yet get it when they accept, unless the site counts uploads by teachers as accepted. External video links are not analysed. Every submitted video adds transcription and AI costs. Turn this off to use AI feedback only on the practice page.';
 $string['aifeedbackenable'] = 'Give learners AI feedback on their speech';
-$string['aifeedbackenable_help'] = 'Learners record themselves (audio only) or upload an audio file. The recording is transcribed and the site\'s AI provider marks what went well and what to improve, based on the task and target words below. Learners can try as many times as they like. This practice does not change any grade.';
+$string['aifeedbackenable_help'] = 'When a learner submits a video, its sound is transcribed and the site\'s AI marks what went well and what to improve, based on the task and target words below. The learner gets the transcript and the AI\'s comments by email, usually within a minute of the upload, and can read the transcript with those passages marked on the AI feedback page. Only the sound is sent, never the picture. On the same page, learners can also practise by recording themselves as often as they like. This feedback does not change any grade.';
 $string['aifeedbackengine'] = 'Written feedback from';
 $string['aifeedbackengine_bedrock'] = 'Amazon Bedrock (AWS settings below)';
 $string['aifeedbackengine_coreai'] = 'Moodle AI providers (Site administration > General > AI)';
@@ -206,6 +220,11 @@ $string['beforetraining'] = 'Training Pre-test';
 $string['beforevideo'] = 'Before video';
 $string['bonuspercentage'] = 'Bonus Percentage';
 $string['bonuspercentage_help'] = 'The percentage of the final grade that will be allocated as a fairness bonus. This bonus is added on top of the total score. For example, if set to 10%, students can earn up to 10% additional points based on how fairly they score compared to the teacher\'s assessment.';
+$string['bulkstatus_complete'] = 'Complete';
+$string['bulkstatus_converting'] = 'Converting';
+$string['bulkstatus_error'] = 'Error';
+$string['bulkstatus_queued'] = 'Queued';
+$string['bulkstatus_uploading'] = 'Uploading';
 $string['bulkvideoupload'] = 'Bulk video upload';
 $string['calendardue'] = '{$a} is due';
 $string['calendargradingdue'] = '{$a} is due to be graded';
@@ -230,6 +249,7 @@ $string['confirmdeletevideos'] = 'Are you sure you want to delete {$a} videos?';
 $string['course'] = 'course';
 $string['coursemisconf'] = 'Course setting is incorrect.';
 $string['courseshortnameexist'] = 'Short name is already used for another course';
+$string['createorselectrubric'] = 'Create or select rubric';
 $string['currentgrade'] = 'Current grade in gradebook';
 $string['daysbefore'] = 'days before';
 $string['defaultcriterionbodylanguage'] = 'Good body language, facial expression, eye contact';
@@ -266,6 +286,7 @@ $string['embednottrusted_addhost'] = 'A site administrator can allow this host u
 $string['embedopenexternal'] = 'Open the video in a new tab';
 $string['errorcapturingmedia'] = 'Error capturing media:';
 $string['errorcheckvideostodelete'] = 'Check videos to delete.';
+$string['errorgraderange'] = 'Enter a number from 0-100.';
 $string['errorinvalidtiming'] = 'Invalid timing value';
 $string['errornovideorecord'] = 'Please add a video record first';
 $string['errorovermaximumpossiblegrade'] = 'The grade to pass can not be greater than the maximum possible grade 100';
@@ -280,7 +301,6 @@ $string['existingcourseornewcourse'] = 'Publish to an Existing Course<br /> or a
 $string['externalvideo'] = 'External video';
 $string['failed'] = 'Fail';
 $string['failednotice'] = 'Sorry. Some of your scores were {$a->accepteddifference}% different from standard scores. You must have all "O", no "X".<br />{$a->button}';
-$string['fairnessbonus'] = 'Fairness Bonus';
 $string['feedback'] = 'Feedback';
 $string['feedbackfrom'] = 'Feedback from {$a}';
 $string['ffmpegcommand'] = 'FFmpeg command';
@@ -325,7 +345,6 @@ $string['installerrorffmpegdoesnotexist'] = 'The default installation path of ff
 $string['installerrorffmpegversionnotfound'] = 'The ffmpeg version number was not found. Please check if ffmpeg is installed and working correctly on the system.';
 $string['installsuccessffmpeg'] = 'ffmpeg detected successfully: {$a}';
 $string['invalidid'] = 'Invalid ID';
-$string['invalidtoken'] = 'Invalid token.';
 $string['invaliduploadedfile'] = 'Uploaded file is invalid.';
 $string['latesubmissionsaccepted'] = 'Allowed until {$a}';
 $string['level'] = 'Level';
@@ -348,6 +367,7 @@ $string['managevideos_help'] = 'The "Manage Videos" admin page has nine function
 $string['markasreadonnotificationno'] = 'Notifications are not marked as read automatically.';
 $string['markasreadonnotificationyes'] = 'Notifications are marked as read automatically.';
 $string['maximumpoints'] = 'maximum points';
+$string['messageprovider:aifeedback'] = 'Transcript and AI feedback on a submitted video';
 $string['mobilequickmail'] = 'Mobile Quickmail';
 $string['modgrade'] = 'Grade Type';
 $string['modgrade_help'] = 'For video assessment, do not change the default settings here for "Grade Type". The Grade Type is "Point" and the maximum grade is "100".  If you change the settings, the video assessment system may not work.';
@@ -375,6 +395,7 @@ $string['notifications_help'] = 'Notifications send the assessment information t
 <br />c. Reminder notification
 <br />d. Video upload/reupload notification';
 $string['notificationssendtype'] = 'Notification carrier';
+$string['notifystudent'] = 'Notify student';
 $string['notsupportedbrowser'] = 'This browser is not supported';
 $string['novideo'] = 'No video';
 $string['numberofpeerassessors'] = 'Number of Peer Assessors';
@@ -401,6 +422,14 @@ $string['pause'] = 'Pause';
 $string['peer'] = 'Peer';
 $string['peerassessments'] = 'Peer assessments';
 $string['peerassessors'] = 'Peer Assessors';
+$string['peerassign_confirmcourse'] = 'This will reset all peer assignments and assign {$a} random peer(s) to each student. Continue?';
+$string['peerassign_confirmgroup'] = 'This will reset peer assignments for all members in "{$a->group}" and assign {$a->count} random peer(s) from within the group. Continue?';
+$string['peerassign_groupempty'] = 'The group has no members.';
+$string['peerassign_groupnotfound'] = 'Group not found. Please try again.';
+$string['peerassign_groupsize'] = 'The group has {$a->members} member(s), so each member can have at most {$a->max} peer(s).';
+$string['peerassign_invalidgroup'] = 'Invalid group selected. Please try again.';
+$string['peerassign_notenoughmembers'] = 'Not enough members in group "{$a->group}" to assign {$a->count} peer(s) to each member.';
+$string['peerassign_notenoughstudents'] = 'Not enough students to assign {$a} peers each.';
 $string['peerassignmentrequired'] = 'You must assign peer assessors when Peer % is greater than 0 or Number of Peer Assessments is greater than 0. Either assign peers or set both values to 0.';
 $string['peercomentnotificationlabel'] = 'Peer Comment notification';
 $string['peerfairnessbonus'] = 'Peer Fairness Bonus';
@@ -412,8 +441,8 @@ $string['peers'] = 'Peers';
 $string['peertnotificationtemplate'] = 'Dear [[student name]],
 Good work! One of your classmates just checked your presentation
 video and made some scores and comments. Here they are:
-[[insert assignment name]] [[insert current date]]
-Here is a link to this report: [[insert link to student page to view assessment]]
+[[assignment name]] [[current date]]
+Here is a link to this report: [[link to student page to view assessment]]
 **your classmates will get a bonus if they score you fairly**
 Send an email to me if you have a question [[teacher email address]]
 Best regards,
@@ -439,6 +468,7 @@ $string['privacy:metadata:aws:language'] = 'The language spoken, if the teacher 
 $string['privacy:metadata:aws:transcript'] = 'The transcript, the teacher\'s task description and target words (Amazon Bedrock).';
 $string['privacy:metadata:core_ai'] = 'When the site uses Moodle AI providers, transcripts of learners\' recordings are sent to the site\'s AI provider through Moodle\'s AI subsystem, which records each request.';
 $string['privacy:metadata:core_files'] = 'Learners\' recordings for AI speech feedback are stored as files.';
+$string['privacy:metadata:core_message'] = 'Learners get the transcript of each submitted video, with the AI\'s comments, as a Moodle notification.';
 $string['privacy:metadata:videoassessment'] = 'Information about the videoassessment files.';
 $string['privacy:metadata:videoassessment:class'] = 'Number of class.';
 $string['privacy:metadata:videoassessment:course'] = 'Course ID number.';
@@ -496,6 +526,7 @@ $string['privacy:metadata:videoassessment_videos:originalname'] = 'Uploaded name
 $string['privacy:metadata:videoassessment_videos:timecreated'] = 'Uploaded time of the file.';
 $string['privacy:metadata:videoassessment_videos:timemodified'] = 'Last modification time of the file.';
 $string['privacy:metadata:videoassessment_videos:videoassessment'] = 'videoassessment ID.';
+$string['processingrecording'] = 'Processing recording...';
 $string['publishvideos'] = 'Publish Videos';
 $string['publishvideos_help'] = 'In this stage, after all performances are assessed, a teacher can select videos for long term preservation. These videos will be published to a
 separate, newly created course in your site.';
@@ -531,7 +562,7 @@ $string['remindernotification'] = 'Reminder Notification';
 $string['remindernotificationtemplate'] = 'Dear [[student name]],
 Have you watched and checked your presentation?
 Its due date is/was on June x. Here is a link:
-[[insert link to self-assessment page]]
+[[link to self-assessment page]]
 Be sure to write at least 3 comments as well as scores.
 Send an email to your me if you have a question [[teacher email
 address]]. Thanks!
@@ -550,6 +581,7 @@ $string['reuploadvideo'] = 'Replace the linked / uploaded video';
 $string['rubricnotcompleted'] = 'Please complete all rubric criteria before submitting.';
 $string['save'] = 'Save';
 $string['saveandcreaterubric'] = 'Save and create rubric';
+$string['saveandreturntosettings'] = 'Save and return to settings';
 $string['saveassociations'] = 'Save associations';
 $string['score'] = 'Score';
 $string['scores'] = 'Scores';
@@ -574,6 +606,7 @@ $string['sortid'] = 'Sort by ID';
 $string['sortmanually'] = 'Sort manually';
 $string['sortname'] = 'Sort by name';
 $string['startrecoding'] = 'Start Recording';
+$string['stateinfo'] = 'Videoassess state info';
 $string['stoprecording'] = 'Stop Recording';
 $string['studentrubric'] = 'Student rubric';
 $string['submission'] = 'Submission';
@@ -594,8 +627,8 @@ The email message format for each type of notification must be set up by the tea
 $string['teachernotificationtemplate'] = 'Dear [[student name]],
 Good work! I just checked your presentation video and made some
 scores and comments. Here they are:
-[[insert assignment name]] [[insert current date]]
-Here is a link to this report: [[insert link to student page to view assessment]]
+[[assignment name]] [[current date]]
+Here is a link to this report: [[link to student page to view assessment]]
 You can redo your presentation on June 7th and get a better grade.
 Send an email to me if you have a question [[teacher email address]]
 Best regards,
@@ -683,7 +716,9 @@ $string['videoassessment:viewcomments'] = 'View assessment comments';
 $string['videoassessmentname'] = 'Video assessment name';
 $string['videoassessmentnotfound'] = 'Video assessment not found';
 $string['videochangedduringassessment'] = 'The video was replaced or removed while you were assessing it, so your assessment was not saved. Please assess the current video.';
+$string['videoconversionfailed'] = 'This video could not be converted, so it cannot be shown. Please upload it again. If this keeps happening, contact your site administrator.';
 $string['videoconverting'] = 'Your uploaded video is being converted in the background. It will appear automatically once processing finishes — you do not need to upload it again.';
+$string['videoembedtitle'] = '{$a->provider} video ({$a->host})';
 $string['videoformat'] = 'Video format';
 $string['videoformatdesc'] = 'Video format';
 $string['videolocked'] = 'Your video can no longer be changed because it has already been assessed. If it must be replaced, please ask your teacher.';
@@ -691,7 +726,7 @@ $string['videolockedteacher'] = 'This learner\'s video has already been assessed
 $string['videonotfound'] = 'Video not found.';
 $string['videonotificationtemplate'] = 'Dear [[teacher name]],
 [[student name]] has just uploaded a video file.
-To view it and assess it, please go to: [[insert link to self-assessment page]]
+To view it and assess it, please go to: [[link to self-assessment page]]
 Best regards,
 https://moodle.sgu.ac.jp';
 $string['videopublishing'] = 'Video Publishing';
@@ -704,6 +739,8 @@ $string['videoservice_peertube'] = 'PeerTube (e.g. Tubes)';
 $string['videoservice_vimeo'] = 'Vimeo';
 $string['videoservice_youtube'] = 'YouTube';
 $string['videoservicehint'] = 'Paste a video link such as:';
+$string['videostatusconversionfailed'] = 'Conversion failed. Please upload again.';
+$string['videostatusconverting'] = 'Converting... It will appear here automatically.';
 $string['videosubmissions'] = 'Video submissions';
 $string['videouploadforthefirsttime'] = 'when the student uploads a video for first time';
 $string['videouploadnotificationlabel'] = 'Video upload/reupload notification';

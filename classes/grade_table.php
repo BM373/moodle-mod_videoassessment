@@ -941,7 +941,7 @@ class grade_table {
                             'div',
                             $OUTPUT->action_link(
                                 new \moodle_url($this->va->viewurl, $deleteparams),
-                                'Delete Video',
+                                va::str('deletevideo'),
                                 null,
                                 $btnclass
                             )
@@ -981,6 +981,16 @@ class grade_table {
                 );
             }
         } else {
+            // A video that is not ready is not listed: without this, teachers
+            // saw no sign of their upload at all.
+            $conversionstatus = $ownerorteacher ? $this->va->video_conversion_status((int)$user->id, $timing) : '';
+            $conversionnote = '';
+            if ($conversionstatus === va::CONVERSION_FAILED) {
+                $conversionnote = \html_writer::div(va::str('videostatusconversionfailed'), 'small text-danger mb-1');
+            } else if ($conversionstatus === va::CONVERSION_CONVERTING) {
+                $conversionnote = \html_writer::div(va::str('videostatusconverting'), 'small text-muted mb-1');
+                $PAGE->requires->js_call_amd('mod_videoassessment/conversion_refresh', 'init');
+            }
             if ($canchange) {
                 $str = $mobile ? va::str('takevideo') : va::str('uploadvideo');
                 $actionmodel = 2;
@@ -990,7 +1000,7 @@ class grade_table {
                     'timing' => $timing,
                     'actionmodel' => $actionmodel,
                 ];
-                $row[$s + 1] = \html_writer::tag(
+                $row[$s + 1] = $conversionnote . \html_writer::tag(
                     'div',
                     $OUTPUT->action_link(
                         new \moodle_url($this->va->viewurl, $uploadparams),
@@ -1001,7 +1011,7 @@ class grade_table {
                 );
             } else if ($canreset) {
                 // Assessed, but the video was removed before this version locked it.
-                $row[$s + 1] = $this->render_reset_button($user);
+                $row[$s + 1] = $conversionnote . $this->render_reset_button($user);
             } else {
                 $row[$s + 1] = get_string('novideo', 'videoassessment');
             }

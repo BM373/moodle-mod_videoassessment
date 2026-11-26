@@ -703,6 +703,11 @@ class mod_videoassessment_mod_form extends moodleform_mod {
         $mform->addHelpButton('aifeedback', 'aifeedbackenable', 'videoassessment');
         $mform->setDefault('aifeedback', 0);
 
+        $mform->addElement('advcheckbox', 'aifeedbackauto', get_string('aifeedbackauto', 'videoassessment'));
+        $mform->addHelpButton('aifeedbackauto', 'aifeedbackauto', 'videoassessment');
+        $mform->setDefault('aifeedbackauto', 1);
+        $mform->hideIf('aifeedbackauto', 'aifeedback', 'notchecked');
+
         $mform->addElement(
             'textarea',
             'aifeedbackinstructions',
@@ -1317,6 +1322,17 @@ class mod_videoassessment_mod_form extends moodleform_mod {
             'usedpeers' => $isexisting ? $instance->usedpeers : 0,
             'groups' => $groupdata,
         ];
+        $PAGE->requires->strings_for_js([
+            'peerassign_confirmcourse',
+            'peerassign_confirmgroup',
+            'peerassign_groupempty',
+            'peerassign_groupnotfound',
+            'peerassign_groupsize',
+            'peerassign_invalidgroup',
+            'peerassign_notenoughmembers',
+            'peerassign_notenoughstudents',
+        ], 'mod_videoassessment');
+        $PAGE->requires->string_for_js('user', 'moodle');
         $PAGE->requires->js_call_amd('mod_videoassessment/peer_assignment', 'init', [$jsparams]);
 
         return $o;

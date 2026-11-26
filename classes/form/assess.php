@@ -341,7 +341,7 @@ class assess extends \moodleform {
                 }
             }
             if ($data->gradertype == "teacher" || $data->gradertype == "peer") {
-                $mform->addElement('advcheckbox', "isnotifystudent", "notify student", [], [0, 1]);
+                $mform->addElement('advcheckbox', "isnotifystudent", get_string('notifystudent', 'videoassessment'), [], [0, 1]);
             }
             // Determine default value: check user preference first, then existing grade, then default to 1.
             global $USER;
@@ -427,7 +427,7 @@ class assess extends \moodleform {
         foreach ($va->timings as $timing) {
             if (!empty($data['xgrade' . $timing]) && $va->va->grade > 0) {
                 if (0 > $data['xgrade' . $timing] || $data['xgrade' . $timing] > 100) {
-                    $errors['xgrade' . $timing] = 'Enter a number from 0-100. ';
+                    $errors['xgrade' . $timing] = get_string('errorgraderange', 'videoassessment');
                 }
             }
         }

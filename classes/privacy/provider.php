@@ -138,6 +138,7 @@ class provider implements
         ], 'privacy:metadata:aws');
         $collection->add_subsystem_link('core_ai', [], 'privacy:metadata:core_ai');
         $collection->add_subsystem_link('core_files', [], 'privacy:metadata:core_files');
+        $collection->add_subsystem_link('core_message', [], 'privacy:metadata:core_message');
 
         return $collection;
     }

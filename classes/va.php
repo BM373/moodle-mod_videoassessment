@@ -41,6 +41,12 @@ require_once($CFG->dirroot . '/grade/grading/form/lib.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class va {
+    /** @var string An uploaded video is being converted. */
+    const CONVERSION_CONVERTING = 'converting';
+
+    /** @var string An uploaded video could not be converted. */
+    const CONVERSION_FAILED = 'failed';
+
     /**
      * Component name for this plugin.
      *
@@ -215,6 +221,7 @@ class va {
             // to undefined when JS toggles state.
             'startrecoding',
             'stoprecording',
+            'processingrecording',
             'pause',
             'resumerecording',
             'errorcapturingmedia',
@@ -419,6 +426,8 @@ class va {
                 );
                 $templatearray = [
                     "[[student name]]" => $USER->firstname . ' ' . $USER->lastname,
+                    "[[link to self-assessment page]]" => $url->out(false),
+                    // The old name, for templates in backups made before the rename.
                     "[[insert link to self-assessment page]]" => $url->out(false),
                     "[[teacher name]]" => current($teachers)->firstname . ' ' . current($teachers)->lastname,
                 ];
@@ -540,7 +549,10 @@ class va {
                     // <img>, which is what an empty URL produced before).
                     $host = parse_url($url, PHP_URL_HOST) ?: 'external';
                     $ytinfo = [
-                        'title' => ucfirst($embed['provider']) . ' video (' . $host . ')',
+                        'title' => self::str('videoembedtitle', (object)[
+                            'provider' => ucfirst($embed['provider']),
+                            'host' => $host,
+                        ]),
                         'thumbnail_url' => (string) video_embed::thumbnail_url($url),
                     ];
                 } else {
@@ -605,7 +617,7 @@ class va {
                     // Item #3: convert in the background so this POST
                     // (and the learner's "uploading…" overlay) is not
                     // held open for the whole FFmpeg run.
-                    $upload->dispatch_async_convert($tempname);
+                    $upload->queue_conversion($tempname);
                     $action = "";
                     if ($this->is_teacher()) {
                         if (empty($data->user) || empty($data->timing)) {
@@ -640,7 +652,7 @@ class va {
                         $videoid = $upload->video_data_add($tmpname, $mobilevideofile['name']);
 
                         // Item #3: background conversion (see above).
-                        $upload->dispatch_async_convert($tmpname);
+                        $upload->queue_conversion($tmpname);
                         $action = "";
                         if ($this->is_teacher()) {
                             if (empty($data->user) || empty($data->timing)) {
@@ -676,7 +688,7 @@ class va {
                             $videoid = $upload->video_data_add($tmpname, $file->get_filename());
 
                             // Item #3: background conversion (see above).
-                            $upload->dispatch_async_convert($tmpname);
+                            $upload->queue_conversion($tmpname);
 
                             if ($this->is_teacher()) {
                                 if (empty($data->user) || empty($data->timing)) {
@@ -698,20 +710,13 @@ class va {
                 }
             }
         }
-        // Item #3: if this user's previous upload is still converting
-        // in the background, say so above the form — otherwise the
+        // Item #3: if the previous upload is still converting in the
+        // background, or failed to, say so above the form — otherwise the
         // page looks like the earlier upload never happened.
         if (!$this->is_teacher()) {
-            foreach (['before', 'after'] as $timing) {
-                if ($this->has_converting_video($USER->id, $timing)) {
-                    $o .= $OUTPUT->notification(
-                        self::str('videoconverting'),
-                        \core\output\notification::NOTIFY_INFO,
-                        false
-                    );
-                    break;
-                }
-            }
+            $o .= $this->conversion_notification((int)$USER->id, ['before', 'after']);
+        } else if ($targetuser) {
+            $o .= $this->conversion_notification($targetuser, [$targettiming]);
         }
         ob_start();
         $form->display();
@@ -848,7 +853,7 @@ class va {
             foreach ($peers as $peer) {
                 $this->viewurl->params(['action' => 'peerdel', 'userid' => $user->id, 'peerid' => $peer, 'sesskey' => sesskey()]);
                 // Look up peer name from allusers (includes teachers).
-                $peername = isset($allusers[$peer]) ? fullname($allusers[$peer]) : 'User ' . $peer;
+                $peername = isset($allusers[$peer]) ? fullname($allusers[$peer]) : get_string('user') . ' ' . $peer;
                 @$peernames[] = $peername . ' ' . $OUTPUT->action_icon($this->viewurl, $delicon);
             }
             \core_collator::asort($peernames);
@@ -876,7 +881,7 @@ class va {
 
         $o .= \html_writer::start_tag('div', ['class' => 'center-btn']) . $this->output->action_link(
             new \moodle_url("/course/modedit.php", ['update' => $this->cm->id, 'return' => 1]),
-            'save and return to settings',
+            self::str('saveandreturntosettings'),
             null,
             ['class' => 'btn btn-primary']
         ) . \html_writer::end_tag('div');
@@ -1261,6 +1266,7 @@ class va {
 
         $DB->delete_records('videoassessment_videos', ['id' => $videoid]);
         $DB->delete_records('videoassessment_video_assocs', ['videoid' => $videoid]);
+        aifeedback\attempt_manager::delete_video_attempts($this->instance, $this->context->id, $videoid);
 
         $this->view_redirect(
             'videos',
@@ -1328,6 +1334,7 @@ class va {
 
         $DB->delete_records('videoassessment_videos', ['id' => $videoid]);
         $DB->delete_records('videoassessment_video_assocs', ['videoid' => $videoid]);
+        aifeedback\attempt_manager::delete_video_attempts($this->instance, $this->context->id, $videoid);
 
         $this->view_redirect();
     }
@@ -1346,6 +1353,7 @@ class va {
 
         $DB->delete_records('videoassessment_videos', ['id' => $videoid]);
         $DB->delete_records('videoassessment_video_assocs', ['videoid' => $videoid]);
+        aifeedback\attempt_manager::delete_video_attempts($this->instance, $this->context->id, $videoid);
     }
 
     /**
@@ -1465,6 +1473,58 @@ class va {
     }
 
     /**
+     * What is happening to a learner's uploaded video that is not ready yet.
+     *
+     * @param int $userid The learner.
+     * @param string $timing The timing key.
+     * @return string {@see self::CONVERSION_CONVERTING}, {@see self::CONVERSION_FAILED}, or '' if no video is waiting.
+     */
+    public function video_conversion_status(int $userid, string $timing): string {
+        global $CFG, $DB;
+
+        if (!$this->has_converting_video($userid, $timing)) {
+            return '';
+        }
+        require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
+        $videoid = $DB->get_field('videoassessment_video_assocs', 'videoid', [
+            'videoassessment' => $this->instance,
+            'timing' => $timing,
+            'associationid' => $userid,
+        ], IGNORE_MULTIPLE);
+        $video = $DB->get_record('videoassessment_videos', ['id' => $videoid], '*', MUST_EXIST);
+        return \videoassessment_bulkupload::conversion_failed((int)$this->cm->id, $video)
+            ? self::CONVERSION_FAILED : self::CONVERSION_CONVERTING;
+    }
+
+    /**
+     * Notice about an uploaded video that is converting or could not be converted.
+     *
+     * @param int $userid The learner.
+     * @param string[] $timings The timing keys to check.
+     * @return string Notification HTML, or '' if there is nothing to say.
+     */
+    public function conversion_notification(int $userid, array $timings): string {
+        global $OUTPUT;
+
+        $statuses = array_map(fn($timing) => $this->video_conversion_status($userid, $timing), $timings);
+        if (in_array(self::CONVERSION_FAILED, $statuses, true)) {
+            return $OUTPUT->notification(
+                self::str('videoconversionfailed'),
+                \core\output\notification::NOTIFY_ERROR,
+                false
+            );
+        }
+        if (in_array(self::CONVERSION_CONVERTING, $statuses, true)) {
+            return $OUTPUT->notification(
+                self::str('videoconverting'),
+                \core\output\notification::NOTIFY_INFO,
+                false
+            );
+        }
+        return '';
+    }
+
+    /**
      * Determine grader type for the current user relative to graded user.
      *
      * @param int $gradeduserid The user being graded
@@ -1522,7 +1582,7 @@ class va {
      * @return void
      */
     private function associate_video($userid, $timing, $videoid, $associationtype = 1) {
-        global $DB;
+        global $DB, $USER;
 
         $this->disassociate_video($userid, $timing);
         $DB->insert_record('videoassessment_video_assocs', [
@@ -1531,8 +1591,10 @@ class va {
             'associationtype' => $associationtype,
             'timing' => $timing,
             'associationid' => $userid,
+            'teacherupload' => (int)$userid !== (int)$USER->id && $this->is_teacher() ? 1 : 0,
             'timemodified' => time(),
         ]);
+        aifeedback\attempt_manager::queue_video($this->va, (int)$videoid, (int)$userid);
     }
 
     /**
@@ -1698,11 +1760,16 @@ class va {
         ];
         if (!empty($cond['associationid']) && !empty($cond['timing'])) {
             if ($id = $DB->get_field('videoassessment_video_assocs', 'id', $cond)) {
-                $DB->set_field('videoassessment_video_assocs', 'videoid', $videoid, ['id' => $id]);
+                $DB->update_record('videoassessment_video_assocs', (object) [
+                    'id' => $id,
+                    'videoid' => $videoid,
+                    'teacherupload' => 1,
+                ]);
             } else {
-                $record = $cond + ['videoid' => $videoid];
+                $record = $cond + ['videoid' => $videoid, 'teacherupload' => 1];
                 $DB->insert_record('videoassessment_video_assocs', (object) $record);
             }
+            aifeedback\attempt_manager::queue_video($this->va, (int)$videoid, (int)$cond['associationid']);
         }
         $this->view_redirect(
             'videos',
@@ -1756,6 +1823,7 @@ class va {
             'videoid' => $data->videoid,
             'associationtype' => 1,
             'timing' => $data->timing,
+            'teacherupload' => 1,
         ];
         $ids = json_decode($data->assocdata);
         foreach ($ids as $item) {
@@ -1769,6 +1837,7 @@ class va {
             if ($item[1]) {
                 if (!$DB->record_exists('videoassessment_video_assocs', $cond)) {
                     $DB->insert_record('videoassessment_video_assocs', $assoc);
+                    aifeedback\attempt_manager::queue_video($this->va, (int)$data->videoid, (int)$assoc->associationid);
                 }
             } else {
                 $DB->delete_records('videoassessment_video_assocs', $cond);
@@ -1821,18 +1890,9 @@ class va {
             $o .= $gradetable->print_teacher_grade_table();
         } else {
             // Item #3: conversions run in the background now, so tell
-            // the learner their fresh upload is being processed rather
-            // than letting the page look as if nothing was uploaded.
-            foreach (['before', 'after'] as $timing) {
-                if ($this->has_converting_video($USER->id, $timing)) {
-                    $o .= $OUTPUT->notification(
-                        self::str('videoconverting'),
-                        \core\output\notification::NOTIFY_INFO,
-                        false
-                    );
-                    break;
-                }
-            }
+            // the learner their fresh upload is being processed, or could
+            // not be, rather than letting the page look as if nothing was uploaded.
+            $o .= $this->conversion_notification((int)$USER->id, ['before', 'after']);
             $trainingpassed = $DB->get_field('videoassessment_aggregation', 'passtraining', [
                 'videoassessment' => $this->va->id,
                 'userid' => $USER->id,
@@ -2442,6 +2502,10 @@ class va {
                     );
                     $templatearray = [
                         "[[student name]]" => $user->firstname . ' ' . $user->lastname,
+                        "[[assignment name]]" => $videoassessment->name,
+                        "[[current date]]" => date("Y-m-d H:i:s"),
+                        "[[link to student page to view assessment]]" => $url->out(false),
+                        // The old names, for templates in backups made before the rename.
                         "[[insert assignment name]]" => $videoassessment->name,
                         "[[insert current date]]" => date("Y-m-d H:i:s"),
                         "[[insert link to student page to view assessment]]" => $url->out(false),
@@ -2848,7 +2912,7 @@ class va {
             }
 
             // Adtis.
-            $o .= $OUTPUT->heading("General Comments");
+            $o .= $OUTPUT->heading(self::str('generalcomments'));
             $o .= \html_writer::start_tag('div', ['class' => 'card  card-body']);
             foreach ($this->gradertypes as $gradertype) {
                 if (
@@ -2922,11 +2986,11 @@ class va {
                     }
 
                     if ($gradertype == "peer") {
-                        $lable = '<span class="blue box">Peer</span>';
+                        $lable = '<span class="blue box">' . self::str('peer') . '</span>';
                     } else if ($gradertype == "teacher") {
-                        $lable = '<span class="green box">Teacher</span>';
+                        $lable = '<span class="green box">' . self::str('teacher') . '</span>';
                     } else if ($gradertype == "self") {
-                        $lable = '<span class="red box">Self</span>';
+                        $lable = '<span class="red box">' . self::str('self') . '</span>';
                     }
 
                     $o .= $OUTPUT->heading($lable . $comment);
@@ -2941,42 +3005,11 @@ class va {
                 . \html_writer::end_tag('div');
 
             if ($timinggrades || $rubrictextclass > 0) {
-                $totalscore = ' ='
-                    . \html_writer::start_tag('div', ['class' => 'comment-grade'])
-                    . '<span class="comment-score-text">'
-                    . self::str('totalscore')
-                    . '</span><span class="comment-score">'
-                    . (int) $usergrades->{'grade' . $timing}
-                    . '</span>'
-                    . \html_writer::end_tag('div');
-                $selffairnessbonus = '<span  class="fairness">+</span> '
-                    . \html_writer::start_tag('div', ['class' => 'comment-grade fairness'])
-                    . '<span class="comment-score-text" >'
-                    . '+' . self::str('selffairnessbonus')
-                    . '</span><span class="comment-score">'
-                    . (int) $usergrades->selffairnessbonus
-                    . '</span>'
-                    . \html_writer::end_tag('div');
-                $fairnessbonus = '<span  class="fairness">+</span> '
-                    . \html_writer::start_tag('div', ['class' => 'comment-grade fairness'])
-                    . '<span class="comment-score-text" >'
-                    . '+' . self::str('peerfairnessbonus')
-                    . '</span><span class="comment-score">'
-                    . (int) $usergrades->fairnessbonus
-                    . '</span>'
-                    . \html_writer::end_tag('div');
-                $finalscore = ' = '
-                    . \html_writer::start_tag('div', ['class' => 'comment-grade'])
-                    . '<span class="comment-score-text">'
-                    . self::str('finalscore')
-                    . '</span><span class="comment-score">'
-                    . (int) $usergrades->finalscore . '</span>'
-                    . \html_writer::end_tag('div');
                 $finalgradetext = get_string('grade', 'videoassessment') . ': '
                     . implode(', ', $timinggrades);
                 // Learners see the total under the same rule as the scores table.
                 if (!$islearner || $this->is_total_visible($usergrades, $timing)) {
-                    $finalgradetext .= $totalscore . $selffairnessbonus . $fairnessbonus . $finalscore;
+                    $finalgradetext .= $this->render_total_score($usergrades, $timing);
                 }
                 $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
             }
@@ -3355,6 +3388,39 @@ class va {
     }
 
     /**
+     * The total for the report and the print page.
+     *
+     * The bonuses and the final score appear only when a fairness bonus is in
+     * use. Without one the final score is never calculated, so showing it would
+     * read "90 + 0 + 0 = 0".
+     *
+     * @param \stdClass $agg Aggregated grades of the learner (see get_aggregated_grades()).
+     * @param string $timing 'before' or 'after'.
+     * @return string HTML
+     */
+    public function render_total_score(\stdClass $agg, string $timing = 'before'): string {
+        $part = function (string $label, $score, string $class = 'comment-grade'): string {
+            return \html_writer::start_tag('div', ['class' => $class])
+                . '<span class="comment-score-text">' . $label . '</span>'
+                . '<span class="comment-score">' . (int) $score . '</span>'
+                . \html_writer::end_tag('div');
+        };
+        $plus = '<span class="fairness">+</span> ';
+
+        $o = ' =' . $part(self::str('totalscore'), $agg->{'grade' . $timing});
+        if (!empty($this->va->selffairnessbonus)) {
+            $o .= $plus . $part('+' . self::str('selffairnessbonus'), $agg->selffairnessbonus, 'comment-grade fairness');
+        }
+        if (!empty($this->va->fairnessbonus)) {
+            $o .= $plus . $part('+' . self::str('peerfairnessbonus'), $agg->fairnessbonus, 'comment-grade fairness');
+        }
+        if (!empty($this->va->selffairnessbonus) || !empty($this->va->fairnessbonus)) {
+            $o .= ' = ' . $part(self::str('finalscore'), $agg->finalscore);
+        }
+        return $o;
+    }
+
+    /**
      * Whether "Delayed Teacher Grade" currently hides the teacher's
      * assessment from the learner who owns the video.
      *
@@ -3462,6 +3528,7 @@ class va {
         ]);
         foreach ($assocs as $assoc) {
             $DB->delete_records('videoassessment_video_assocs', ['id' => $assoc->id]);
+            aifeedback\attempt_manager::delete_video_attempts($this->instance, $this->context->id, $assoc->videoid, $userid);
             if (
                 !$DB->record_exists('videoassessment_video_assocs', ['videoid' => $assoc->videoid])
                 && $DB->record_exists('videoassessment_videos', ['id' => $assoc->videoid])
@@ -3514,6 +3581,7 @@ class va {
         global $DB;
 
         $agg = $this->get_aggregated_grades($userid);
+        $previoustotal = (int) $agg->gradebefore;
 
         foreach ($this->timings as $timing) {
             foreach ($this->gradertypes as $gradingtype) {
@@ -3653,26 +3721,75 @@ class va {
                 ? 100 : ($agg->selffairnessbonus + $agg->fairnessbonus + $agg->gradebefore);
         }
 
-        if ($rawgrade > 0) {
+        if ($this->has_weighted_assessment($agg)) {
             $this->update_grade_item(
                 [
                     'userid' => $userid,
                     'rawgrade' => $rawgrade,
                 ]
             );
+            $this->sync_gradebook_visibility($userid, $agg);
 
             // Update completion state.
             $completion = new \completion_info($this->course);
             if (
-                $completion->is_enabled($this->cm) && $this->cm->completion == COMPLETION_TRACKING_AUTOMATIC
+                $rawgrade > 0 && $completion->is_enabled($this->cm) && $this->cm->completion == COMPLETION_TRACKING_AUTOMATIC
                 && ($rawgrade >= $va->gradepass_videoassessment)
             ) {
                 $completion->update_state($this->cm, COMPLETION_COMPLETE);
             }
+        } else if ($previoustotal > 0) {
+            // What the old total was made of no longer counts, so it must not stay in the gradebook.
+            $this->update_grade_item(['userid' => $userid, 'rawgrade' => null]);
         }
 
         $agg->timemodified = time();
         $DB->update_record('videoassessment_aggregation', $agg);
+    }
+
+    /**
+     * Whether the total has anything in it: an assessment in an area that carries weight.
+     *
+     * Without one the total is a calculated 0, not a grade of 0.
+     *
+     * @param \stdClass $agg Aggregated grades of the learner.
+     * @return bool
+     */
+    private function has_weighted_assessment(\stdClass $agg): bool {
+        foreach (['teacher', 'self', 'peer', 'class'] as $gradertype) {
+            if ((int) $this->va->{'rating' . $gradertype} > 0 && (int) $agg->{'gradebefore' . $gradertype} >= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Hide from the learner, in Moodle's gradebook, a grade the activity still hides from them.
+     *
+     * The grade stays in the gradebook, so the teacher can see and export it. A hidden
+     * flag the teacher set on this one grade by hand is replaced, as the activity's own rule decides.
+     *
+     * @param int $userid The learner.
+     * @param \stdClass $agg Aggregated grades of the learner.
+     * @return void
+     */
+    private function sync_gradebook_visibility(int $userid, \stdClass $agg): void {
+        $item = \grade_item::fetch([
+            'itemtype' => 'mod',
+            'itemmodule' => 'videoassessment',
+            'iteminstance' => $this->instance,
+            'itemnumber' => 0,
+            'courseid' => $this->course->id,
+        ]);
+        $grade = $item ? \grade_grade::fetch(['itemid' => $item->id, 'userid' => $userid]) : false;
+        if (!$grade) {
+            return;
+        }
+        $hidden = $this->is_teacher_grade_hidden_from_learner($agg) ? 1 : 0;
+        if ((int) $grade->hidden !== $hidden) {
+            $grade->set_hidden($hidden);
+        }
     }
 
     /**

@@ -7,6 +7,132 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 
 ## [Unreleased]
 
+### Transcripts by email (release 1.3.0-beta6, build `2026111000`)
+
+#### Added
+- **Learners get the transcript of a submitted video by email.** When AI feedback
+  on a submitted video finishes, the learner gets a Moodle notification (new message
+  provider `aifeedback`, popup and email on by default) with the transcript first and
+  then the AI's comments, and a link to the AI feedback page. It is written in the
+  learner's language. The transcript is sent even when the AI could not comment on it.
+  Practice recordings send nothing, as their feedback appears on the page the learner
+  is on.
+
+#### Changed
+- **The AI no longer waits for the video's conversion.** The sound is taken from the
+  original upload while the conversion runs, so the transcript no longer waits for the
+  conversion, which takes about as long as the video. On the test site (cron every
+  minute, Moodle's default keep-alive) a 57-second video took 15 seconds from upload
+  to notification, with the conversion running alongside. A lock keeps
+  the task queued at upload and the one queued after the conversion from sending the
+  same video twice.
+- **Help texts describe submitted videos first.** *Give learners AI feedback on their
+  speech*, *Also send submitted videos for AI feedback automatically*, the practice
+  page's introduction and the note above the AI policy now say that learners submit
+  a video and get its transcript by email, rather than that they upload audio files.
+
+### Grading fixes (release 1.3.0-beta5, build `2026110204`)
+
+#### Fixed
+- **Report and print page.** With no fairness bonus in use they said "Total Score 90 +
+  Self Fairness Bonus 0 + Peer Fairness Bonus 0 = Final Score 0". The bonuses and the
+  final score now appear only for a bonus that is switched on. The print page also
+  left out the self fairness bonus; it now shows the same parts as the report.
+- **The gradebook kept an old grade when the total fell to 0.** It now follows the
+  total down to 0. A learner with no assessment that counts still gets no grade, and
+  a grade whose assessments have stopped counting is cleared.
+- **Delayed Teacher Grade did not apply to Moodle's gradebook.** The learner could read
+  the score there while the activity's pages hid it. The grade is now hidden from the
+  learner until they have self-assessed; the teacher still sees it in the grader
+  report. With Moodle's default settings the learner's course total shows "-" for that
+  time, because it contains a hidden grade. Changing the
+  setting applies to the grades already there, and the upgrade queues an ad-hoc task
+  (`regrade_activity`) per activity to apply this to existing grades at the next cron run.
+
+### AI feedback on submitted videos (release 1.3.0-beta4, build `2026110203`)
+
+#### Added
+- **Submitted videos get AI feedback automatically.** The new activity setting
+  *Also send submitted videos for AI feedback automatically* (`aifeedbackauto`,
+  on by default) sends a learner's submitted video through the same transcription
+  and AI as the practice page. This needs ffmpeg, like video conversion.
+  - Only the sound is sent: ffmpeg extracts it first, so the picture stays on the
+    site and the 25 MB limit applies to the audio, not to the video.
+  - It runs only for learners who have accepted the AI usage policy. Others get it
+    when they accept. The site setting *Count uploads by teachers as accepted* (off
+    by default) also sends a video a teacher submits for a learner who has not
+    accepted. Nothing is recorded as accepted on the learner's behalf, so they still
+    have to accept to use the practice page. The new column
+    `videoassessment_video_assocs.teacherupload` marks those videos.
+  - The teacher's overview counts them from the start, for example "2 (of which 1
+    being analysed by AI)", and shows videos waiting for the learner's acceptance.
+  - It runs once per video and learner, in an ad-hoc task, so feedback appears after
+    the site's next cron run. The new column
+    `videoassessment_aifb_attempts.videoid` links the attempt to the video.
+  - The attempt is labelled *From the submitted video* on the AI feedback page.
+  - External video links are not analysed. A restore sends nothing to the AI.
+  - A video with no readable sound leaves a failed attempt with a message.
+  - Deleting a video, or resetting a learner's submission, deletes the attempts made from it.
+
+#### Fixed
+- **Activity settings could not be saved behind a web application firewall.** The
+  placeholders of the default notification e-mails began with "[[insert", which
+  OWASP CRS rule 942360 takes for SQL, so saving the activity form answered 403. They
+  are now `[[assignment name]]`, `[[current date]]`,
+  `[[link to student page to view assessment]]` and `[[link to self-assessment page]]`.
+  The upgrade renames them in stored templates. The old names still work in mails.
+- **The page stayed on "Converting" after the video was ready.** The scores page
+  now reloads every 15 seconds while a video is converting, unless a dialogue is open
+  or the user is typing.
+- **Video conversion now runs in cron and needs it.** Conversion used to run in a
+  background web request (`bulkupload/async.php`, now removed), where a memory limit
+  such as LiteSpeed's 1 GB makes ffmpeg fail with "Error while opening encoder" even
+  with few threads. The new ad-hoc task `convert_uploaded_video` runs it for every
+  upload path. Videos appear after the site's next cron run, so run cron every
+  minute, as Moodle recommends. A failure is final and shown to the user.
+- **An unconverted video could look ready.** Once an activity held any other
+  video, the file API returned the area's folder for a video with no file name, so
+  the video was listed with no file behind it and no "converting" notice appeared.
+- **A failed video conversion looked as if nothing had been uploaded.** Videos
+  that are not converted are not listed, so a teacher who uploaded for a learner
+  saw no change at all, and a learner was told "being converted" forever. The
+  scores table now shows *Converting...* or *Conversion failed* next to the upload
+  button for the teacher and the learner, and the upload page and the learner's
+  page show the same as a notice. A conversion counts as failed when it left an
+  error, when its source file is gone, or when it has not finished after an hour.
+
+### Language packs (release 1.3.0-beta3, build `2026110200`)
+
+Text written directly in the code stayed in English whatever the user's
+language; it now comes from the language packs.
+
+#### Fixed
+- **Text moved to the language packs (English and Japanese):** the peer
+  assignment messages, the bulk upload status labels, the "Create or select
+  rubric" heading, "General Comments", the Peer / Teacher / Self labels on the
+  mobile comments, "Notify student", "Delete video", "Save and return to
+  settings", the submission status heading, the 0-100 grade error, the embedded
+  video title and the name of the rubric worksheet in the export.
+- **The heading on the advanced grading page changes in every language.** It
+  was compared with the English text "Advanced grading", so it never changed in
+  a translated site.
+- **Japanese:** the 38 strings that were missing are translated.
+- **"Processing recording..." label on iOS.** The string did not exist, so the
+  button kept showing "Stop Recording" while the file was processed.
+
+#### Changed
+- Capitalisation: "save and return to settings", "notify student" and
+  "Delete Video" are now "Save and return to settings", "Notify student" and
+  "Delete video".
+
+#### Added
+- `tests/lang_test.php` fails when the English and Japanese packs have different
+  keys or placeholders, or when the code uses a string that does not exist.
+
+#### Known limitations
+- Technical details appended to recording errors, such as "(recorder failed to
+  start ...)", stay in English for support purposes.
+
 ### AI speech feedback, stage 1: audio only (release 1.3.0-beta2, build `2026102700`)
 
 Agreed at the October 2026 meeting: the first year of AI feedback works on

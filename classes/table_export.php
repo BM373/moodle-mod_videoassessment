@@ -94,7 +94,7 @@ class table_export {
 
         $workbook = new \MoodleExcelWorkbook('-');
         $workbook->send($this->filename);
-        $xls = $workbook->add_worksheet('Rubric');
+        $xls = $workbook->add_worksheet(get_string('pluginname', 'gradingform_rubric'));
 
         for ($row = 0; $row < $this->rows; $row++) {
             for ($column = 0; $column < $this->columns; $column++) {

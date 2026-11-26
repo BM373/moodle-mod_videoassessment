@@ -31,16 +31,14 @@ namespace mod_videoassessment;
  * The single-video upload paths ran the whole FFmpeg conversion
  * synchronously inside the upload POST, so the XHR response — and with
  * it the "uploading…" overlay — was held open for the entire
- * multi-minute conversion. The fix dispatches the conversion to
- * bulkupload/async.php (the mechanism the bulk uploader has always
- * used) and responds as soon as the file is saved. These tests pin:
+ * multi-minute conversion. Conversions now run in cron, and the upload
+ * responds as soon as the file is saved. These tests pin:
  *
- * - the async callback URL / token construction,
+ * - the conversion is queued for cron and has no web endpoint,
  * - the converting-state detector that backs the learner-facing
  *   "video is being converted" notice,
  * - static wiring contracts (no synchronous convert() in the upload
- *   handler, async.php stays a cookieless token endpoint, the JS
- *   watchdog exists).
+ *   handler, the JS watchdog exists).
  */
 final class upload_async_test extends \advanced_testcase {
     /**
@@ -106,33 +104,34 @@ final class upload_async_test extends \advanced_testcase {
     }
 
     /**
-     * The async callback URL must target bulkupload/async.php with the
-     * cmid, the temp filename and the site-identifier token that
-     * async.php verifies.
+     * An upload queues its conversion for cron, once.
      *
-     * @covers \videoassessment_bulkupload::build_async_convert_url
+     * @covers \videoassessment_bulkupload::queue_conversion
      */
-    public function test_build_async_convert_url(): void {
+    public function test_queue_conversion(): void {
         global $CFG;
         require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
         $this->resetAfterTest();
         ['cm' => $cm] = $this->make_activity();
 
         $upload = new \videoassessment_bulkupload($cm->id);
-        $url = $upload->build_async_convert_url('20991231-clip.webm');
+        $upload->queue_conversion('clip.webm');
+        $upload->queue_conversion('clip.webm');
 
-        $this->assertStringEndsWith(
-            '/mod/videoassessment/bulkupload/async.php',
-            $url->out_omit_querystring()
-        );
-        $params = $url->params();
-        $this->assertSame((string) $cm->id, (string) $params['cmid']);
-        $this->assertSame('20991231-clip.webm', $params['file']);
-        $this->assertSame(
-            md5('20991231-clip.webm' . get_site_identifier()),
-            $params['token'],
-            'The token must match what async.php recomputes server-side.'
-        );
+        $tasks = array_values(\core\task\manager::get_adhoc_tasks(task\convert_uploaded_video::class));
+        $this->assertCount(1, $tasks);
+        $this->assertSame((int) $cm->id, (int) $tasks[0]->get_custom_data()->cmid);
+        $this->assertSame('clip.webm', $tasks[0]->get_custom_data()->file);
+    }
+
+    /**
+     * ffmpeg must not run in a web request: hosts can limit their memory so
+     * much that it cannot start, so there is no endpoint that runs it.
+     *
+     * @coversNothing
+     */
+    public function test_conversion_has_no_web_endpoint(): void {
+        $this->assertFileDoesNotExist(__DIR__ . '/../bulkupload/async.php');
     }
 
     /**
@@ -209,6 +208,194 @@ final class upload_async_test extends \advanced_testcase {
     }
 
     /**
+     * Put a file in the activity's temporary folder.
+     *
+     * @param int $cmid Course module id.
+     * @param string $path Path inside the activity's temporary folder.
+     * @return void
+     */
+    private function touch_temp_file(int $cmid, string $path): void {
+        $file = make_temp_directory('videoassessment/' . $cmid . '/' . dirname($path)) . '/' . basename($path);
+        file_put_contents($file, 'x');
+    }
+
+    /**
+     * Age an inserted video, which helps to tell a running conversion from one that never finished.
+     *
+     * @param int $videoid Video id.
+     * @param int $age Age in seconds.
+     * @return void
+     */
+    private function set_video_age(int $videoid, int $age): void {
+        global $DB;
+        $DB->set_field('videoassessment_videos', 'timecreated', time() - $age, ['id' => $videoid]);
+    }
+
+    /**
+     * An unconverted video has no file name. Once the activity holds any other
+     * video, Moodle's file API answers an empty name with the folder itself,
+     * which must not make the video look ready.
+     *
+     * @covers \mod_videoassessment\video
+     * @covers \mod_videoassessment\va::get_associated_video
+     */
+    public function test_unconverted_video_beside_other_videos(): void {
+        global $DB;
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity, 'cm' => $cm, 'context' => $context] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+        get_file_storage()->create_file_from_string([
+            'contextid' => $context->id,
+            'component' => 'mod_videoassessment',
+            'filearea' => 'video',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'another.mp4',
+        ], 'content');
+
+        // The row as video_data_add() really leaves it: no path and no name.
+        $videoid = $this->insert_video_with_assoc($activity, $user, 'conv7.mp4', '');
+        $DB->set_field('videoassessment_videos', 'filepath', '', ['id' => $videoid]);
+        $this->set_video_age($videoid, 10);
+        $this->touch_temp_file((int) $cm->id, 'upload/conv7.mp4');
+
+        $this->assertTrue($va->has_converting_video($user, 'before'));
+        $this->assertNull($va->get_associated_video($user, 'before'));
+        $this->assertSame(va::CONVERSION_CONVERTING, $va->video_conversion_status($user, 'before'));
+    }
+
+    /**
+     * A recent upload whose source file is waiting for ffmpeg is converting.
+     *
+     * @covers \mod_videoassessment\va::video_conversion_status
+     */
+    public function test_conversion_status_while_converting(): void {
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity, 'cm' => $cm] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+
+        $videoid = $this->insert_video_with_assoc($activity, $user, 'conv1.mp4', '');
+        $this->set_video_age($videoid, 10);
+        $this->touch_temp_file((int) $cm->id, 'upload/conv1.mp4');
+
+        $this->assertSame(va::CONVERSION_CONVERTING, $va->video_conversion_status($user, 'before'));
+    }
+
+    /**
+     * Failed uploads must not be shown as converting: this is what the demo
+     * site did when ffmpeg was missing, so the page never changed.
+     *
+     * @covers \mod_videoassessment\va::video_conversion_status
+     * @covers \videoassessment_bulkupload::conversion_failed
+     */
+    public function test_conversion_status_when_ffmpeg_failed(): void {
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity, 'cm' => $cm] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+
+        $videoid = $this->insert_video_with_assoc($activity, $user, 'conv2.mp4', '');
+        $this->set_video_age($videoid, 10);
+        $this->touch_temp_file((int) $cm->id, 'upload/conv2.mp4');
+        $this->touch_temp_file((int) $cm->id, 'convert/conv2.err');
+
+        $this->assertSame(va::CONVERSION_FAILED, $va->video_conversion_status($user, 'before'));
+    }
+
+    /**
+     * Without its source file a video can never be converted any more.
+     *
+     * @covers \videoassessment_bulkupload::conversion_failed
+     */
+    public function test_conversion_status_when_source_is_gone(): void {
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+
+        $videoid = $this->insert_video_with_assoc($activity, $user, 'conv3.mp4', '');
+        $this->set_video_age($videoid, 10);
+
+        $this->assertSame(va::CONVERSION_FAILED, $va->video_conversion_status($user, 'before'));
+    }
+
+    /**
+     * A conversion that never finished, such as a lost background request, counts as failed.
+     *
+     * @covers \videoassessment_bulkupload::conversion_failed
+     */
+    public function test_conversion_status_after_timeout(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity, 'cm' => $cm] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+
+        $videoid = $this->insert_video_with_assoc($activity, $user, 'conv4.mp4', '');
+        $this->touch_temp_file((int) $cm->id, 'upload/conv4.mp4');
+
+        $this->set_video_age($videoid, \videoassessment_bulkupload::CONVERSION_TIMEOUT - 60);
+        $this->assertSame(va::CONVERSION_CONVERTING, $va->video_conversion_status($user, 'before'));
+
+        $this->set_video_age($videoid, \videoassessment_bulkupload::CONVERSION_TIMEOUT + 60);
+        $this->assertSame(va::CONVERSION_FAILED, $va->video_conversion_status($user, 'before'));
+    }
+
+    /**
+     * No status for a learner without a video or with an external link.
+     *
+     * @covers \mod_videoassessment\va::video_conversion_status
+     */
+    public function test_conversion_status_without_pending_video(): void {
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+
+        $this->assertSame('', $va->video_conversion_status($user, 'before'));
+
+        $this->insert_video_with_assoc($activity, $user, 'Youtube', '');
+        $this->assertSame('', $va->video_conversion_status($user, 'before'));
+    }
+
+    /**
+     * The notice says what happened, and a failure wins over another timing still converting.
+     *
+     * @covers \mod_videoassessment\va::conversion_notification
+     */
+    public function test_conversion_notification(): void {
+        global $DB;
+        $this->resetAfterTest();
+        ['va' => $va, 'activity' => $activity, 'cm' => $cm] = $this->make_activity();
+        $user = (int) $this->getDataGenerator()->create_user()->id;
+
+        $this->assertSame('', $va->conversion_notification($user, ['before', 'after']));
+
+        $videoid = $this->insert_video_with_assoc($activity, $user, 'conv5.mp4', '');
+        $this->set_video_age($videoid, 10);
+        $this->touch_temp_file((int) $cm->id, 'upload/conv5.mp4');
+        $notice = $va->conversion_notification($user, ['before', 'after']);
+        $this->assertStringContainsString(get_string('videoconverting', 'videoassessment'), $notice);
+
+        $second = $this->insert_video_with_assoc($activity, $user, 'conv6.mp4', '');
+        $DB->set_field('videoassessment_video_assocs', 'timing', 'after', ['videoid' => $second]);
+        $this->set_video_age($second, 10);
+        $notice = $va->conversion_notification($user, ['before', 'after']);
+        $this->assertStringContainsString(get_string('videoconversionfailed', 'videoassessment'), $notice);
+        $this->assertStringNotContainsString(get_string('videoconverting', 'videoassessment'), $notice);
+    }
+
+    /**
+     * Teachers upload on a learner's behalf, so they need the status too:
+     * they used to see nothing at all after a failed conversion.
+     *
+     * @coversNothing
+     */
+    public function test_status_is_shown_to_teachers(): void {
+        $vaphp = file_get_contents(__DIR__ . '/../classes/va.php');
+        $this->assertStringContainsString('$this->conversion_notification($targetuser, [$targettiming])', $vaphp);
+        $table = file_get_contents(__DIR__ . '/../classes/grade_table.php');
+        $this->assertStringContainsString('$this->va->video_conversion_status(', $table);
+    }
+
+    /**
      * Static wiring contract: the upload handler must dispatch the
      * conversion in the background. A synchronous $upload->convert()
      * call in view_upload_video() would silently bring the endless
@@ -226,10 +413,10 @@ final class upload_async_test extends \advanced_testcase {
                 . 'uploading circle" the customers reported.'
         );
         $this->assertStringContainsString(
-            '$upload->dispatch_async_convert(',
+            '$upload->queue_conversion(',
             $vaphp,
-            'view_upload_video() must dispatch conversions through '
-                . 'dispatch_async_convert().'
+            'view_upload_video() must leave conversions to cron through '
+                . 'queue_conversion().'
         );
         $this->assertStringContainsString(
             "self::str('videoconverting')",
@@ -237,36 +424,6 @@ final class upload_async_test extends \advanced_testcase {
             'The learner-facing "being converted" notice must be '
                 . 'rendered so an in-flight conversion does not look '
                 . 'like a failed upload.'
-        );
-    }
-
-    /**
-     * Static wiring contract: async.php is a cookieless server-to-
-     * server callback. A require_login() there redirects the
-     * cookieless dispatch to the login page and conversions silently
-     * never run.
-     *
-     * @coversNothing
-     */
-    public function test_async_endpoint_is_cookieless_token_callback(): void {
-        $async = file_get_contents(__DIR__ . '/../bulkupload/async.php');
-        $this->assertStringContainsString(
-            "define('NO_MOODLE_COOKIES', true)",
-            $async,
-            'async.php must run cookieless — it is called by a raw '
-                . 'fire-and-forget socket with no session.'
-        );
-        $this->assertStringNotContainsString(
-            'require_login()',
-            $async,
-            'async.php must not require a login: the dispatching '
-                . 'socket has no session cookie, so require_login() '
-                . 'redirects and the conversion never runs.'
-        );
-        $this->assertStringContainsString(
-            'md5($file . get_site_identifier())',
-            $async,
-            'async.php must keep validating the site-identifier token.'
         );
     }
 

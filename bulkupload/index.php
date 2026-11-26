@@ -54,6 +54,13 @@ $va = new mod_videoassessment\va($context, $cm, $course);
 echo $va->output->task_link($va);
 
 echo $OUTPUT->render_from_template('mod_videoassessment/bulkupload_droparea', []);
+$PAGE->requires->strings_for_js([
+    'bulkstatus_complete',
+    'bulkstatus_converting',
+    'bulkstatus_error',
+    'bulkstatus_queued',
+    'bulkstatus_uploading',
+], 'mod_videoassessment');
 $PAGE->requires->js_call_amd('mod_videoassessment/bulkupload', 'init', [$cmid]);
 
 echo html_writer::tag(

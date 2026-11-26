@@ -8,6 +8,15 @@
  */
 /* global bootstrap */
 define(['jquery'], function($) {
+    /**
+     * Text from the language pack. mod_form.php loads these strings for the page.
+     *
+     * @param {string} key String identifier.
+     * @param {*} [a] Value for the placeholders.
+     * @return {string} The text in the user's language.
+     */
+    const langString = (key, a) => M.util.get_string(key, 'mod_videoassessment', a);
+
     let students = {};
     let allUsers = {}; // Includes students + teachers for name lookups.
     let peerAssignments = {};
@@ -402,7 +411,7 @@ define(['jquery'], function($) {
 
             // If still no name found, use a fallback.
             if (!peername) {
-                peername = 'User ' + peeridNum;
+                peername = M.util.get_string('user', 'moodle') + ' ' + peeridNum;
             }
 
             const badge = $('<span class="peer-badge badge bg-secondary text-dark me-1 mb-1"></span>')
@@ -464,14 +473,12 @@ define(['jquery'], function($) {
         const studentIds = Object.keys(students).map(Number);
 
         if (studentIds.length <= numPeers) {
-            alert('Not enough students to assign ' + numPeers + ' peers each.');
+            alert(langString('peerassign_notenoughstudents', numPeers));
             return;
         }
 
         // Confirm before proceeding.
-        const confirmMsg = 'This will reset all peer assignments and assign '
-            + numPeers + ' random peer(s) to each student. Continue?';
-        if (!confirm(confirmMsg)) {
+        if (!confirm(langString('peerassign_confirmcourse', numPeers))) {
             return;
         }
 
@@ -523,7 +530,7 @@ define(['jquery'], function($) {
         let group = groups[groupIdNum] || groups[groupId] || groups[String(groupId)];
 
         if (!group) {
-            alert('Group not found. Please try again.');
+            alert(langString('peerassign_groupnotfound'));
             return;
         }
 
@@ -532,25 +539,19 @@ define(['jquery'], function($) {
 
         // Need at least (numPeers + 1) members in the group to assign numPeers peers to each.
         if (groupMembers.length <= numPeers) {
-            const maxPossiblePeers = Math.max(0, groupMembers.length - 1);
-            let errorMsg = 'Not enough members in group "' + group.name
-                + '" to assign ' + numPeers + ' peer(s) to each member.';
-            if (groupMembers.length > 0) {
-                errorMsg += ' The group has ' + groupMembers.length
-                    + ' member(s), so each member can have at most '
-                    + maxPossiblePeers + ' peer(s).';
-            } else {
-                errorMsg += ' The group has no members.';
-            }
-            alert(errorMsg);
+            const sizes = {
+                group: group.name,
+                count: numPeers,
+                members: groupMembers.length,
+                max: Math.max(0, groupMembers.length - 1),
+            };
+            alert(langString('peerassign_notenoughmembers', sizes) + ' '
+                + (groupMembers.length > 0 ? langString('peerassign_groupsize', sizes) : langString('peerassign_groupempty')));
             return;
         }
 
         // Confirm before proceeding.
-        const groupConfirmMsg = 'This will reset peer assignments for all members in "'
-            + group.name + '" and assign ' + numPeers
-            + ' random peer(s) from within the group. Continue?';
-        if (!confirm(groupConfirmMsg)) {
+        if (!confirm(langString('peerassign_confirmgroup', {group: group.name, count: numPeers}))) {
             return;
         }
 
@@ -741,7 +742,7 @@ define(['jquery'], function($) {
                             dropdownBtn.attr('aria-expanded', 'false');
                         }
                     } else {
-                        alert('Invalid group selected. Please try again.');
+                        alert(langString('peerassign_invalidgroup'));
                     }
                 });
 
