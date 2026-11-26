@@ -10,7 +10,7 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
 ### GitHub releases from `version.php`
 
 #### Added
-- **A push to `main` whose CI passes publishes a GitHub release.** The new job
+- **A push to `main` whose CI passes publishes a GitHub release.** The job
   *Release from version.php* in `moodle-ci.yml` runs after every other job has
   passed. It takes `$plugin->release` from `version.php`, tags the commit with
   the version at its start (`1.3.0-beta6 (Build: 2026111000)` becomes the tag
@@ -18,6 +18,16 @@ and (from this fork onwards) uses [Semantic Versioning](https://semver.org/spec/
   a suffix such as `-beta6` is marked as a pre-release. The notes link to this
   changelog and list the merged pull requests. When that release already exists,
   nothing is published, so a new release needs a new `$plugin->release`.
+- **The release carries a plugin ZIP that CI has installed.** The job *Package
+  the plugin ZIP* builds `mod_videoassessment-<version>.zip` with one folder,
+  `videoassessment`, as Moodle expects. Files marked `export-ignore` in
+  `.gitattributes` (`.github`, `.gitattributes`, `.gitignore`) are left out of it
+  and of GitHub's source archives. The jobs *Install the ZIP on
+  MOODLE_405_STABLE* and *MOODLE_503_STABLE* install it on a fresh site the way
+  *Site administration > Plugins > Install plugins > Install plugin from ZIP
+  file* does (`.github/scripts/zip_install_check.php`), run the upgrade, create an
+  activity and check the database schema. They run on pull requests too, and the
+  release waits for them.
 
 ### Transcripts by email (release 1.3.0-beta6, build `2026111000`)
 

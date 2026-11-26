@@ -174,11 +174,182 @@ jobs:
           echo "100% line coverage will be enforced via phpunit.xml.dist <coverage>"
           echo "and a follow-up CLI check, once test files start landing."
 
+  package:
+    # Builds the plugin ZIP that a release publishes. It runs on every push and
+    # pull request, so install-check tests the package before anything is merged.
+    name: Package the plugin ZIP
+    runs-on: ubuntu-22.04
+    outputs:
+      release: ${{ steps.meta.outputs.release }}
+      version: ${{ steps.meta.outputs.version }}
+      build: ${{ steps.meta.outputs.build }}
+      tag: ${{ steps.meta.outputs.tag }}
+      zip: ${{ steps.meta.outputs.zip }}
+    steps:
+      - name: Check out plugin code
+        uses: actions/checkout@v5
+
+      - name: Read version.php
+        id: meta
+        run: |
+          set -euo pipefail
+          php --version | head -n 1
+          # version.php needs the constants Moodle defines before it reads the file.
+          read_plugin() {
+            php -r '
+              define("MOODLE_INTERNAL", true);
+              define("MATURITY_ALPHA", 50);
+              define("MATURITY_BETA", 100);
+              define("MATURITY_RC", 150);
+              define("MATURITY_STABLE", 200);
+              $plugin = new stdClass();
+              require "version.php";
+              echo $plugin->{$argv[1]} ?? "";
+            ' "$1"
+          }
+          release=$(read_plugin release)
+          build=$(read_plugin version)
+          # "1.3.0-beta6 (Build: 2026111000)" -> version 1.3.0-beta6, tag v1.3.0-beta6.
+          version=${release%% *}
+          if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error file=version.php::\$plugin->release '$release' does not start with a version such as 1.2.3 or 1.2.3-beta1."
+            exit 1
+          fi
+          if ! [[ $build =~ ^[0-9]{10}$ ]]; then
+            echo "::error file=version.php::\$plugin->version '$build' is not a 10-digit build number."
+            exit 1
+          fi
+          {
+            echo "release=$release"
+            echo "version=$version"
+            echo "build=$build"
+            echo "tag=v$version"
+            echo "zip=mod_videoassessment-$version.zip"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build the ZIP
+        env:
+          ZIP: ${{ steps.meta.outputs.zip }}
+        run: |
+          set -euo pipefail
+          # The ZIP holds one folder named after the plugin, as Moodle expects.
+          # Files marked export-ignore in .gitattributes are left out.
+          git archive --format=zip --prefix=videoassessment/ -o "$ZIP" HEAD
+          unzip -l "$ZIP" | tail -n 1
+          if unzip -Z1 "$ZIP" | grep -E '^videoassessment/\.(github|gitattributes|gitignore)'; then
+            echo "::error::Development files are in $ZIP."
+            exit 1
+          fi
+
+      - name: Keep the ZIP for the next jobs
+        uses: actions/upload-artifact@v6
+        with:
+          name: plugin-zip
+          path: ${{ steps.meta.outputs.zip }}
+          if-no-files-found: error
+          retention-days: 7
+
+  install-check:
+    # Installs the ZIP on a fresh Moodle the way an administrator does
+    # (Site administration > Plugins > Install plugins > Install plugin from
+    # ZIP file), then creates an activity and checks the database schema.
+    name: Install the ZIP on ${{ matrix.moodle-branch }}
+    needs: package
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        moodle-branch:
+          - 'MOODLE_405_STABLE'
+          - 'MOODLE_503_STABLE'
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: 'postgres'
+          POSTGRES_HOST_AUTH_METHOD: 'trust'
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=8
+
+    env:
+      MOODLE_BRANCH: ${{ matrix.moodle-branch }}
+      ZIP: ${{ needs.package.outputs.zip }}
+      BUILD: ${{ needs.package.outputs.build }}
+
+    steps:
+      - name: Check out the check script
+        uses: actions/checkout@v5
+        with:
+          path: plugin
+
+      - name: Get the ZIP from the package job
+        uses: actions/download-artifact@v6
+        with:
+          name: plugin-zip
+          path: zip
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pgsql, gd, zip, intl, soap, sodium
+          ini-values: max_input_vars=5000
+          coverage: none
+
+      - name: Install a fresh Moodle without the plugin
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch "$MOODLE_BRANCH" https://github.com/moodle/moodle.git moodle
+          # From Moodle 5.1 the code lives in public/ and needs Composer's packages.
+          if [ -d moodle/public ]; then
+            composer install --no-dev --no-interaction --no-progress --prefer-dist --working-dir=moodle
+          fi
+          mkdir -p moodledata
+          cat > moodle/config.php <<PHP
+          <?php
+          unset(\$CFG);
+          global \$CFG;
+          \$CFG = new stdClass();
+          \$CFG->dbtype = 'pgsql';
+          \$CFG->dblibrary = 'native';
+          \$CFG->dbhost = '127.0.0.1';
+          \$CFG->dbname = 'moodle';
+          \$CFG->dbuser = 'postgres';
+          \$CFG->dbpass = '';
+          \$CFG->prefix = 'mdl_';
+          \$CFG->dboptions = [];
+          \$CFG->wwwroot = 'http://localhost';
+          \$CFG->dataroot = '$GITHUB_WORKSPACE/moodledata';
+          \$CFG->admin = 'admin';
+          \$CFG->directorypermissions = 02777;
+          require_once(__DIR__ . '/lib/setup.php');
+          PHP
+          createdb -h 127.0.0.1 -U postgres -E UTF8 moodle
+          php moodle/admin/cli/install_database.php --agree-license \
+            --adminuser=admin --adminpass="$(openssl rand -hex 12)Aa1!" --adminemail=admin@example.com \
+            --fullname="ZIP install check" --shortname=zipcheck | tail -n 1
+          php -r 'define("CLI_SCRIPT", true); require "moodle/config.php"; echo "Moodle ", $CFG->release, PHP_EOL;'
+
+      - name: Install the plugin from the ZIP
+        run: |
+          set -euo pipefail
+          php plugin/.github/scripts/zip_install_check.php install "$PWD/moodle/config.php" "$PWD/zip/$ZIP"
+          php moodle/admin/cli/upgrade.php --non-interactive | tail -n 1
+          php plugin/.github/scripts/zip_install_check.php verify "$PWD/moodle/config.php" "$BUILD"
+          php moodle/admin/cli/check_database_schema.php
+
   release:
     # After every job above has passed on a push to main, publish a GitHub release
-    # named after $plugin->release in version.php, unless that release exists.
+    # named after $plugin->release in version.php, with the checked ZIP attached,
+    # unless that release exists.
     name: Release from version.php
-    needs: [test, coverage-gate]
+    needs: [test, coverage-gate, package, install-check]
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-22.04
     permissions:
@@ -187,46 +358,35 @@ jobs:
       group: release
       cancel-in-progress: false
     steps:
-      - name: Check out plugin code
-        uses: actions/checkout@v5
+      # No third-party action runs in this job, because it can write to the repository.
+      - name: Get the checked ZIP
+        uses: actions/download-artifact@v6
+        with:
+          name: plugin-zip
 
-      # No third-party action runs in this job, because it can write to the
-      # repository: the runner image's own PHP is enough to read version.php.
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          RELEASE: ${{ needs.package.outputs.release }}
+          VERSION: ${{ needs.package.outputs.version }}
+          TAG: ${{ needs.package.outputs.tag }}
+          ZIP: ${{ needs.package.outputs.zip }}
         run: |
           set -euo pipefail
-          php --version | head -n 1
-          # version.php needs the constants Moodle defines before it reads the file.
-          release=$(php -r '
-            define("MOODLE_INTERNAL", true);
-            define("MATURITY_ALPHA", 50);
-            define("MATURITY_BETA", 100);
-            define("MATURITY_RC", 150);
-            define("MATURITY_STABLE", 200);
-            $plugin = new stdClass();
-            require "version.php";
-            echo $plugin->release ?? "";
-          ')
-          # "1.3.0-beta6 (Build: 2026111000)" -> tag v1.3.0-beta6.
-          version=${release%% *}
-          if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
-            echo "::error file=version.php::\$plugin->release '$release' does not start with a version such as 1.2.3 or 1.2.3-beta1."
-            exit 1
-          fi
-          tag="v$version"
-          if gh release view "$tag" > /dev/null 2>&1; then
-            echo "::notice::Release $tag already exists, so nothing is published. Change \$plugin->release in version.php for a new release."
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::notice::Release $TAG already exists, so nothing is published. Change \$plugin->release in version.php for a new release."
             exit 0
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
-            echo "::error::Tag $tag exists but has no release. Delete the tag or create the release by hand."
+          if gh api "repos/$GH_REPO/git/ref/tags/$TAG" > /dev/null 2>&1; then
+            echo "::error::Tag $TAG exists but has no release. Delete the tag or create the release by hand."
             exit 1
           fi
           # A version with a suffix such as -beta6 or -rc1 is a pre-release.
-          if [[ $version == *-* ]]; then set -- --prerelease; else set --; fi
-          notes="Release \`$release\` from \`version.php\`. The changes are listed in [CHANGELOG.md](https://github.com/$GITHUB_REPOSITORY/blob/$tag/CHANGELOG.md)."
-          gh release create "$tag" --target "$GITHUB_SHA" --title "$release" --notes "$notes" --generate-notes "$@"
-          echo "::notice::Published release $tag ($release) for $GITHUB_SHA."
+          if [[ $VERSION == *-* ]]; then set -- --prerelease; else set --; fi
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          notes="Install \`$ZIP\` through Site administration > Plugins > Install plugins > Install plugin from ZIP file. [CI]($run_url) installed this ZIP on fresh Moodle sites before publishing it.
+
+          Release \`$RELEASE\` from \`version.php\`. The changes are listed in [CHANGELOG.md]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$TAG/CHANGELOG.md)."
+          gh release create "$TAG" "$ZIP" --target "$GITHUB_SHA" --title "$RELEASE" --notes "$notes" --generate-notes "$@"
+          echo "::notice::Published release $TAG ($RELEASE) with $ZIP for $GITHUB_SHA."
