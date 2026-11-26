@@ -98,10 +98,17 @@ class attempt_manager {
      * @param string $path Temporary path of the uploaded file.
      * @param string $originalname File name as sent by the browser (gives the format).
      * @param int $duration Length in seconds reported by the browser, 0 if unknown.
+     * @param int $videoid The submitted video this audio was taken from, 0 for a practice recording.
      * @return \stdClass The attempt record.
      * @throws \moodle_exception When the file is empty, too large or not audio we can send.
      */
-    public function create_attempt(int $userid, string $path, string $originalname, int $duration = 0): \stdClass {
+    public function create_attempt(
+        int $userid,
+        string $path,
+        string $originalname,
+        int $duration = 0,
+        int $videoid = 0
+    ): \stdClass {
         global $DB;
 
         $size = is_readable($path) ? filesize($path) : 0;
@@ -121,6 +128,7 @@ class attempt_manager {
         $attempt = (object)[
             'videoassessment' => $this->va->id,
             'userid' => $userid,
+            'videoid' => $videoid,
             'attempt' => $last + 1,
             'status' => self::STATUS_QUEUED,
             'duration' => max(0, $duration),
@@ -141,6 +149,184 @@ class attempt_manager {
 
         self::queue_task($attempt);
 
+        return $attempt;
+    }
+
+    /**
+     * Queue a submitted video for AI feedback, if the activity asks for it.
+     *
+     * Safe to call more than once and before the conversion has finished:
+     * {@see self::process_video()} skips what it cannot or need not do.
+     *
+     * @param \stdClass $va The videoassessment record.
+     * @param int $videoid The video.
+     * @param int $userid The learner it is associated with.
+     * @return void
+     */
+    public static function queue_video(\stdClass $va, int $videoid, int $userid): void {
+        if (empty($va->aifeedback) || empty($va->aifeedbackauto) || !$userid) {
+            return;
+        }
+        $task = new \mod_videoassessment\task\process_video_ai_feedback();
+        $task->set_custom_data(['videoassessment' => (int)$va->id, 'videoid' => $videoid, 'userid' => $userid]);
+        \core\task\manager::queue_adhoc_task($task, true);
+    }
+
+    /**
+     * Queue a learner's submitted videos, for when they accept the AI policy.
+     *
+     * @param \stdClass $va The videoassessment record.
+     * @param int $userid The learner.
+     * @return void
+     */
+    public static function queue_user_videos(\stdClass $va, int $userid): void {
+        global $DB;
+        $assocs = $DB->get_records('videoassessment_video_assocs', [
+            'videoassessment' => $va->id,
+            'associationtype' => 1,
+            'associationid' => $userid,
+        ]);
+        foreach ($assocs as $assoc) {
+            self::queue_video($va, (int)$assoc->videoid, $userid);
+        }
+    }
+
+    /**
+     * Send the sound of a learner's submitted video for AI feedback.
+     *
+     * Only the audio leaves the site. Nothing happens unless the learner has
+     * accepted the AI policy, the video is theirs, and it has not been sent
+     * before. The sound is taken from the original upload while the video is
+     * still converting, so the learner's transcript does not wait for the
+     * conversion, which takes about as long as the video.
+     *
+     * @param int $videoid The video.
+     * @param int $userid The learner.
+     * @return \stdClass|null The attempt, or null if nothing was to be done.
+     */
+    public function process_video(int $videoid, int $userid): ?\stdClass {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
+
+        if (!$this->is_enabled() || empty($this->va->aifeedbackauto) || !self::site_ready()) {
+            return null;
+        }
+        // The task queued at upload and the one queued after the conversion may run at the same time.
+        $lock = \core\lock\lock_config::get_lock_factory('mod_videoassessment_aifeedback')
+            ->get_lock('video' . $videoid . '-' . $userid, 0);
+        if (!$lock) {
+            return null;
+        }
+        try {
+            $key = ['videoassessment' => $this->va->id, 'videoid' => $videoid];
+            $assocs = $DB->get_records('videoassessment_video_assocs', $key + ['associationid' => $userid]);
+            if (
+                !$assocs
+                || $DB->record_exists(self::TABLE, $key + ['userid' => $userid])
+                || !self::video_accepted($userid, (bool)array_filter(array_column($assocs, 'teacherupload')))
+            ) {
+                return null;
+            }
+            $video = $DB->get_record('videoassessment_videos', ['id' => $videoid]);
+            $source = $video ? $this->video_source($video) : null;
+            if (!$source) {
+                return null;
+            }
+
+            $audio = make_request_directory() . '/audio.m4a';
+            try {
+                if (!\videoassessment_bulkupload::extract_audio($source['path'], $audio)) {
+                    // Another process removes the upload, so PHP's cached is_file() answer may be stale.
+                    clearstatcache(true, $source['path']);
+                    if (!$source['copy'] && !file_exists($source['path'])) {
+                        // The conversion finished and removed the upload meanwhile; its own task takes over.
+                        return null;
+                    }
+                    throw new \moodle_exception('aifb_error_noaudio', 'videoassessment');
+                }
+                $attempt = $this->create_attempt($userid, $audio, 'audio.m4a', 0, $videoid);
+            } catch (\moodle_exception $e) {
+                return $this->record_failed_video($videoid, $userid, get_string($e->errorcode, $e->module, $e->a));
+            } finally {
+                if ($source['copy']) {
+                    @unlink($source['path']);
+                }
+            }
+        } finally {
+            $lock->release();
+        }
+        return self::process_attempt((int)$attempt->id);
+    }
+
+    /**
+     * The file to read a submitted video's sound from.
+     *
+     * The converted video once it is stored. Until then, the original upload
+     * that the conversion works from, as long as it is still there.
+     *
+     * @param \stdClass $video The videoassessment_videos record.
+     * @return array|null ['path' => string, 'copy' => bool]; copy means a temp copy the caller deletes.
+     *     Null for external links and videos with no file left.
+     */
+    private function video_source(\stdClass $video): ?array {
+        if ($video->tmpname === 'Youtube') {
+            return null;
+        }
+        if ((string)$video->filename !== '') {
+            $file = get_file_storage()->get_file(
+                $this->context->id,
+                'mod_videoassessment',
+                'video',
+                0,
+                $video->filepath,
+                $video->filename
+            );
+            return $file ? ['path' => $file->copy_content_to_temp(), 'copy' => true] : null;
+        }
+        $upload = make_temp_directory('videoassessment/' . $this->context->instanceid) . '/upload/' . $video->tmpname;
+        return (string)$video->tmpname !== '' && is_file($upload) ? ['path' => $upload, 'copy' => false] : null;
+    }
+
+    /**
+     * Whether a learner's submitted video may go to the AI.
+     *
+     * Either the learner accepted the AI policy, or a teacher uploaded the video
+     * and the site counts that as accepted. The latter records nothing on the
+     * learner's behalf, so they still have to accept to use the practice page.
+     *
+     * @param int $userid The learner.
+     * @param bool $teacherupload Whether a teacher submitted the video for them.
+     * @return bool
+     */
+    private static function video_accepted(int $userid, bool $teacherupload): bool {
+        return \core_ai\manager::get_user_policy_status($userid)
+            || ($teacherupload && get_config('videoassessment', 'aifbteacherconsent'));
+    }
+
+    /**
+     * Leave a failed attempt for a video whose sound could not be sent, so that it does not fail silently.
+     *
+     * @param int $videoid The video.
+     * @param int $userid The learner.
+     * @param string $message Why it failed.
+     * @return \stdClass The attempt record.
+     */
+    private function record_failed_video(int $videoid, int $userid, string $message): \stdClass {
+        global $DB;
+        $now = time();
+        $last = (int)$DB->get_field(self::TABLE, 'MAX(attempt)', ['videoassessment' => $this->va->id, 'userid' => $userid]);
+        $attempt = (object)[
+            'videoassessment' => $this->va->id,
+            'userid' => $userid,
+            'videoid' => $videoid,
+            'attempt' => $last + 1,
+            'status' => self::STATUS_FAILED,
+            'duration' => 0,
+            'errormessage' => $message,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ];
+        $attempt->id = $DB->insert_record(self::TABLE, $attempt);
         return $attempt;
     }
 
@@ -175,6 +361,8 @@ class attempt_manager {
             }
 
             self::set_status($attempt, self::STATUS_PROCESSING);
+            $va = null;
+            $cm = null;
             try {
                 $va = $DB->get_record('videoassessment', ['id' => $attempt->videoassessment], '*', MUST_EXIST);
                 $cm = get_coursemodule_from_instance('videoassessment', $va->id, 0, false, MUST_EXIST);
@@ -214,9 +402,68 @@ class attempt_manager {
                 $attempt->errormessage = $message . ($detail !== '' ? self::DETAIL_SEPARATOR . $detail : '');
                 self::set_status($attempt, self::STATUS_FAILED);
             }
+            if ($va && $cm) {
+                self::notify_learner($attempt, $va, $cm);
+            }
             return $attempt;
         } finally {
             $lock->release();
+        }
+    }
+
+    /**
+     * Send the learner the transcript of their submitted video, with the AI's comments.
+     *
+     * Only for submitted videos: a practice recording is made on the page
+     * where its feedback appears. A transcript is sent even when the AI could
+     * not comment on it. It goes out as a Moodle notification, which learners
+     * get by email unless they changed their notification preferences.
+     *
+     * @param \stdClass $attempt The attempt, after processing.
+     * @param \stdClass $va The videoassessment record.
+     * @param \stdClass|\cm_info $cm Its course module.
+     * @return bool Whether a notification was sent.
+     */
+    public static function notify_learner(\stdClass $attempt, \stdClass $va, $cm): bool {
+        if (empty($attempt->videoid) || trim((string)$attempt->transcript) === '') {
+            return false;
+        }
+        $learner = \core_user::get_user((int)$attempt->userid);
+        if (!$learner || !empty($learner->deleted) || !empty($learner->suspended)) {
+            return false;
+        }
+        // Cron or a teacher's browser may run this, so write in the learner's language.
+        $language = force_current_language((string)$learner->lang);
+        try {
+            $course = get_course($va->course);
+            $url = new \moodle_url('/mod/videoassessment/aifeedback.php', ['id' => $cm->id]);
+            $content = email_content::build($attempt, (object)[
+                'activity' => format_string($va->name, true, ['context' => \context_module::instance($cm->id)]),
+                'course' => format_string($course->fullname, true, ['context' => \context_course::instance($course->id)]),
+                'url' => $url->out(false),
+            ]);
+
+            $message = new \core\message\message();
+            $message->component = 'mod_videoassessment';
+            $message->name = 'aifeedback';
+            $message->userfrom = \core_user::get_noreply_user();
+            $message->userto = $learner;
+            $message->courseid = (int)$course->id;
+            $message->subject = $content->subject;
+            $message->fullmessage = $content->text;
+            $message->fullmessageformat = FORMAT_PLAIN;
+            $message->fullmessagehtml = $content->html;
+            $message->smallmessage = $content->subject;
+            $message->notification = 1;
+            $message->contexturl = $url->out(false);
+            $message->contexturlname = get_string('aifeedback', 'videoassessment');
+            return (bool)message_send($message);
+        } catch (\Throwable $e) {
+            // The feedback is saved and shown on the page; a mail problem must not undo that.
+            debugging('AI feedback notification failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return false;
+        } finally {
+            force_current_language($language);
         }
     }
 
@@ -312,6 +559,78 @@ class attempt_manager {
     }
 
     /**
+     * What each learner has on its way to AI feedback, for the teacher's overview.
+     *
+     * A submitted video has no attempt until it is converted and its task has
+     * run, so those are counted from the video itself. A converted video with
+     * no queued task is left out, because nothing is coming for it.
+     *
+     * @return \stdClass[] Keyed by user id, for learners with anything to report: analysing
+     *     (attempts queued or running), videos (submitted videos on their way, with no
+     *     attempt yet) and consent (submitted videos waiting for the learner's acceptance).
+     */
+    public function get_pending_counts(): array {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/mod/videoassessment/bulkupload/lib.php');
+
+        $counts = [];
+        $add = function (int $userid, string $field, int $number = 1) use (&$counts): void {
+            $counts[$userid] = $counts[$userid] ?? (object)['analysing' => 0, 'videos' => 0, 'consent' => 0];
+            $counts[$userid]->$field += $number;
+        };
+
+        $rows = $DB->get_records_sql(
+            "SELECT userid, COUNT(1) AS total
+               FROM {" . self::TABLE . "}
+              WHERE videoassessment = :va AND status IN (:queued, :processing)
+           GROUP BY userid",
+            ['va' => $this->va->id, 'queued' => self::STATUS_QUEUED, 'processing' => self::STATUS_PROCESSING]
+        );
+        foreach ($rows as $row) {
+            $add((int)$row->userid, 'analysing', (int)$row->total);
+        }
+
+        if (!$this->is_enabled() || empty($this->va->aifeedbackauto) || !self::site_ready()) {
+            return $counts;
+        }
+
+        $queued = [];
+        foreach (\core\task\manager::get_adhoc_tasks(\mod_videoassessment\task\process_video_ai_feedback::class) as $task) {
+            $data = $task->get_custom_data();
+            if ((int)$data->videoassessment === (int)$this->va->id) {
+                $queued[$data->videoid . '-' . $data->userid] = true;
+            }
+        }
+        $rows = $DB->get_records_sql(
+            "SELECT a.id, a.associationid, a.teacherupload, v.id AS videoid, v.tmpname, v.filename, v.timecreated
+               FROM {videoassessment_video_assocs} a
+               JOIN {videoassessment_videos} v ON v.id = a.videoid
+          LEFT JOIN {" . self::TABLE . "} t ON t.videoid = v.id AND t.userid = a.associationid
+              WHERE a.videoassessment = :va AND a.associationtype = :type AND v.tmpname <> :link AND t.id IS NULL",
+            ['va' => $this->va->id, 'type' => '1', 'link' => 'Youtube']
+        );
+        // A video can be associated for both timings, but is analysed once per learner.
+        $videos = [];
+        foreach ($rows as $row) {
+            $key = $row->videoid . '-' . $row->associationid;
+            $row->teacherupload = !empty($row->teacherupload) || !empty($videos[$key]->teacherupload);
+            $videos[$key] = $row;
+        }
+        foreach ($videos as $key => $video) {
+            $converting = (string)$video->filename === '';
+            if ($converting && \videoassessment_bulkupload::conversion_failed((int)$this->context->instanceid, $video)) {
+                continue;
+            }
+            if (!self::video_accepted((int)$video->associationid, $video->teacherupload)) {
+                $add((int)$video->associationid, 'consent');
+            } else if ($converting || isset($queued[$key])) {
+                $add((int)$video->associationid, 'videos');
+            }
+        }
+        return $counts;
+    }
+
+    /**
      * Record that the learner has seen the finished feedback.
      *
      * @param \stdClass $attempt The attempt.
@@ -389,6 +708,25 @@ class attempt_manager {
             $fs->delete_area_files($contextid, 'mod_videoassessment', self::FILEAREA, $attemptid);
         }
         $DB->delete_records_select(self::TABLE, $where, $params);
+    }
+
+    /**
+     * Remove the attempts made from a submitted video, when the video is deleted.
+     *
+     * @param int $vaid The activity.
+     * @param int $contextid Its module context (for the files).
+     * @param int $videoid The video.
+     * @param int|null $userid Only this learner; null for everyone who shares the video.
+     * @return void
+     */
+    public static function delete_video_attempts(int $vaid, int $contextid, int $videoid, ?int $userid = null): void {
+        global $DB;
+        $where = ['videoassessment' => $vaid, 'videoid' => $videoid] + ($userid === null ? [] : ['userid' => $userid]);
+        $fs = get_file_storage();
+        foreach ($DB->get_fieldset('videoassessment_aifb_attempts', 'id', $where) as $attemptid) {
+            $fs->delete_area_files($contextid, 'mod_videoassessment', self::FILEAREA, $attemptid);
+        }
+        $DB->delete_records(self::TABLE, $where);
     }
 
     /**

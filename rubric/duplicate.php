@@ -165,7 +165,8 @@ if ($data = $dform->get_data()) {
     } catch (Exception $e) {
         $transaction->rollback($e);
     }
-} else { // Default page.
+} else {
+    // Default page.
     echo $OUTPUT->header();
     echo $OUTPUT->heading(get_string('duplicaterubric', 'videoassessment'));
     $readylabel = get_string('readyforuse', 'videoassessment');

@@ -26,13 +26,7 @@ define(['jquery', 'core/log'], function($, log) {
 
     const PROGRESS_INTERVAL = 1000;
     const conf = {parallels: 2};
-    const str = {
-        error: "Error",
-        queued: "Queued",
-        uploading: "Uploading",
-        converting: "Converting",
-        complete: "Complete"
-    };
+    const str = {};
 
     /**
      * DOM helper to get element by ID.
@@ -159,6 +153,10 @@ define(['jquery', 'core/log'], function($, log) {
                 log.debug('Unsupported browser for file upload.');
                 return;
             }
+            // Status labels; bulkupload/index.php loads these strings for the page.
+            ['error', 'queued', 'uploading', 'converting', 'complete'].forEach((name) => {
+                str[name] = M.util.get_string('bulkstatus_' + name, 'mod_videoassessment');
+            });
             $('#not_supported_browser').hide();
 
             const tasklist = get("tasklist");

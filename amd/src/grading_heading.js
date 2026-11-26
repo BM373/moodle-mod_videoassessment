@@ -65,13 +65,14 @@ define(['jquery'], function($) {
                     isRubric = methodSelect.val() === 'rubric';
                 } else {
                     // Check URL or page content for rubric indication.
+                    var rubricName = M.util.get_string('pluginname', 'gradingform_rubric').toLowerCase();
                     isRubric = window.location.href.indexOf('method=rubric') !== -1 ||
-                              $('body').text().toLowerCase().indexOf('rubric') !== -1;
+                              $('body').text().toLowerCase().indexOf(rubricName) !== -1;
                 }
 
-                // Change heading if rubric is used and heading is "Advanced grading".
-                if (isRubric && heading.text().trim() === 'Advanced grading') {
-                    heading.text('Create or select rubric');
+                // Change heading if rubric is used and heading is the core "Advanced grading".
+                if (isRubric && heading.text().trim() === M.util.get_string('gradingmanagement', 'core_grading')) {
+                    heading.text(M.util.get_string('createorselectrubric', 'mod_videoassessment'));
                 }
             }
 

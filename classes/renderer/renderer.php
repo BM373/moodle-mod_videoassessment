@@ -336,7 +336,7 @@ class renderer extends plugin_renderer_base {
         $o = '';
         if ($va->allowsubmissionsfromdate != 0 || $va->duedate != 0 || $va->cutoffdate != 0) {
             $o .= $this->output->container_start('submissionstatustable');
-            $o .= $this->output->heading("Videoassess state info", 3);
+            $o .= $this->output->heading(get_string('stateinfo', 'videoassessment'), 3);
             $o .= $this->output->box_start('boxaligncenter submissionsummarytable');
 
             $t = new html_table();

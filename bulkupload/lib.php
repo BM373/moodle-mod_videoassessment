@@ -33,6 +33,13 @@ class videoassessment_bulkupload {
     const THUMBNAIL_FORMAT = '.jpg';
 
     /**
+     * Seconds after which a conversion that has not finished counts as failed.
+     *
+     * @var int
+     */
+    const CONVERSION_TIMEOUT = 3600;
+
+    /**
      * Course module record for this activity.
      *
      * @var \stdClass
@@ -146,58 +153,25 @@ class videoassessment_bulkupload {
         @unlink("$path.err");
         @unlink("$path.log");
 
-        $this->dispatch_async_convert($name);
+        $this->queue_conversion($name);
 
         return self::encode_filename($name);
     }
 
     /**
-     * Build the token-authenticated callback URL that runs the FFmpeg
-     * conversion for an already-registered temp file in a separate
-     * request.
+     * Queue the conversion of an uploaded temp file for cron.
      *
-     * @param string $name Temp filename inside <tempdir>/upload/.
-     * @return moodle_url
-     */
-    public function build_async_convert_url($name) {
-        $url = new moodle_url('/mod/videoassessment/bulkupload/async.php');
-        $url->param('cmid', $this->cm->id);
-        $url->param('file', $name);
-        $url->param('token', md5($name . get_site_identifier()));
-        return $url;
-    }
-
-    /**
-     * Kick off the FFmpeg conversion of an uploaded temp file in the
-     * background and return immediately.
-     *
-     * Item #3 follow-up (2026-06 feedback round): the single-video
-     * upload paths used to call convert() synchronously inside the
-     * upload POST, so the learner stared at a "never-ending uploading
-     * circle" for the whole multi-minute FFmpeg run even though the
-     * upload itself had long finished. Dispatching the conversion to
-     * async.php (the same mechanism the bulk uploader has always used)
-     * lets the POST respond as soon as the file is saved.
-     *
-     * If the fire-and-forget HTTP dispatch fails (e.g. the web server
-     * cannot reach its own wwwroot), fall back to the old synchronous
-     * conversion: slow, but the video is never silently left
-     * unconverted.
+     * The upload responds as soon as the file is saved. ffmpeg runs for
+     * minutes and never in a web request, where hosts may limit the memory so
+     * much that it cannot start. This relies on Moodle's cron running.
      *
      * @param string $name Temp filename inside <tempdir>/upload/.
      * @return void
      */
-    public function dispatch_async_convert($name) {
-        try {
-            self::async_http_get($this->build_async_convert_url($name)->out(false));
-        } catch (Exception $ex) {
-            debugging(
-                'Async convert dispatch failed, converting synchronously: '
-                    . $ex->getMessage(),
-                DEBUG_DEVELOPER
-            );
-            $this->convert($name);
-        }
+    public function queue_conversion($name) {
+        $task = new \mod_videoassessment\task\convert_uploaded_video();
+        $task->set_custom_data(['cmid' => (int)$this->cm->id, 'file' => $name]);
+        \core\task\manager::queue_adhoc_task($task, true);
     }
 
     /**
@@ -311,6 +285,51 @@ class videoassessment_bulkupload {
     }
 
     /**
+     * Whether an unconverted video will never be converted.
+     *
+     * convert() leaves an .err file when it fails. Without its source file a
+     * video cannot be converted any more, and a conversion still unfinished
+     * after {@see self::CONVERSION_TIMEOUT} means cron is not getting to it.
+     *
+     * @param int $cmid Course module id.
+     * @param \stdClass $video The videoassessment_videos record.
+     * @return bool
+     */
+    public static function conversion_failed(int $cmid, \stdClass $video): bool {
+        $tempdir = make_temp_directory('videoassessment/' . $cmid);
+        $base = pathinfo($video->tmpname, PATHINFO_FILENAME);
+        return file_exists($tempdir . '/convert/' . $base . '.err')
+            || !file_exists($tempdir . '/upload/' . $video->tmpname)
+            || time() - (int)$video->timecreated > self::CONVERSION_TIMEOUT;
+    }
+
+    /**
+     * Save only the sound of a video as an AAC file.
+     *
+     * The ffmpeg program is the first word of the site's conversion command.
+     *
+     * @param string $src Path of the video.
+     * @param string $dst Path of the audio file to write (.m4a).
+     * @return bool Whether an audio file was written.
+     */
+    public static function extract_audio(string $src, string $dst): bool {
+        global $CFG;
+
+        $program = strtok(trim((string)($CFG->videoassessment_ffmpegcommand ?? '')), ' ');
+        if ($program === false || stripos($program, 'ffmpeg') === false) {
+            return false;
+        }
+        $cmdline = sprintf(
+            '%s -y -i %s -vn -ac 1 -c:a aac -b:a 64k %s > %s 2>&1',
+            escapeshellcmd($program),
+            escapeshellarg($src),
+            escapeshellarg($dst),
+            escapeshellarg($dst . '.log')
+        );
+        return self::exec_nolimit($cmdline) === 0 && is_file($dst) && filesize($dst) > 0;
+    }
+
+    /**
      * Create necessary temporary directories for upload and conversion.
      *
      * @return void
@@ -420,6 +439,16 @@ class videoassessment_bulkupload {
         $video->timemodified = time();
 
         $DB->update_record('videoassessment_videos', $video);
+
+        // A learner's video can be associated before its conversion finishes.
+        $assocs = $DB->get_records('videoassessment_video_assocs', ['videoid' => $video->id, 'associationtype' => 1]);
+        foreach ($assocs as $assoc) {
+            \mod_videoassessment\aifeedback\attempt_manager::queue_video(
+                $this->assessment,
+                (int)$video->id,
+                (int)$assoc->associationid
+            );
+        }
     }
 
     /**
@@ -662,40 +691,6 @@ class videoassessment_bulkupload {
             return 0.0;
         }
         return null;
-    }
-
-    /**
-     * Send asynchronous HTTP GET request without waiting for response.
-     *
-     * Opens socket connection, sends request, and closes immediately.
-     * Used to trigger background processing without blocking.
-     *
-     * @param string $url Target URL to request
-     * @throws \Exception If socket connection fails
-     */
-    private static function async_http_get($url) {
-        $parts = parse_url($url);
-        $scheme = $parts['scheme'] ?? 'http';
-        $host   = $parts['host'] ?? '';
-        $port   = $parts['port'] ?? null;
-        $path   = $parts['path'] ?? '/';
-        $query  = $parts['query'] ?? null;
-
-        $ssl = $scheme === 'https';
-        if (empty($port)) {
-            $port = $ssl ? 443 : 80;
-        }
-        $req = $path . (isset($query) ? "?$query" : '');
-        $sock = fsockopen($ssl ? "ssl://$host" : $host, $port, $errno, $errstr);
-        if (!$sock) {
-            throw new \Exception($errstr);
-        }
-        stream_set_blocking($sock, false);
-        fwrite($sock, "GET $req HTTP/1.1\r\n");
-        fwrite($sock, "Host: $host\r\n");
-        fwrite($sock, "Connection: close\r\n");
-        fwrite($sock, "\r\n");
-        fclose($sock);
     }
 
     /**

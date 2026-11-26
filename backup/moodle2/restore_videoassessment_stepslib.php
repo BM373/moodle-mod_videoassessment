@@ -299,6 +299,8 @@ class restore_videoassessment_activity_structure_step extends restore_activity_s
         if (!$data->userid) {
             return;
         }
+        // Backups made before 1.3.0-beta4 have no video link.
+        $data->videoid = empty($data->videoid) ? 0 : (int)$this->get_mappingid('videoassessment_video', $data->videoid);
         if ((int)$data->status === \mod_videoassessment\aifeedback\attempt_manager::STATUS_PROCESSING) {
             $data->status = \mod_videoassessment\aifeedback\attempt_manager::STATUS_QUEUED;
         }

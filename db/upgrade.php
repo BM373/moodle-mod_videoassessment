@@ -1204,5 +1204,43 @@ function xmldb_videoassessment_upgrade($oldversion = 0) {
         upgrade_mod_savepoint(true, 2026102600, 'videoassessment');
     }
 
+    if ($oldversion < 2026110201) {
+        // AI feedback on submitted videos, switched per activity.
+        $table = new xmldb_table('videoassessment');
+        $field = new xmldb_field('aifeedbackauto', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('videoassessment_aifb_attempts');
+        $field = new xmldb_field('videoid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026110201, 'videoassessment');
+    }
+
+    if ($oldversion < 2026110202) {
+        // Whether a teacher submitted the video for the learner.
+        $table = new xmldb_table('videoassessment_video_assocs');
+        $field = new xmldb_field('teacherupload', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026110202, 'videoassessment');
+    }
+
+    if ($oldversion < 2026110203) {
+        // Web application firewalls took "[[insert link" for SQL and refused the activity form.
+        \mod_videoassessment\notification_templates::rename_insert_placeholders();
+        upgrade_mod_savepoint(true, 2026110203, 'videoassessment');
+    }
+
+    if ($oldversion < 2026110204) {
+        // Hide from learners, in the gradebook, the grades Delayed Teacher Grade hides on the activity's pages.
+        \mod_videoassessment\task\regrade_activity::queue_delayed_activities();
+        upgrade_mod_savepoint(true, 2026110204, 'videoassessment');
+    }
+
     return true;
 }

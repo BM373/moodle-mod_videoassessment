@@ -105,7 +105,7 @@ class print_page {
         $islearner = !$this->va->is_teacher();
 
         if ($userid) {
-            $users = [$DB->get_record('user', ['id' => $userid], 'id, lastname, firstname')];
+            $users = [\core_user::get_user($userid, '*', MUST_EXIST)];
         } else {
             $users = $this->va->get_students();
         }
@@ -185,7 +185,7 @@ class print_page {
                 }
 
                 // Adtis.
-                $o .= $OUTPUT->heading("General Comments");
+                $o .= $OUTPUT->heading(get_string('generalcomments', 'videoassessment'));
                 $o .= \html_writer::start_tag('div', ['class' => 'card  card-body']);
                 foreach ($this->va->gradertypes as $gradertype) {
                     if (
@@ -243,34 +243,10 @@ class print_page {
                     . \html_writer::end_tag('div');
 
                 if ($timinggrades) {
-                    $totalscore = ' ='
-                        . \html_writer::start_tag('div', ['class' => 'comment-grade'])
-                        . '<span class="comment-score-text">'
-                        . $this->va::str('totalscore')
-                        . '</span><span class="comment-score">'
-                        . (int) $usergrades->{'grade' . $timing}
-                        . '</span>'
-                        . \html_writer::end_tag('div');
-                    $fairnessbonus = '<span  class="fairness">+</span> '
-                        . \html_writer::start_tag('div', ['class' => 'comment-grade fairness'])
-                        . '<span class="comment-score-text" >'
-                        . '+' . $this->va::str('fairnessbonus')
-                        . '</span><span class="comment-score">'
-                        . (int) $usergrades->fairnessbonus
-                        . '</span>'
-                        . \html_writer::end_tag('div');
-                    $finalscore = ' = '
-                        . \html_writer::start_tag('div', ['class' => 'comment-grade'])
-                        . '<span class="comment-score-text">'
-                        . $this->va::str('finalscore')
-                        . '</span><span class="comment-score">'
-                        . (int) $usergrades->finalscore
-                        . '</span>'
-                        . \html_writer::end_tag('div');
                     $finalgradetext = get_string('grade', 'videoassessment') . ': '
                         . implode(', ', $timinggrades);
                     if (!$islearner || $this->va->is_total_visible($usergrades, $timing)) {
-                        $finalgradetext .= $totalscore . $fairnessbonus . $finalscore;
+                        $finalgradetext .= $this->va->render_total_score($usergrades, $timing);
                     }
                     $o .= $OUTPUT->container($finalgradetext, 'finalgrade');
                 }

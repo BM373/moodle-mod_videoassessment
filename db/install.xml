@@ -97,6 +97,7 @@
         <FIELD NAME="gradepass" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="gradepass_videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="aifeedback" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether learners can get AI feedback on spoken (audio-only) attempts"/>
+        <FIELD NAME="aifeedbackauto" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether submitted videos get AI feedback automatically (audio only)"/>
         <FIELD NAME="aifeedbackinstructions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The task and criteria the AI judges the speech against"/>
         <FIELD NAME="aifeedbackkeywords" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Words or phrases the learner should use, one per line"/>
         <FIELD NAME="aifeedbacklang" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="Language of the AI feedback; empty means the learner's language"/>
@@ -192,6 +193,7 @@
         <FIELD NAME="associationtype" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timing" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="associationid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="teacherupload" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when a teacher associated the video with the learner"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -257,6 +259,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="videoassessment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="videoid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The submitted video the audio was taken from; 0 for a practice recording"/>
         <FIELD NAME="attempt" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 for the learner's first attempt in this activity, then 2, 3..."/>
         <FIELD NAME="status" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 queued, 1 processing, 2 done, 3 failed"/>
         <FIELD NAME="duration" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Recording length in seconds as reported by the browser; 0 when unknown"/>

@@ -428,6 +428,36 @@ final class backup_restore_test extends \advanced_testcase {
     }
 
     /**
+     * An attempt made from a submitted video keeps its link, and restoring sends nothing to the AI.
+     */
+    public function test_aifeedback_video_link_restored(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        ['course' => $course, 'done' => $done] = $this->setup_aifeedback();
+        $videoid = $DB->insert_record('videoassessment_videos', (object)[
+            'videoassessment' => $done->videoassessment,
+            'filepath' => '/',
+            'filename' => 'clip.mp4',
+            'thumbnailname' => '',
+            'tmpname' => 'clip.mp4',
+            'originalname' => 'clip.mp4',
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $DB->set_field(attempt_manager::TABLE, 'videoid', $videoid, ['id' => $done->id]);
+
+        $newcourseid = $this->backup_and_restore($course, true);
+
+        ['va' => $newva] = $this->restored($newcourseid);
+        $newvideo = $DB->get_record('videoassessment_videos', ['videoassessment' => $newva->id], '*', MUST_EXIST);
+        $attempts = array_values($DB->get_records(attempt_manager::TABLE, ['videoassessment' => $newva->id], 'attempt'));
+        $this->assertEquals($newvideo->id, $attempts[0]->videoid);
+        $this->assertEquals(0, $attempts[1]->videoid);
+        $this->assertSame([], \core\task\manager::get_adhoc_tasks(\mod_videoassessment\task\process_video_ai_feedback::class));
+    }
+
+    /**
      * Without user data only the AI feedback settings are copied, not the attempts.
      */
     public function test_aifeedback_attempts_left_out_without_users(): void {

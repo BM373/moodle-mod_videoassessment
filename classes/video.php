@@ -88,8 +88,11 @@ class video implements \renderable {
 
         $fs = get_file_storage();
 
+        // An unconverted video has no file name, and get_file() answers an
+        // empty name with the area's folder once it holds any other video.
         if (
-            $file = $fs->get_file(
+            (string)$data->filename !== ''
+            && $file = $fs->get_file(
                 $this->context->id,
                 'mod_videoassessment',
                 'video',

@@ -59,7 +59,7 @@ class backup_videoassessment_activity_structure_step extends backup_activity_str
                 'selfbonus6', 'allowsubmissionsfromdate', 'duedate', 'cutoffdate', 'allowyoutube',
                 'allowvideoupload', 'allowvideorecord', 'autodeletefiles', 'gradepass',
                 'gradepass_videoassessment', 'aifeedback', 'aifeedbackinstructions', 'aifeedbackkeywords',
-                'aifeedbacklang', 'aitranscribelang',
+                'aifeedbacklang', 'aitranscribelang', 'aifeedbackauto',
         ]);
         $va->set_source_table('videoassessment', ['id' => backup::VAR_ACTIVITYID]);
         $va->annotate_files('mod_videoassessment', 'intro', null);
@@ -72,7 +72,7 @@ class backup_videoassessment_activity_structure_step extends backup_activity_str
 
             $videoassocs = new backup_nested_element('video_assocs');
             $videoassoc = new backup_nested_element('video_assoc', ['id'], [
-                    'videoid', 'associationtype', 'timing', 'associationid', 'timemodified']);
+                    'videoid', 'associationtype', 'timing', 'associationid', 'timemodified', 'teacherupload']);
 
             $peers = new backup_nested_element('peers');
             $peer = new backup_nested_element('peer', ['id'], ['userid', 'peerid']);
@@ -97,7 +97,7 @@ class backup_videoassessment_activity_structure_step extends backup_activity_str
 
             $aifbattempts = new backup_nested_element('aifb_attempts');
             $aifbattempt = new backup_nested_element('aifb_attempt', ['id'], [
-                    'userid', 'attempt', 'status', 'duration', 'transcript', 'feedback', 'errormessage',
+                    'userid', 'videoid', 'attempt', 'status', 'duration', 'transcript', 'feedback', 'errormessage',
                     'timecreated', 'timeprocessed', 'timeviewed', 'timemodified']);
 
             // Restore relies on this order: videos before their associations, grade items before grades.

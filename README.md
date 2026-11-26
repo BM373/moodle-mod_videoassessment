@@ -1,7 +1,7 @@
 Video Assessment
 ================
 
-Current version: **1.3.0-beta2** (Build: 2026102700)
+Current version: **1.3.0-beta6** (Build: 2026111000)
 
 Requirements
 ------------
@@ -9,6 +9,7 @@ Requirements
 * Moodle 4.5 LTS to 5.3
 * PHP 8.1 or later (8.3 recommended)
 * ffmpeg
+* Moodle cron, ideally every minute: uploaded videos are converted there, and appear after it runs
 * MP4Box (Optional - Legacy)
 
 Database: MariaDB / MySQL and PostgreSQL are both supported.
@@ -34,13 +35,22 @@ Description
 AI speech feedback (beta)
 -------------------------
 
-Since 1.3.0, learners can practise a speaking task and get written feedback
-from an AI. Only audio is used, so no video leaves the site. The feature is
-off in every activity until a teacher turns it on.
+Since 1.3.0, learners get written feedback from an AI on what they say in
+their submitted videos, and can practise a speaking task on their own. Only
+audio is used, so no video leaves the site. The feature is off in every
+activity until a teacher turns it on.
 
 ### For learners
 
-The activity page shows **Practise with AI speech feedback**. On that page
+When a learner submits a video, its sound is transcribed and the AI comments
+on the transcript. The learner gets the transcript and the comments as a
+Moodle notification, which arrives by email unless they changed their
+notification preferences. The sound is taken from the uploaded file without
+waiting for the video's conversion: on the test site, with cron every minute, a
+57-second video took 15 seconds from upload to notification. A transcript is sent even when the AI
+could not comment on it.
+
+The activity page also shows **Practise with AI speech feedback**. On that page
 the learner records in the browser (audio only) or uploads an audio file
 (webm, ogg, mp3, m4a, mp4, wav or flac). The recording is transcribed and
 the AI comments on the transcript, usually within a minute. The learner
@@ -68,6 +78,14 @@ AI feedback on their speech** and set:
 * **Language spoken**, which makes transcription more accurate.
 * **Language of the feedback**. By default each learner gets feedback in
   their own Moodle language.
+* **Also send submitted videos for AI feedback automatically** (on by default).
+  When a video file is submitted, ffmpeg extracts its sound and only the audio
+  is sent, for learners who have accepted the AI usage policy. A site setting can
+  also count uploads by teachers as accepted (off by default). This runs in an
+  ad-hoc task, so it needs cron; with cron every minute (and Moodle's default
+  keep-alive) it starts within seconds of the upload. The learner gets the
+  transcript and the AI's comments by notification, and they appear on the
+  practice page as *From the submitted video*. External video links are not analysed.
 
 Teachers who open the practice page see **Learners' attempts**: for each
 learner the number of recordings, how many have feedback, how many the

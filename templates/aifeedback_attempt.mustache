@@ -22,6 +22,7 @@
 
     Context variables required for this template:
     * id, heading, time, duration, audiourl, statuslabel, statusclass
+    * fromvideo - the audio was taken from the learner's submitted video
     * pending, failed, done, canretry, errortext, sesskey, cmid, userid
     * collapsed - older attempt: the feedback is folded away behind a summary line
     * summary, transcripthtml (escaped HTML with marks), nextstep
@@ -48,7 +49,7 @@
 <div class="card mb-3 va-aifb-attempt va-aifb-status-{{statusclass}}" data-region="aifb-attempt" data-attemptid="{{id}}">
     <div class="card-body">
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <h4 class="h5 mb-0 mr-2 me-2">{{heading}}</h4>
+            <h4 class="h5 mb-0 mr-2 me-2">{{heading}}{{#fromvideo}} <span class="badge bg-secondary">{{#str}}aifb_fromvideo, mod_videoassessment{{/str}}</span>{{/fromvideo}}</h4>
             <span class="text-muted small mr-2 me-2">{{time}}{{#duration}} · {{duration}}{{/duration}}</span>
             <span class="badge {{#done}}bg-success text-white{{/done}}{{#failed}}bg-danger text-white{{/failed}}{{#pending}}bg-info text-white{{/pending}}" data-region="aifb-status">{{statuslabel}}</span>
         </div>

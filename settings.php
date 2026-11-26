@@ -247,6 +247,14 @@ if ($ADMIN->fulltree) {
         new lang_string('aifeedbacksettings_desc', 'videoassessment')
     ));
     $settings->add(
+        new admin_setting_configcheckbox(
+            'videoassessment/aifbteacherconsent',
+            new lang_string('aifbteacherconsent', 'videoassessment'),
+            new lang_string('aifbteacherconsent_desc', 'videoassessment'),
+            0
+        )
+    );
+    $settings->add(
         new admin_setting_configselect(
             'videoassessment/aifeedbackengine',
             new lang_string('aifeedbackengine', 'videoassessment'),

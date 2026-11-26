@@ -451,6 +451,7 @@ function videoassessment_update_instance($va, $form) {
         $oldva->ratingteacher != $va->ratingteacher
         || $oldva->ratingself != $va->ratingself
         || $oldva->ratingpeer != $va->ratingpeer
+        || $oldva->delayedteachergrade != ($va->delayedteachergrade ?? $oldva->delayedteachergrade)
     ) {
         require_once($CFG->dirroot . '/mod/videoassessment/locallib.php');
 
@@ -1318,6 +1319,9 @@ function videoassessment_extend_settings_navigation($settings, navigation_node $
 
     // Always check if we're on the grading management page and change heading if needed.
     // This works even if this function is called from other contexts.
+    $PAGE->requires->string_for_js('createorselectrubric', 'mod_videoassessment');
+    $PAGE->requires->string_for_js('gradingmanagement', 'core_grading');
+    $PAGE->requires->string_for_js('pluginname', 'gradingform_rubric');
     $PAGE->requires->js_call_amd('mod_videoassessment/grading_heading', 'init');
 }
 
