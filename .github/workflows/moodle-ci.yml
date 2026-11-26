@@ -190,18 +190,15 @@ jobs:
       - name: Check out plugin code
         uses: actions/checkout@v5
 
-      - name: Set up PHP 8.3
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: none
-
+      # No third-party action runs in this job, because it can write to the
+      # repository: the runner image's own PHP is enough to read version.php.
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          php --version | head -n 1
           # version.php needs the constants Moodle defines before it reads the file.
           release=$(php -r '
             define("MOODLE_INTERNAL", true);
