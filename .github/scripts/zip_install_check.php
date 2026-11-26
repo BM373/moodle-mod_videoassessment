@@ -42,6 +42,10 @@ if (!in_array($mode, ['install', 'verify'], true) || !$configphp || !$arg) {
     fwrite(STDERR, "Usage: php zip_install_check.php install|verify <config.php> <ZIP|version>\n");
     exit(2);
 }
+// Moodle's setup changes the working directory, so resolve the ZIP's path first.
+if ($mode === 'install' && realpath($arg) !== false) {
+    $arg = realpath($arg);
+}
 require($configphp);
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/adminlib.php');

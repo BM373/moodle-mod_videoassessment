@@ -339,7 +339,7 @@ jobs:
       - name: Install the plugin from the ZIP
         run: |
           set -euo pipefail
-          php plugin/.github/scripts/zip_install_check.php install "$PWD/moodle/config.php" "zip/$ZIP"
+          php plugin/.github/scripts/zip_install_check.php install "$PWD/moodle/config.php" "$PWD/zip/$ZIP"
           php moodle/admin/cli/upgrade.php --non-interactive | tail -n 1
           php plugin/.github/scripts/zip_install_check.php verify "$PWD/moodle/config.php" "$BUILD"
           php moodle/admin/cli/check_database_schema.php
